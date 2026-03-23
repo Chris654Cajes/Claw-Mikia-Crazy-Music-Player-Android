@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="item_padding_horizontal">16dp</dimen>
+    <dimen name="icon_size_small">20dp</dimen>
+    <dimen name="icon_size_medium">24dp</dimen>
+    <dimen name="icon_size_large">40dp</dimen>
+    <dimen name="bottom_nav_height">56dp</dimen>
+    <dimen name="mini_player_height">88dp</dimen>
+    <dimen name="toolbar_height">56dp</dimen>
+</resources>

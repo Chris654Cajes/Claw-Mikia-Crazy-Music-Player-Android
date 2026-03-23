@@ -1,0 +1,5 @@
+-keep class com.musicvault.data.model.** { *; }
+-keep class com.musicvault.data.db.** { *; }
+-keepattributes Signature
+-keepattributes *Annotation*
+-dontwarn kotlin.**

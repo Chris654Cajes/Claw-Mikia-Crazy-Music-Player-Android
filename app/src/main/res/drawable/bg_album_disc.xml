@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Outer ring gradient -->
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="sweep"
+                android:startColor="@color/neon_pink"
+                android:centerColor="@color/neon_purple"
+                android:endColor="@color/neon_blue" />
+        </shape>
+    </item>
+    <!-- Inner dark disc -->
+    <item android:top="8dp" android:bottom="8dp" android:left="8dp" android:right="8dp">
+        <shape android:shape="oval">
+            <solid android:color="@color/bg_card" />
+        </shape>
+    </item>
+    <!-- Center hole -->
+    <item android:top="88dp" android:bottom="88dp" android:left="88dp" android:right="88dp">
+        <shape android:shape="oval">
+            <solid android:color="@color/bg_primary" />
+        </shape>
+    </item>
+</layer-list>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MusicVaultTheme">
+        <attr name="colorNeonPink" format="color" />
+        <attr name="colorNeonCyan" format="color" />
+        <attr name="colorNeonGreen" format="color" />
+        <attr name="colorNeonOrange" format="color" />
+        <attr name="colorBgCard" format="color" />
+        <attr name="colorBgSurface" format="color" />
+    </declare-styleable>
+</resources>

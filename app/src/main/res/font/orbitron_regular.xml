@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  IMPORTANT: This is a placeholder font descriptor.
+  You must add the actual Orbitron font TTF files to res/font/.
+
+  Steps to add the font in Android Studio:
+  1. Right-click res/ → New → Android Resource Directory → Resource type: font
+  2. Go to Tools → Resource Manager → Font tab → + → More Fonts
+  3. Search "Orbitron" → select Regular (400) and Bold (700)
+  4. Click OK — Studio will download and name them orbitron_regular.ttf and orbitron_bold.ttf
+
+  OR manually download from: https://fonts.google.com/specimen/Orbitron
+  and place orbitron_regular.ttf and orbitron_bold.ttf in app/src/main/res/font/
+
+  Until then, the app will fall back to the system default font.
+-->
+<font-family xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <font
+        app:fontStyle="normal"
+        app:fontWeight="400"
+        app:font="@font/orbitron_regular" />
+</font-family>

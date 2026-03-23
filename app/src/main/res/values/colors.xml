@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand neons (same in both themes) -->
+    <color name="neon_pink">#FA024D</color>
+    <color name="neon_purple">#AB02FA</color>
+    <color name="neon_blue">#1E00FF</color>
+    <color name="neon_cyan">#00E5FF</color>
+    <color name="neon_green">#00FF00</color>
+    <color name="neon_green_alt">#11FF00</color>
+    <color name="neon_yellow">#EEFF00</color>
+    <color name="neon_orange">#FF6F00</color>
+    <color name="neon_red">#FF0000</color>
+
+    <!-- Transparent neons for backgrounds -->
+    <color name="neon_pink_20">#33FA024D</color>
+    <color name="neon_pink_10">#1AFA024D</color>
+    <color name="neon_green_20">#3300FF00</color>
+    <color name="neon_orange_20">#33FF6F00</color>
+    <color name="neon_cyan_20">#3300E5FF</color>
+    <color name="neon_purple_20">#33AB02FA</color>
+
+    <!-- Dark theme surfaces -->
+    <color name="dark_bg_primary">#0A0A0F</color>
+    <color name="dark_bg_surface">#12121A</color>
+    <color name="dark_bg_card">#1A1A26</color>
+    <color name="dark_text_primary">#F0F0FF</color>
+    <color name="dark_text_secondary">#8888AA</color>
+    <color name="dark_text_hint">#44445A</color>
+    <color name="dark_divider">#1E1E2E</color>
+
+    <!-- Light theme surfaces -->
+    <color name="light_bg_primary">#F0F0F8</color>
+    <color name="light_bg_surface">#FFFFFF</color>
+    <color name="light_bg_card">#F5F5FF</color>
+    <color name="light_text_primary">#0A0A1A</color>
+    <color name="light_text_secondary">#555566</color>
+    <color name="light_text_hint">#AAAACC</color>
+    <color name="light_divider">#DEDEFF</color>
+
+    <!-- Semantic aliases (resolved per theme in attrs) -->
+    <color name="bg_primary">@color/dark_bg_primary</color>
+    <color name="bg_surface">@color/dark_bg_surface</color>
+    <color name="bg_card">@color/dark_bg_card</color>
+    <color name="text_primary">@color/dark_text_primary</color>
+    <color name="text_secondary">@color/dark_text_secondary</color>
+    <color name="text_hint">@color/dark_text_hint</color>
+    <color name="divider_color">@color/dark_divider</color>
+    <color name="seekbar_bg">#2A2A3A</color>
+    <color name="icon_music">#8888AA</color>
+
+    <!-- Gradient stops -->
+    <color name="grad_start">#FA024D</color>
+    <color name="grad_mid">#AB02FA</color>
+    <color name="grad_end">#1E00FF</color>
+</resources>

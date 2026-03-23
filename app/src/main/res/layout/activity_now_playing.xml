@@ -1,0 +1,445 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary"
+    android:fitsSystemWindows="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="52dp"
+        android:paddingBottom="40dp">
+
+        <!-- Header row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="4dp"
+            android:paddingEnd="12dp">
+
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_chevron_down"
+                android:tint="@color/text_secondary"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Back" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="NOW PLAYING"
+                android:textSize="13sp"
+                android:letterSpacing="0.16"
+                android:fontFamily="@font/orbitron_bold"
+                android:textColor="@color/text_primary"
+                android:gravity="center" />
+
+            <ImageButton
+                android:id="@+id/btnFavorite"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_heart_outline"
+                android:tint="@color/neon_pink"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Favorite" />
+
+        </LinearLayout>
+
+        <!-- Album art area (decorative gradient disc) -->
+        <FrameLayout
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp">
+
+            <View
+                android:layout_width="220dp"
+                android:layout_height="220dp"
+                android:background="@drawable/bg_album_disc" />
+
+            <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/ic_music_note"
+                android:tint="@color/neon_pink"
+                android:layout_gravity="center"
+                android:alpha="0.9" />
+
+        </FrameLayout>
+
+        <!-- Song info -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Song Title"
+            android:textSize="20sp"
+            android:fontFamily="@font/orbitron_bold"
+            android:textColor="@color/text_primary"
+            android:gravity="center"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/tvArtist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Artist"
+            android:textSize="13sp"
+            android:fontFamily="@font/orbitron_regular"
+            android:textColor="@color/neon_cyan"
+            android:gravity="center"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/tvFolder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="10sp"
+            android:fontFamily="@font/orbitron_regular"
+            android:textColor="@color/text_hint"
+            android:gravity="center"
+            android:layout_marginTop="2dp" />
+
+        <!-- Playback seekbar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:layout_marginTop="24dp">
+
+            <SeekBar
+                android:id="@+id/seekPlayback"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:thumb="@drawable/seekbar_thumb"
+                android:progressTint="@color/neon_pink"
+                android:progressBackgroundTint="@color/seekbar_bg" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="4dp">
+
+                <TextView
+                    android:id="@+id/tvCurrentTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0:00"
+                    android:textSize="11sp"
+                    android:textColor="@color/text_secondary"
+                    android:fontFamily="@font/orbitron_regular" />
+
+                <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tvTotalTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0:00"
+                    android:textSize="11sp"
+                    android:textColor="@color/text_secondary"
+                    android:fontFamily="@font/orbitron_regular" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Playback controls -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp">
+
+            <ImageButton
+                android:id="@+id/btnPrev"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:src="@drawable/ic_skip_prev"
+                android:tint="@color/text_secondary"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/btnPlayPause"
+                android:layout_width="66dp"
+                android:layout_height="66dp"
+                android:src="@drawable/ic_play"
+                android:tint="@color/bg_primary"
+                android:background="@drawable/bg_play_button"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:contentDescription="Play/Pause" />
+
+            <ImageButton
+                android:id="@+id/btnNext"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:src="@drawable/ic_skip_next"
+                android:tint="@color/text_secondary"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+        </LinearLayout>
+
+        <!-- ═══════════════════ PITCH CARD ═══════════════════ -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="28dp"
+            app:cardBackgroundColor="@color/bg_card"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Card header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_pitch"
+                        android:tint="@color/neon_green" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="PITCH / KEY"
+                        android:textSize="11sp"
+                        android:letterSpacing="0.14"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:textColor="@color/text_primary"
+                        android:paddingStart="8dp" />
+
+                    <TextView
+                        android:id="@+id/tvPitchValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="22sp"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:textColor="@color/neon_green" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" st"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_secondary"
+                        android:fontFamily="@font/orbitron_regular" />
+
+                </LinearLayout>
+
+                <!-- Labels -6 to +6 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="-6" android:textSize="9sp"
+                        android:textColor="@color/text_hint" android:fontFamily="@font/orbitron_regular" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="-3" android:textSize="9sp"
+                        android:textColor="@color/text_hint" android:gravity="center"
+                        android:fontFamily="@font/orbitron_regular" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="0" android:textSize="9sp"
+                        android:textColor="@color/neon_green" android:gravity="center"
+                        android:fontFamily="@font/orbitron_bold" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="+3" android:textSize="9sp"
+                        android:textColor="@color/text_hint" android:gravity="center"
+                        android:fontFamily="@font/orbitron_regular" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="+6" android:textSize="9sp"
+                        android:textColor="@color/text_hint" android:gravity="end"
+                        android:fontFamily="@font/orbitron_regular" />
+
+                </LinearLayout>
+
+                <SeekBar
+                    android:id="@+id/seekPitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="12"
+                    android:progress="6"
+                    android:progressTint="@color/neon_green"
+                    android:progressBackgroundTint="@color/seekbar_bg"
+                    android:thumb="@drawable/seekbar_thumb"
+                    android:layout_marginTop="4dp" />
+
+                <Button
+                    android:id="@+id/btnPitchReset"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:text="Reset to 0"
+                    android:textSize="10sp"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:background="@drawable/bg_button_outline_green"
+                    android:textColor="@color/neon_green"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="10dp"
+                    android:stateListAnimator="@null" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- ═══════════════════ TRIM CARD ═══════════════════ -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="@color/bg_card"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- Card header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="14dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_trim"
+                        android:tint="@color/neon_orange" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="TIMELINE TRIM"
+                        android:textSize="11sp"
+                        android:letterSpacing="0.14"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:textColor="@color/text_primary"
+                        android:paddingStart="8dp" />
+
+                </LinearLayout>
+
+                <!-- Trim Start -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="START POINT"
+                    android:textSize="9sp"
+                    android:letterSpacing="0.1"
+                    android:textColor="@color/text_hint"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:layout_marginBottom="2dp" />
+
+                <SeekBar
+                    android:id="@+id/seekTrimStart"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:progressTint="@color/neon_orange"
+                    android:progressBackgroundTint="@color/seekbar_bg"
+                    android:thumb="@drawable/seekbar_thumb_orange" />
+
+                <TextView
+                    android:id="@+id/tvTrimStart"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Start: 0:00"
+                    android:textSize="11sp"
+                    android:textColor="@color/neon_orange"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="14dp" />
+
+                <!-- Trim End -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="END POINT"
+                    android:textSize="9sp"
+                    android:letterSpacing="0.1"
+                    android:textColor="@color/text_hint"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:layout_marginBottom="2dp" />
+
+                <SeekBar
+                    android:id="@+id/seekTrimEnd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:progressTint="@color/neon_red"
+                    android:progressBackgroundTint="@color/seekbar_bg"
+                    android:thumb="@drawable/seekbar_thumb_red" />
+
+                <TextView
+                    android:id="@+id/tvTrimEnd"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="End: 0:00"
+                    android:textSize="11sp"
+                    android:textColor="@color/neon_red"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="10dp" />
+
+                <Button
+                    android:id="@+id/btnTrimReset"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:text="Reset Trim"
+                    android:textSize="10sp"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:background="@drawable/bg_button_outline_orange"
+                    android:textColor="@color/neon_orange"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:layout_gravity="end"
+                    android:stateListAnimator="@null" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.MusicVault" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/neon_pink</item>
+        <item name="colorPrimaryVariant">@color/neon_purple</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorSecondary">@color/neon_cyan</item>
+        <item name="colorOnSecondary">@color/dark_bg_primary</item>
+        <item name="colorSurface">@color/bg_surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="android:colorBackground">@color/bg_primary</item>
+        <item name="colorOnBackground">@color/text_primary</item>
+        <item name="android:windowBackground">@color/bg_primary</item>
+        <item name="android:statusBarColor">@android:color/black</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:fontFamily">@font/orbitron_regular</item>
+
+        <!-- SearchView styling -->
+        <item name="searchViewStyle">@style/MusicVault.SearchView</item>
+
+        <!-- Bottom nav indicator -->
+        <item name="bottomNavigationStyle">@style/MusicVault.BottomNav</item>
+    </style>
+
+    <style name="Theme.MusicVault.Splash" parent="Theme.MusicVault">
+        <item name="android:windowBackground">@color/bg_primary</item>
+        <item name="android:windowFullscreen">false</item>
+    </style>
+
+    <style name="MusicVault.SearchView" parent="Widget.AppCompat.SearchView">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorHint">@color/text_hint</item>
+        <item name="queryBackground">@android:color/transparent</item>
+    </style>
+
+    <style name="MusicVault.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@color/bg_surface</item>
+        <item name="materialThemeOverlay">@style/MusicVault.BottomNav.Overlay</item>
+    </style>
+
+    <style name="MusicVault.BottomNav.Overlay" parent="">
+        <item name="colorSecondaryContainer">@color/neon_pink_20</item>
+    </style>
+
+    <!-- SeekBar custom style -->
+    <style name="NeonSeekBar" parent="Widget.AppCompat.SeekBar">
+        <item name="android:progressTint">@color/neon_pink</item>
+        <item name="android:thumbTint">@color/neon_pink</item>
+    </style>
+
+</resources>

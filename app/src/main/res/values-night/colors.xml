@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark theme color overrides (used when MODE_NIGHT_YES) -->
+<resources>
+    <color name="bg_primary">@color/dark_bg_primary</color>
+    <color name="bg_surface">@color/dark_bg_surface</color>
+    <color name="bg_card">@color/dark_bg_card</color>
+    <color name="text_primary">@color/dark_text_primary</color>
+    <color name="text_secondary">@color/dark_text_secondary</color>
+    <color name="text_hint">@color/dark_text_hint</color>
+    <color name="divider_color">@color/dark_divider</color>
+    <color name="seekbar_bg">#2A2A3A</color>
+    <color name="icon_music">#8888AA</color>
+</resources>

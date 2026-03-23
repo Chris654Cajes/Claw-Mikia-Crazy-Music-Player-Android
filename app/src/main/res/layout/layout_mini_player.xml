@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_mini_player"
+    android:elevation="8dp">
+
+    <!-- Progress bar at very top of panel -->
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
+        android:thumb="@drawable/seekbar_thumb_mini"
+        android:progressTint="@color/neon_pink"
+        android:progressBackgroundTint="@color/divider_color"
+        style="@style/Widget.AppCompat.SeekBar" />
+
+    <!-- Song info + controls -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="8dp">
+
+        <!-- Animated equalizer icon -->
+        <ImageView
+            android:id="@+id/ivPlayingIndicator"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@drawable/ic_equalizer"
+            android:tint="@color/neon_pink"
+            android:scaleType="centerInside" />
+
+        <!-- Title + Artist + time -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingStart="10dp"
+            android:paddingEnd="8dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No song playing"
+                android:textSize="14sp"
+                android:fontFamily="@font/orbitron_bold"
+                android:textColor="@color/text_primary"
+                android:maxLines="1"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:scrollHorizontally="true" />
+
+            <TextView
+                android:id="@+id/tvArtist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="11sp"
+                android:fontFamily="@font/orbitron_regular"
+                android:textColor="@color/text_secondary"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/tvProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:00 / 0:00"
+                android:textSize="10sp"
+                android:textColor="@color/neon_cyan"
+                android:fontFamily="@font/orbitron_regular"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+
+        <!-- Controls -->
+        <ImageButton
+            android:id="@+id/btnPrev"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:src="@drawable/ic_skip_prev"
+            android:tint="@color/neon_pink"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Previous" />
+
+        <ImageButton
+            android:id="@+id/btnPlayPause"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:src="@drawable/ic_play"
+            android:tint="@color/neon_pink"
+            android:background="@drawable/bg_play_button_mini"
+            android:contentDescription="Play/Pause"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp" />
+
+        <ImageButton
+            android:id="@+id/btnNext"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:src="@drawable/ic_skip_next"
+            android:tint="@color/neon_pink"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Next" />
+
+    </LinearLayout>
+
+</LinearLayout>
