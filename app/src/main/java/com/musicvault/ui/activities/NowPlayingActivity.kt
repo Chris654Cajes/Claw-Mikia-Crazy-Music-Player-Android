@@ -8,6 +8,7 @@ import android.os.Looper
 import android.widget.SeekBar
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.bumptech.glide.Glide
@@ -26,29 +27,36 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private var musicService: MusicService? = null
     private var song: Song? = null
+    private var songId: Long = -1
+    private var currentRepeatMode = MusicService.REPEAT_NONE
+
     private val progressHandler = Handler(Looper.getMainLooper())
     private var progressRunnable: Runnable? = null
-    private var songId: Long = -1
-
-    // Tracks current repeat mode locally so we can cycle it: NONE → ALL → ONE → NONE
-    private var currentRepeatMode = MusicService.REPEAT_NONE
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             musicService = (service as MusicService.MusicBinder).getService()
-            updateUI()
+            currentRepeatMode = musicService?.getRepeatMode() ?: MusicService.REPEAT_NONE
+            updateRepeatButton()
+            registerCallbacks()
+            syncNow()
             startProgressUpdates()
         }
-        override fun onServiceDisconnected(name: ComponentName?) {}
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            musicService = null
+        }
     }
 
     companion object {
         const val EXTRA_SONG_ID = "song_id"
-        fun start(ctx: Context, songId: Long) {
-            ctx.startActivity(Intent(ctx, NowPlayingActivity::class.java).apply {
-                putExtra(EXTRA_SONG_ID, songId)
-            })
-        }
+        fun start(ctx: Context, songId: Long) =
+            ctx.startActivity(
+                Intent(ctx, NowPlayingActivity::class.java).putExtra(
+                    EXTRA_SONG_ID,
+                    songId
+                )
+            )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,64 +66,96 @@ class NowPlayingActivity : AppCompatActivity() {
         setContentView(binding.root)
         setupSystemBars()
         songId = intent.getLongExtra(EXTRA_SONG_ID, -1)
-
         bindService(
             Intent(this, MusicService::class.java),
             serviceConnection,
-            Context.BIND_AUTO_CREATE
+            BIND_AUTO_CREATE
         )
-
         viewModel.allSongs.observe(this) { songs ->
-            // Use the service's current song id if available (handles auto-next correctly)
-            val activeSongId = musicService?.getCurrentSong()?.id ?: songId
-            val fresh = songs.firstOrNull { it.id == activeSongId }
-                ?: songs.firstOrNull { it.id == songId }
-            fresh?.let {
-                songId = it.id
-                song = it
-                populateSongData(it)
-            }
+            val id = musicService?.getCurrentSong()?.id ?: songId
+            songs.firstOrNull { it.id == id }?.let { populate(it) }
         }
-
         setupControls()
     }
 
+    override fun onResume() {
+        super.onResume()
+        musicService?.let { registerCallbacks(); syncNow(); startProgressUpdates() }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopProgressUpdates()
+    }
+
+    override fun onDestroy() {
+        stopProgressUpdates()
+        musicService?.onSongChanged = null
+        musicService?.onPlayStateChanged = null
+        unbindService(serviceConnection)
+        super.onDestroy()
+    }
+
     private fun setupSystemBars() {
-        val ctrl = WindowInsetsControllerCompat(window, window.decorView)
-        ctrl.isAppearanceLightStatusBars = false
-        ctrl.isAppearanceLightNavigationBars = false
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false; isAppearanceLightNavigationBars = false
+        }
         window.statusBarColor = android.graphics.Color.BLACK
         window.navigationBarColor = android.graphics.Color.BLACK
     }
 
-    private fun populateSongData(s: Song) {
+    private fun registerCallbacks() {
+        val svc = musicService ?: return
+        svc.onSongChanged = { s ->
+            runOnUiThread {
+                if (!isDestroyed) {
+                    songId = s.id; song = s
+                    populate(s)
+                    binding.seekPlayback.progress = 0
+                    binding.tvCurrentTime.text = formatDuration(0)
+                    // Use DB record if available (has online metadata)
+                    viewModel.allSongs.value?.firstOrNull { it.id == s.id }?.let { populate(it) }
+                    startProgressUpdates()
+                }
+            }
+        }
+        svc.onPlayStateChanged = { playing ->
+            runOnUiThread {
+                if (!isDestroyed) {
+                    binding.btnPlayPause.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play)
+                    if (playing) startProgressUpdates() else stopProgressUpdates()
+                }
+            }
+        }
+    }
+
+    private fun syncNow() {
+        val svc = musicService ?: return
+        binding.btnPlayPause.setImageResource(if (svc.isPlaying()) R.drawable.ic_pause else R.drawable.ic_play)
+        val cur = svc.getCurrentSong() ?: return
+        songId = cur.id; song = cur
+        populate(cur)
+        viewModel.allSongs.value?.firstOrNull { it.id == cur.id }?.let { populate(it) }
+    }
+
+    private fun populate(s: Song) {
+        song = s
         binding.tvTitle.text = s.title
         binding.tvArtist.text = s.artist
-        // Show album name when available, fall back to folder name
         binding.tvFolder.text = if (s.albumName.isNotBlank()) s.albumName else s.folderName
-
-        // Load album art — clear tint first so Glide renders the real image correctly
         binding.ivAlbumArt.clearColorFilter()
         if (s.albumArtUrl.isNotBlank()) {
-            Glide.with(this)
-                .load(s.albumArtUrl)
+            Glide.with(this).load(s.albumArtUrl)
                 .transition(DrawableTransitionOptions.withCrossFade())
-                .placeholder(R.drawable.ic_music_note)
-                .error(R.drawable.ic_music_note)
+                .placeholder(R.drawable.ic_music_note).error(R.drawable.ic_music_note)
                 .into(binding.ivAlbumArt)
         } else {
             Glide.with(this).clear(binding.ivAlbumArt)
             binding.ivAlbumArt.setImageResource(R.drawable.ic_music_note)
-            binding.ivAlbumArt.setColorFilter(
-                androidx.core.content.ContextCompat.getColor(this, R.color.neon_pink)
-            )
+            binding.ivAlbumArt.setColorFilter(ContextCompat.getColor(this, R.color.neon_pink))
         }
-
-        // Pitch
         binding.tvPitchValue.text = pitchLabel(s.pitchSemitones)
-        binding.seekPitch.progress = s.pitchSemitones + 6  // 0..12 where 6 = 0 semitones
-
-        // Trim
+        binding.seekPitch.progress = s.pitchSemitones + 6
         val totalDuration = s.duration
         val trimEnd = if (s.trimEnd > 0) s.trimEnd else totalDuration
         binding.seekTrimStart.max = totalDuration.toInt()
@@ -127,14 +167,21 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private fun setupControls() {
         binding.btnBack.setOnClickListener { finish() }
+        binding.btnPlayPause.setOnClickListener { musicService?.togglePlayPause() }
 
-        binding.btnPlayPause.setOnClickListener {
-            musicService?.togglePlayPause()
+        binding.btnNext.setOnClickListener {
+            binding.seekPlayback.progress = 0
+            binding.tvCurrentTime.text = formatDuration(0)
+            binding.btnPlayPause.setImageResource(R.drawable.ic_pause)
+            musicService?.skipNext()
         }
-        binding.btnNext.setOnClickListener { musicService?.skipNext() }
-        binding.btnPrev.setOnClickListener { musicService?.skipPrev() }
+        binding.btnPrev.setOnClickListener {
+            binding.seekPlayback.progress = 0
+            binding.tvCurrentTime.text = formatDuration(0)
+            binding.btnPlayPause.setImageResource(R.drawable.ic_pause)
+            musicService?.skipPrev()
+        }
 
-        // Repeat button — cycles: NONE → ALL → ONE → NONE
         binding.btnRepeat.setOnClickListener {
             currentRepeatMode = when (currentRepeatMode) {
                 MusicService.REPEAT_NONE -> MusicService.REPEAT_ALL
@@ -145,53 +192,38 @@ class NowPlayingActivity : AppCompatActivity() {
             updateRepeatButton()
         }
 
-        // Pitch seekbar (-6 to +6, displayed as 0..12)
         binding.seekPitch.max = 12
         binding.seekPitch.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
-                val semitones = progress - 6
-                binding.tvPitchValue.text = pitchLabel(semitones)
-                if (fromUser) {
-                    musicService?.applyPitchToCurrentSong(semitones)
-                }
+                binding.tvPitchValue.text = pitchLabel(progress - 6)
+                if (fromUser) musicService?.applyPitchToCurrentSong(progress - 6)
             }
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {
-                val semitones = sb.progress - 6
-                song?.let { viewModel.updatePitch(it.id, semitones) }
+                song?.let { viewModel.updatePitch(it.id, sb.progress - 6) }
             }
         })
-
         binding.btnPitchReset.setOnClickListener {
             binding.seekPitch.progress = 6
-            song?.let {
-                viewModel.updatePitch(it.id, 0)
-                musicService?.applyPitchToCurrentSong(0)
-            }
+            song?.let { viewModel.updatePitch(it.id, 0); musicService?.applyPitchToCurrentSong(0) }
         }
 
-        // Trim seekbars
         binding.seekTrimStart.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
-                val end = binding.seekTrimEnd.progress.toLong()
-                updateTrimLabels(progress.toLong(), end)
-                if (progress >= binding.seekTrimEnd.progress - 1000) {
-                    sb.progress = (binding.seekTrimEnd.progress - 1000).coerceAtLeast(0)
-                }
+            override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
+                updateTrimLabels(p.toLong(), binding.seekTrimEnd.progress.toLong())
+                if (p >= binding.seekTrimEnd.progress - 1000) sb.progress =
+                    (binding.seekTrimEnd.progress - 1000).coerceAtLeast(0)
             }
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) { saveTrim() }
         })
-
         binding.seekTrimEnd.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
-                val start = binding.seekTrimStart.progress.toLong()
-                updateTrimLabels(start, progress.toLong())
+            override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
+                updateTrimLabels(binding.seekTrimStart.progress.toLong(), p.toLong())
             }
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) { saveTrim() }
         })
-
         binding.btnTrimReset.setOnClickListener {
             song?.let { s ->
                 binding.seekTrimStart.progress = 0
@@ -201,59 +233,52 @@ class NowPlayingActivity : AppCompatActivity() {
             }
         }
 
-        // Playback seekbar
         binding.seekPlayback.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
                     val dur = musicService?.getDuration() ?: return
-                    val ms = (progress / 100f * dur).toInt()
-                    val offset = song?.trimStart?.toInt() ?: 0
-                    musicService?.seekTo(ms + offset)
+                    musicService?.seekTo(
+                        (progress / 100f * dur).toInt() + (song?.trimStart?.toInt() ?: 0)
+                    )
                 }
             }
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {}
         })
 
-        binding.btnFavorite.setOnClickListener {
-            song?.let { viewModel.toggleFavorite(it) }
-        }
+        binding.btnFavorite.setOnClickListener { song?.let { viewModel.toggleFavorite(it) } }
     }
 
-    /** Update the repeat button icon and tint to reflect current mode. */
     private fun updateRepeatButton() {
         when (currentRepeatMode) {
             MusicService.REPEAT_ALL -> {
                 binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
-                binding.btnRepeat.setColorFilter(
-                    androidx.core.content.ContextCompat.getColor(this, R.color.neon_cyan)
-                )
-                binding.tvRepeatLabel.text = "ALL"
-                binding.tvRepeatLabel.visibility = android.view.View.VISIBLE
+                binding.btnRepeat.setColorFilter(ContextCompat.getColor(this, R.color.neon_cyan))
+                binding.tvRepeatLabel.text = "ALL"; binding.tvRepeatLabel.visibility =
+                    android.view.View.VISIBLE
             }
             MusicService.REPEAT_ONE -> {
                 binding.btnRepeat.setImageResource(R.drawable.ic_repeat_one)
-                binding.btnRepeat.setColorFilter(
-                    androidx.core.content.ContextCompat.getColor(this, R.color.neon_pink)
-                )
-                binding.tvRepeatLabel.text = "1"
-                binding.tvRepeatLabel.visibility = android.view.View.VISIBLE
+                binding.btnRepeat.setColorFilter(ContextCompat.getColor(this, R.color.neon_pink))
+                binding.tvRepeatLabel.text = "1"; binding.tvRepeatLabel.visibility =
+                    android.view.View.VISIBLE
             }
             else -> {
                 binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
-                binding.btnRepeat.setColorFilter(
-                    androidx.core.content.ContextCompat.getColor(this, R.color.text_hint)
-                )
+                binding.btnRepeat.setColorFilter(ContextCompat.getColor(this, R.color.text_hint))
                 binding.tvRepeatLabel.visibility = android.view.View.INVISIBLE
             }
         }
     }
 
     private fun saveTrim() {
-        val s = song ?: return
-        val start = binding.seekTrimStart.progress.toLong()
-        val end = binding.seekTrimEnd.progress.toLong()
-        viewModel.updateTrim(s.id, start, end)
+        song?.let {
+            viewModel.updateTrim(
+                it.id,
+                binding.seekTrimStart.progress.toLong(),
+                binding.seekTrimEnd.progress.toLong()
+            )
+        }
     }
 
     private fun updateTrimLabels(start: Long, end: Long) {
@@ -261,63 +286,18 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.tvTrimEnd.text = "End: ${formatDuration(end)}"
     }
 
-    private fun pitchLabel(semitones: Int): String = when {
-        semitones > 0 -> "+$semitones"
-        else -> "$semitones"
-    }
-
-    private fun updateUI() {
-        val service = musicService ?: return
-        val playing = service.isPlaying()
-        binding.btnPlayPause.setImageResource(
-            if (playing) R.drawable.ic_pause else R.drawable.ic_play
-        )
-
-        // Sync with whatever song the service is currently playing
-        service.getCurrentSong()?.let { current ->
-            if (current.id != songId) {
-                songId = current.id
-                song = current
-                populateSongData(current)
-                viewModel.allSongs.value?.firstOrNull { it.id == current.id }?.let {
-                    song = it
-                    populateSongData(it)
-                }
-            }
-        }
-
-        service.onPlayStateChanged = { isPlaying ->
-            runOnUiThread {
-                binding.btnPlayPause.setImageResource(
-                    if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
-                )
-                if (!isPlaying) binding.seekPlayback.progress = 0
-            }
-        }
-        service.onSongChanged = { s ->
-            runOnUiThread {
-                songId = s.id
-                song = s
-                populateSongData(s)
-                binding.seekPlayback.progress = 0
-                binding.tvCurrentTime.text = formatDuration(0)
-                viewModel.allSongs.value?.firstOrNull { it.id == s.id }?.let { fresh ->
-                    song = fresh
-                    populateSongData(fresh)
-                }
-            }
-        }
-    }
+    private fun pitchLabel(s: Int) = if (s > 0) "+$s" else "$s"
 
     private fun startProgressUpdates() {
+        stopProgressUpdates()
         progressRunnable = object : Runnable {
             override fun run() {
-                val service = musicService ?: return
-                val pos = service.getPosition() - (song?.trimStart?.toInt() ?: 0)
-                val dur = service.getDuration()
+                val svc = musicService ?: return
+                val pos = svc.getPosition() - (song?.trimStart?.toInt() ?: 0)
+                val dur = svc.getDuration()
                 if (dur > 0) {
-                    val prog = ((pos.coerceAtLeast(0).toFloat() / dur) * 100).toInt()
-                    binding.seekPlayback.progress = prog.coerceIn(0, 100)
+                    binding.seekPlayback.progress =
+                        ((pos.coerceAtLeast(0).toFloat() / dur) * 100).toInt().coerceIn(0, 100)
                     binding.tvCurrentTime.text = formatDuration(pos.toLong().coerceAtLeast(0))
                     binding.tvTotalTime.text = formatDuration(dur.toLong())
                 }
@@ -327,9 +307,8 @@ class NowPlayingActivity : AppCompatActivity() {
         progressHandler.post(progressRunnable!!)
     }
 
-    override fun onDestroy() {
-        unbindService(serviceConnection)
+    private fun stopProgressUpdates() {
         progressRunnable?.let { progressHandler.removeCallbacks(it) }
-        super.onDestroy()
+        progressRunnable = null
     }
 }

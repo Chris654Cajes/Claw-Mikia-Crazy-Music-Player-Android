@@ -19,33 +19,43 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- Note icon (fallback when no album art) -->
-    <ImageView
-        android:id="@+id/ivNoteIcon"
+    <!--
+        Thumbnail container: FrameLayout holds BOTH the note icon and album art
+        at the same position. We show/hide the children — the container itself
+        is always VISIBLE, so all text constraints anchored to @id/thumbContainer
+        are always valid and never collapse.
+    -->
+    <FrameLayout
+        android:id="@+id/thumbContainer"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/ic_music_note"
-        android:tint="@color/icon_music"
-        android:background="@drawable/bg_note_icon"
-        android:padding="8dp"
         android:layout_marginStart="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/ivPlayingIndicator"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <!-- Album art overlay (loaded via Glide; shown instead of note icon) -->
-    <ImageView
-        android:id="@+id/ivAlbumArt"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:scaleType="centerCrop"
-        android:clipToOutline="true"
-        android:background="@drawable/bg_note_icon"
-        android:visibility="gone"
-        android:layout_marginStart="12dp"
-        app:layout_constraintStart_toEndOf="@id/ivPlayingIndicator"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        <!-- Note icon — shown when no album art URL -->
+        <ImageView
+            android:id="@+id/ivNoteIcon"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_note_icon"
+            android:padding="8dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_music_note"
+            android:tint="@color/icon_music" />
+
+        <!-- Album art — shown when URL is available via Glide -->
+        <ImageView
+            android:id="@+id/ivAlbumArt"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_note_icon"
+            android:clipToOutline="true"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
     <!-- Favorite button (anchored to the right) -->
     <ImageButton
@@ -59,7 +69,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- Title -->
+    <!-- Title — always anchors to thumbContainer (never collapses) -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
@@ -72,7 +82,7 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="12dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toEndOf="@id/ivNoteIcon"
+        app:layout_constraintStart_toEndOf="@id/thumbContainer"
         app:layout_constraintEnd_toStartOf="@id/btnFavorite"
         app:layout_constraintBottom_toTopOf="@id/tvArtist"
         app:layout_constraintVertical_chainStyle="packed" />
@@ -90,7 +100,7 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="1dp"
         app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        app:layout_constraintStart_toEndOf="@id/ivNoteIcon"
+        app:layout_constraintStart_toEndOf="@id/thumbContainer"
         app:layout_constraintEnd_toStartOf="@id/btnFavorite"
         app:layout_constraintBottom_toTopOf="@id/badgeRow" />
 
@@ -105,7 +115,7 @@
         android:layout_marginBottom="10dp"
         android:layout_marginTop="2dp"
         app:layout_constraintTop_toBottomOf="@id/tvArtist"
-        app:layout_constraintStart_toEndOf="@id/ivNoteIcon"
+        app:layout_constraintStart_toEndOf="@id/thumbContainer"
         app:layout_constraintEnd_toStartOf="@id/btnFavorite"
         app:layout_constraintBottom_toBottomOf="parent">
 
@@ -135,7 +145,6 @@
             android:textColor="@color/text_hint"
             android:fontFamily="@font/orbitron_regular" />
 
-        <!-- Pitch badge -->
         <TextView
             android:id="@+id/tvPitchBadge"
             android:layout_width="wrap_content"
@@ -150,7 +159,6 @@
             android:visibility="gone"
             android:layout_marginStart="6dp" />
 
-        <!-- Trim badge -->
         <ImageView
             android:id="@+id/ivTrimBadge"
             android:layout_width="14dp"
@@ -170,7 +178,7 @@
         android:alpha="0.5"
         android:layout_marginStart="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/ivNoteIcon"
+        app:layout_constraintStart_toEndOf="@id/thumbContainer"
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

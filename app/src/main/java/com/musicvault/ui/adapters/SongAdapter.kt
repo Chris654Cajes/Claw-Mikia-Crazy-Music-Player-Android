@@ -53,7 +53,8 @@ class SongAdapter(
             binding.tvDuration.text = formatDuration(song.duration)
             binding.tvFolder.text = song.folderName
 
-            // Album art: load via Glide when URL available, show note icon as fallback
+            // Album art: thumbContainer is always visible (FrameLayout).
+            // We only toggle ivNoteIcon vs ivAlbumArt inside it.
             if (song.albumArtUrl.isNotBlank()) {
                 binding.ivAlbumArt.visibility = View.VISIBLE
                 binding.ivNoteIcon.visibility = View.GONE
@@ -87,10 +88,9 @@ class SongAdapter(
                 if (song.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
             )
 
-            // Playing indicator
+            // Playing indicator bar
             val isPlaying = song.id == currentSongId
-            binding.ivPlayingIndicator.visibility =
-                if (isPlaying) View.VISIBLE else View.INVISIBLE
+            binding.ivPlayingIndicator.visibility = if (isPlaying) View.VISIBLE else View.INVISIBLE
             binding.root.isActivated = isPlaying
 
             binding.root.setOnClickListener { onSongClick(song, list) }

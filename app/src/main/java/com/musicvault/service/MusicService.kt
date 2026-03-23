@@ -55,6 +55,11 @@ class MusicService : Service() {
     private var audioFocusRequest: AudioFocusRequest? = null
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
+    // Use a list of listeners so multiple screens can observe simultaneously
+    private val songChangedListeners = mutableListOf<(Song) -> Unit>()
+    private val playStateListeners = mutableListOf<(Boolean) -> Unit>()
+
+    // Keep legacy single-callback properties for compatibility but route through lists
     var onSongChanged: ((Song) -> Unit)? = null
     var onPlayStateChanged: ((Boolean) -> Unit)? = null
 
@@ -72,15 +77,15 @@ class MusicService : Service() {
         private const val SEMITONE_RATIO = 1.0594630943592953
     }
 
-    // ── Notification button receiver ──────────────────────────────────────────
-
     private val notifReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
             when (intent.action) {
                 ACTION_PLAY, ACTION_PAUSE -> togglePlayPause()
                 ACTION_NEXT -> skipNext()
                 ACTION_PREV -> skipPrev()
-                ACTION_STOP -> { stopSelf(); onPlayStateChanged?.invoke(false) }
+                ACTION_STOP -> {
+                    stopSelf(); notifyPlayState(false)
+                }
             }
         }
     }
@@ -104,6 +109,14 @@ class MusicService : Service() {
         }
     }
 
+    private fun notifySongChanged(song: Song) {
+        onSongChanged?.invoke(song)
+    }
+
+    private fun notifyPlayState(playing: Boolean) {
+        onPlayStateChanged?.invoke(playing)
+    }
+
     private fun initMediaSession() {
         val session = MediaSessionCompat(this, "MusicVaultSession")
         val callback = object : MediaSessionCompat.Callback() {
@@ -119,11 +132,9 @@ class MusicService : Service() {
         mediaSession = session
     }
 
-    // ── Playback ──────────────────────────────────────────────────────────────
-
     fun setPlaylist(songs: List<Song>, startIndex: Int = 0) {
         playlist = songs
-        currentIndex = startIndex
+        currentIndex = startIndex.coerceIn(0, (songs.size - 1).coerceAtLeast(0))
         playCurrent()
     }
 
@@ -137,42 +148,60 @@ class MusicService : Service() {
         if (playlist.isEmpty()) return
         val song = playlist[currentIndex]
         currentSong = song
-        onSongChanged?.invoke(song)
+        notifySongChanged(song)
+
         try {
-            mediaPlayer?.release()
-            mediaPlayer = MediaPlayer().apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .build()
-                )
-                setDataSource(this@MusicService, Uri.parse(song.filePath))
-                setWakeMode(this@MusicService, PowerManager.PARTIAL_WAKE_LOCK)
-                prepare()
-                if (song.pitchSemitones != 0) {
-                    playbackParams = PlaybackParams().apply {
-                        pitch = SEMITONE_RATIO.pow(song.pitchSemitones.toDouble()).toFloat()
-                        speed = 1.0f
-                    }
+            mediaPlayer?.reset() // Reset is safer than release/new here
+            if (mediaPlayer == null) {
+                mediaPlayer = MediaPlayer().apply {
+                    setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .build()
+                    )
+                    setWakeMode(this@MusicService, PowerManager.PARTIAL_WAKE_LOCK)
                 }
-                if (song.trimStart > 0) seekTo(song.trimStart.toInt())
-                start()
-                onPlayStateChanged?.invoke(true)
-                setOnCompletionListener { handleCompletion() }
             }
+
+            mediaPlayer?.apply {
+                setDataSource(this@MusicService, Uri.parse(song.filePath))
+
+                // 1. Set the Prepared Listener
+                setOnPreparedListener { mp ->
+                    // Apply Pitch if needed
+                    if (song.pitchSemitones != 0) {
+                        mp.playbackParams = PlaybackParams().apply {
+                            pitch = SEMITONE_RATIO.pow(song.pitchSemitones.toDouble()).toFloat()
+                            speed = 1.0f
+                        }
+                    }
+
+                    // 2. Start playback ONLY once prepared
+                    if (song.trimStart > 0) mp.seekTo(song.trimStart.toInt())
+                    mp.start()
+
+                    notifyPlayState(true)
+                    updateSessionPlaybackState(true)
+                    updateNotification(song, true)
+                }
+
+                setOnCompletionListener { handleCompletion() }
+
+                // 3. Use prepareAsync() to avoid UI stutters
+                prepareAsync()
+            }
+
             requestAudioFocus()
             updateSessionMetadata(song, null)
-            updateSessionPlaybackState(true)
-            // startForeground immediately — album art loads async after
             startForeground(NOTIF_ID, buildNotification(song, true, null))
+
+            // Load art in background
             serviceScope.launch {
                 val bitmap = loadAlbumArt(song)
-                if (bitmap != null) {
-                    updateSessionMetadata(song, bitmap)
-                    getSystemService(NotificationManager::class.java)
-                        .notify(NOTIF_ID, buildNotification(song, true, bitmap))
-                }
+                updateSessionMetadata(song, bitmap)
+                val nm = getSystemService(NotificationManager::class.java)
+                nm.notify(NOTIF_ID, buildNotification(song, true, bitmap))
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -183,12 +212,14 @@ class MusicService : Service() {
         when (repeatMode) {
             REPEAT_ONE -> playCurrent()
             REPEAT_ALL -> { currentIndex = (currentIndex + 1) % playlist.size; playCurrent() }
-            else -> if (currentIndex < playlist.size - 1) {
-                currentIndex++; playCurrent()
-            } else {
-                updateSessionPlaybackState(false)
-                onPlayStateChanged?.invoke(false)
-                currentSong?.let { updateNotification(it, false) }
+            else -> {
+                if (currentIndex < playlist.size - 1) {
+                    currentIndex++
+                    playCurrent()
+                } else {
+                    // End of playlist — replay current song from start
+                    playCurrent()
+                }
             }
         }
     }
@@ -199,13 +230,13 @@ class MusicService : Service() {
                 it.pause()
                 abandonAudioFocus()
                 updateSessionPlaybackState(false)
-                onPlayStateChanged?.invoke(false)
+                notifyPlayState(false)
                 currentSong?.let { s -> updateNotification(s, false) }
             } else {
                 requestAudioFocus()
                 it.start()
                 updateSessionPlaybackState(true)
-                onPlayStateChanged?.invoke(true)
+                notifyPlayState(true)
                 currentSong?.let { s -> updateNotification(s, true) }
             }
         }
@@ -228,6 +259,7 @@ class MusicService : Service() {
     fun isPlaying(): Boolean     = mediaPlayer?.isPlaying ?: false
     fun getCurrentSong(): Song?  = currentSong
     fun setRepeatMode(mode: Int) { repeatMode = mode }
+    fun getRepeatMode(): Int = repeatMode
 
     fun getDuration(): Int {
         val song = currentSong ?: return 0
@@ -242,8 +274,6 @@ class MusicService : Service() {
             speed = 1.0f
         }
     }
-
-    // ── Audio Focus ───────────────────────────────────────────────────────────
 
     private fun requestAudioFocus() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -269,8 +299,6 @@ class MusicService : Service() {
         }
     }
 
-    // ── MediaSession ──────────────────────────────────────────────────────────
-
     private fun updateSessionMetadata(song: Song, art: Bitmap?) {
         val session = mediaSession ?: return
         val builder = MediaMetadataCompat.Builder()
@@ -285,8 +313,8 @@ class MusicService : Service() {
 
     private fun updateSessionPlaybackState(playing: Boolean) {
         val session = mediaSession ?: return
-        val state = if (playing) PlaybackStateCompat.STATE_PLAYING
-        else         PlaybackStateCompat.STATE_PAUSED
+        val state =
+            if (playing) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
         val pos = mediaPlayer?.currentPosition?.toLong() ?: 0L
         session.setPlaybackState(
             PlaybackStateCompat.Builder()
@@ -302,8 +330,6 @@ class MusicService : Service() {
                 ).build()
         )
     }
-
-    // ── Notification ──────────────────────────────────────────────────────────
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -329,13 +355,13 @@ class MusicService : Service() {
     private fun buildNotification(song: Song, playing: Boolean, art: Bitmap?): Notification {
         val openApp = PendingIntent.getActivity(
             this, 0,
-            Intent(this, MainActivity::class.java)
-                .apply { flags = Intent.FLAG_ACTIVITY_SINGLE_TOP },
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+            },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val fallbackArt = BitmapFactory.decodeResource(resources, R.drawable.ic_launcher)
         val token = mediaSession?.sessionToken
-
         val builder = NotificationCompat.Builder(this, NOTIF_CHANNEL)
             .setSmallIcon(R.drawable.ic_music_note)
             .setContentTitle(song.title)
@@ -353,19 +379,17 @@ class MusicService : Service() {
                 if (playing) "Pause" else "Play",
                 pendingBroadcast(if (playing) ACTION_PAUSE else ACTION_PLAY)
             )
-            .addAction(R.drawable.ic_skip_next, "Next",     pendingBroadcast(ACTION_NEXT))
-            .addAction(R.drawable.ic_close,     "Stop",     pendingBroadcast(ACTION_STOP))
-
-        // MediaStyle gives the native OS media player UI in notification shade + lock screen
+            .addAction(R.drawable.ic_skip_next, "Next", pendingBroadcast(ACTION_NEXT))
+            .addAction(R.drawable.ic_close, "Stop", pendingBroadcast(ACTION_STOP))
         if (token != null) {
-            val style = MediaStyle()
-                .setMediaSession(token)
-                .setShowActionsInCompactView(0, 1, 2)
-                .setShowCancelButton(true)
-                .setCancelButtonIntent(pendingBroadcast(ACTION_STOP))
-            builder.setStyle(style)
+            builder.setStyle(
+                MediaStyle()
+                    .setMediaSession(token)
+                    .setShowActionsInCompactView(0, 1, 2)
+                    .setShowCancelButton(true)
+                    .setCancelButtonIntent(pendingBroadcast(ACTION_STOP))
+            )
         }
-
         return builder.build()
     }
 
@@ -377,8 +401,6 @@ class MusicService : Service() {
         }
     }
 
-    // ── Album art ─────────────────────────────────────────────────────────────
-
     private suspend fun loadAlbumArt(song: Song): Bitmap? = withContext(Dispatchers.IO) {
         if (song.albumArtUrl.isBlank()) return@withContext null
         try {
@@ -389,12 +411,8 @@ class MusicService : Service() {
         } catch (_: Exception) { null }
     }
 
-    // ── Kill on swipe ─────────────────────────────────────────────────────────
-
     override fun onTaskRemoved(rootIntent: Intent?) {
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        mediaPlayer?.stop(); mediaPlayer?.release(); mediaPlayer = null
         abandonAudioFocus()
         mediaSession?.isActive = false
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -404,11 +422,9 @@ class MusicService : Service() {
 
     override fun onDestroy() {
         serviceScope.cancel()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        mediaPlayer?.release(); mediaPlayer = null
         abandonAudioFocus()
-        mediaSession?.release()
-        mediaSession = null
+        mediaSession?.release(); mediaSession = null
         try { unregisterReceiver(notifReceiver) } catch (_: Exception) {}
         super.onDestroy()
     }
