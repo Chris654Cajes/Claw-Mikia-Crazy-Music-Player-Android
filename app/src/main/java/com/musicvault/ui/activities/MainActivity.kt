@@ -183,6 +183,9 @@ class MainActivity : AppCompatActivity() {
                 viewModel.setCurrentSong(song)
                 viewModel.incrementPlayCount(song.id)
                 showMusicPanel(song)
+                // Always sync play button — service is playing when it fires onSongChanged
+                updatePlayButton(true)
+                startProgressUpdates()
             }
         }
         musicService?.onPlayStateChanged = { playing ->
@@ -266,6 +269,16 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         viewModel.fetchMetadataIfOnline()
+        // Re-sync mini player with service state in case song changed while away
+        if (serviceBound) {
+            musicService?.getCurrentSong()?.let { song ->
+                val playing = musicService?.isPlaying() ?: false
+                viewModel.setCurrentSong(song)
+                showMusicPanel(song)
+                updatePlayButton(playing)
+                if (playing) startProgressUpdates() else stopProgressUpdates()
+            }
+        }
     }
 
     override fun onDestroy() {
