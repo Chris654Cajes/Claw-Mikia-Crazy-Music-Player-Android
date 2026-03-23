@@ -169,22 +169,15 @@ class MusicService : Service() {
 
                 // 1. Set the Prepared Listener
                 setOnPreparedListener { mp ->
-                    // Apply Pitch if needed
-                    if (song.pitchSemitones != 0) {
-                        mp.playbackParams = PlaybackParams().apply {
-                            pitch = SEMITONE_RATIO.pow(song.pitchSemitones.toDouble()).toFloat()
-                            speed = 1.0f
-                        }
-                    }
+                    applyPitchToCurrentSong(song.pitchSemitones) // ✅ ALWAYS APPLY
 
-                    // 2. Start playback ONLY once prepared
                     if (song.trimStart > 0) mp.seekTo(song.trimStart.toInt())
                     mp.start()
 
                     notifyPlayState(true)
                     updateSessionPlaybackState(true)
                     updateNotification(song, true)
-                }
+                }   
 
                 setOnCompletionListener { handleCompletion() }
 

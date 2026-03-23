@@ -192,6 +192,19 @@ class NowPlayingActivity : AppCompatActivity() {
             updateRepeatButton()
         }
 
+        binding.btnRewind.setOnClickListener {
+            val svc = musicService ?: return@setOnClickListener
+            val newPos = (svc.getPosition() - 5000).coerceAtLeast(0)
+            svc.seekTo(newPos)
+        }
+
+        binding.btnForward.setOnClickListener {
+            val svc = musicService ?: return@setOnClickListener
+            val duration = svc.getDuration()
+            val newPos = (svc.getPosition() + 5000).coerceAtMost(duration)
+            svc.seekTo(newPos)
+        }
+
         binding.seekPitch.max = 12
         binding.seekPitch.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
