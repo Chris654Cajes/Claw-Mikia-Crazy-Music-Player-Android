@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.SeekBar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -39,6 +40,11 @@ class MainActivity : AppCompatActivity() {
     private val progressHandler = Handler(Looper.getMainLooper())
     private var progressRunnable: Runnable? = null
 
+    // Tracks whether the mini player body (seekbar + info rows) is visible.
+    // The panel's root stays visible as long as a song is loaded; only the
+    // inner content is collapsed when the user taps the toggle button.
+    private var miniPlayerExpanded = true
+
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             musicService = (service as MusicService.MusicBinder).getService()
@@ -53,6 +59,7 @@ class MainActivity : AppCompatActivity() {
                 if (playing) startProgressUpdates()
             }
         }
+
         override fun onServiceDisconnected(name: ComponentName?) {
             serviceBound = false
         }
@@ -82,21 +89,20 @@ class MainActivity : AppCompatActivity() {
         setupNavigation()
         setupMusicPanel()
         setupSearchBar()
+        setupResetButton()
         bindToService()
         observeViewModel()
         requestNotificationPermission()
         showFragment(LibraryFragment())
-        MusicVaultApp.instance.prefs.getString(MusicVaultApp.KEY_FOLDER_URI, null)
-            ?.let { /* no rescan */ }
 
         viewModel.isPlaying.observe(this) { isPlaying ->
-            if (isPlaying) {
-                binding.musicPanel.btnPlayPause.setImageResource(R.drawable.ic_pause)
-            } else {
-                binding.musicPanel.btnPlayPause.setImageResource(R.drawable.ic_play)
-            }
+            binding.musicPanel.btnPlayPause.setImageResource(
+                if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+            )
         }
     }
+
+    // ─── System bars ────────────────────────────────────────────────────────────
 
     private fun setupSystemBars() {
         WindowInsetsControllerCompat(window, window.decorView).apply {
@@ -106,6 +112,8 @@ class MainActivity : AppCompatActivity() {
         window.statusBarColor = android.graphics.Color.BLACK
         window.navigationBarColor = android.graphics.Color.BLACK
     }
+
+    // ─── Navigation ─────────────────────────────────────────────────────────────
 
     private fun setupNavigation() {
         binding.bottomNav.setOnItemSelectedListener { item ->
@@ -122,11 +130,17 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, fragment).commit()
     }
 
+    // ─── Mini player ─────────────────────────────────────────────────────────────
+
     private fun setupMusicPanel() {
         binding.musicPanel.root.visibility = View.GONE
+
+        // Play controls
         binding.musicPanel.btnPlayPause.setOnClickListener { musicService?.togglePlayPause() }
         binding.musicPanel.btnNext.setOnClickListener { musicService?.skipNext() }
         binding.musicPanel.btnPrev.setOnClickListener { musicService?.skipPrev() }
+
+        // Seekbar scrubbing
         binding.musicPanel.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
@@ -139,10 +153,68 @@ class MainActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {}
         })
+
+        // Tap the info area (not a button) → open Now Playing
         binding.musicPanel.root.setOnClickListener {
             viewModel.currentSong.value?.let { NowPlayingActivity.start(this, it.id) }
         }
+
+        // ── Show / Hide mini player toggle ──────────────────────────────────────
+        // The toggle button collapses/expands the seekbar row and the song-info
+        // text, leaving only the playback buttons visible in the collapsed state.
+        // We do NOT hide the entire root — that would break the click-to-open
+        // gesture and the bottom-nav layout anchor.
+        binding.musicPanel.btnToggleMiniPlayer.setOnClickListener {
+            miniPlayerExpanded = !miniPlayerExpanded
+            applyMiniPlayerExpansion()
+        }
     }
+
+    /**
+     * Applies the current [miniPlayerExpanded] state to the mini player views.
+     * Collapsed: seekbar + song-info text hidden, chevron points right (→ expand).
+     * Expanded:  everything visible, chevron points down (↓ collapse).
+     */
+    private fun applyMiniPlayerExpansion() {
+        val panel = binding.musicPanel
+        val contentVis = if (miniPlayerExpanded) View.VISIBLE else View.GONE
+
+        panel.seekBar.visibility = contentVis
+        panel.ivPlayingIndicator.visibility = contentVis
+        panel.tvTitle.visibility = contentVis
+        panel.tvArtist.visibility = contentVis
+        panel.tvProgress.visibility = contentVis
+
+        panel.btnToggleMiniPlayer.setImageResource(
+            if (miniPlayerExpanded) R.drawable.ic_chevron_down
+            else R.drawable.ic_chevron_right
+        )
+        panel.btnToggleMiniPlayer.contentDescription =
+            if (miniPlayerExpanded) "Collapse mini player" else "Expand mini player"
+    }
+
+    // ─── Reset library ───────────────────────────────────────────────────────────
+
+    private fun setupResetButton() {
+        binding.btnReset.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Reset Library")
+                .setMessage(
+                    "This will remove all songs from the library database.\n\n" +
+                            "Your actual MP3 files will NOT be deleted from your device.\n\n" +
+                            "You can re-scan your folder at any time to rebuild the library."
+                )
+                .setPositiveButton("Reset") { _, _ ->
+                    // Pause playback before wiping the list
+                    if (musicService?.isPlaying() == true) musicService?.togglePlayPause()
+                    viewModel.resetLibrary()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+
+    // ─── Search ──────────────────────────────────────────────────────────────────
 
     private fun setupSearchBar() {
         binding.searchView.setOnQueryTextListener(object :
@@ -155,17 +227,18 @@ class MainActivity : AppCompatActivity() {
         binding.btnScan.setOnClickListener { folderPickerLauncher.launch(null) }
     }
 
+    // ─── Notifications ───────────────────────────────────────────────────────────
+
     private fun requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val p = android.Manifest.permission.POST_NOTIFICATIONS
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    p
-                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
-            )
-                notificationPermissionLauncher.launch(p)
+            if (ContextCompat.checkSelfPermission(this, p) !=
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) notificationPermissionLauncher.launch(p)
         }
     }
+
+    // ─── Service ─────────────────────────────────────────────────────────────────
 
     private fun bindToService() {
         val intent = Intent(this, MusicService::class.java)
@@ -193,12 +266,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ─── ViewModel observations ──────────────────────────────────────────────────
+
     private fun observeViewModel() {
         viewModel.scanStatus.observe(this) { status ->
             when (status) {
-                is MainViewModel.ScanStatus.Scanning -> binding.scanProgress.visibility =
-                    View.VISIBLE
-
+                is MainViewModel.ScanStatus.Scanning -> {
+                    binding.scanProgress.visibility = View.VISIBLE
+                }
                 is MainViewModel.ScanStatus.Success -> {
                     binding.scanProgress.visibility = View.GONE
                     showSnackbar("Found ${status.count} songs")
@@ -207,10 +282,19 @@ class MainActivity : AppCompatActivity() {
                     binding.scanProgress.visibility = View.GONE
                     showSnackbar("No MP3 files found")
                 }
+                is MainViewModel.ScanStatus.Reset -> {
+                    binding.scanProgress.visibility = View.GONE
+                    // Hide the mini player — no song is loaded any more
+                    binding.musicPanel.root.visibility = View.GONE
+                    stopProgressUpdates()
+                    showSnackbar("Library cleared. Tap the folder icon to re-scan.")
+                }
                 else -> binding.scanProgress.visibility = View.GONE
             }
         }
     }
+
+    // ─── Public API for fragments ────────────────────────────────────────────────
 
     /**
      * Entry point called by every fragment when a song row is tapped.
@@ -225,7 +309,6 @@ class MainActivity : AppCompatActivity() {
         startProgressUpdates()
         // Tell the service to play — it will fire onSongChanged which re-confirms state
         musicService?.setPlaylist(list, idx)
-
         viewModel.setPlaying(true)
     }
 
@@ -234,6 +317,8 @@ class MainActivity : AppCompatActivity() {
         binding.musicPanel.tvTitle.text = song.title
         binding.musicPanel.tvArtist.text = song.artist
         binding.musicPanel.seekBar.progress = 0
+        // Restore expansion state (in case the user had collapsed it before)
+        applyMiniPlayerExpansion()
     }
 
     fun updatePlayButton(playing: Boolean) {
@@ -241,6 +326,8 @@ class MainActivity : AppCompatActivity() {
             if (playing) R.drawable.ic_pause else R.drawable.ic_play
         )
     }
+
+    // ─── Progress updates ────────────────────────────────────────────────────────
 
     private fun startProgressUpdates() {
         stopProgressUpdates()
@@ -266,11 +353,15 @@ class MainActivity : AppCompatActivity() {
         progressRunnable = null
     }
 
+    // ─── Snackbar ────────────────────────────────────────────────────────────────
+
     private fun showSnackbar(msg: String) {
         com.google.android.material.snackbar.Snackbar
             .make(binding.root, msg, com.google.android.material.snackbar.Snackbar.LENGTH_SHORT)
             .show()
     }
+
+    // ─── Lifecycle ───────────────────────────────────────────────────────────────
 
     override fun onResume() {
         super.onResume()

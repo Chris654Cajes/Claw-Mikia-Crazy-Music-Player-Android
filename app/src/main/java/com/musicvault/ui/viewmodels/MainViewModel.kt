@@ -46,7 +46,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _scanStatus.value = ScanStatus.Scanning
             val count = repository.scanFolder(uri)
             _scanStatus.value = if (count > 0) ScanStatus.Success(count) else ScanStatus.Empty
-            // After scan, fetch metadata for new songs if online
             if (count > 0) {
                 MetadataFetcher.fetchMissingMetadata(getApplication())
             }
@@ -79,11 +78,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun getSongsByFolder(folder: String): LiveData<List<Song>> =
         repository.getSongsByFolder(folder)
 
+    /**
+     * Wipes all songs from SQLite. The actual MP3 files on the device are NOT deleted.
+     * After this completes the user can re-scan the same folder to rebuild the library.
+     */
+    fun resetLibrary() {
+        viewModelScope.launch {
+            repository.resetLibrary()
+            _currentSong.value = null
+            _isPlaying.value = false
+            _scanStatus.value = ScanStatus.Reset
+        }
+    }
+
     sealed class ScanStatus {
         object Scanning : ScanStatus()
         data class Success(val count: Int) : ScanStatus()
         object Empty : ScanStatus()
         data class Error(val msg: String) : ScanStatus()
+
+        /** Emitted after a successful library reset. */
+        object Reset : ScanStatus()
     }
 
     enum class PlaylistMode { ALL, FOLDER, FAVORITES, SEARCH }

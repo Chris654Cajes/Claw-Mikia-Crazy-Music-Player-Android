@@ -49,7 +49,16 @@
                     android:textColor="@color/text_primary"
                     android:paddingStart="10dp" />
 
-                <!-- Theme toggle -->
+                <!-- Reset library button (trash icon) -->
+                <ImageButton
+                    android:id="@+id/btnReset"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="2dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Reset library"
+                    android:src="@drawable/ic_delete"
+                    android:tint="@color/neon_red" />
 
                 <!-- Scan / add folder -->
                 <ImageButton
@@ -105,7 +114,7 @@
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="559dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     <!-- Mini music panel + bottom nav stacked at bottom -->

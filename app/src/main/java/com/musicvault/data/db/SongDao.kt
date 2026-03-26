@@ -66,6 +66,10 @@ interface SongDao {
 
     @Query("SELECT COUNT(*) FROM songs")
     suspend fun getSongCount(): Int
+
+    /** Wipes every row from the songs table. Does NOT touch the actual MP3 files on disk. */
+    @Query("DELETE FROM songs")
+    suspend fun deleteAllSongs()
 }
 
 data class FolderInfo(

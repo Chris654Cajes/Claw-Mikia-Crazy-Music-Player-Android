@@ -96,4 +96,13 @@ class SongRepository(private val context: Context) {
     suspend fun getSongCount(): Int = withContext(Dispatchers.IO) {
         songDao.getSongCount()
     }
+
+    /**
+     * Deletes every row from the songs table.
+     * The actual MP3 files on the device are completely untouched.
+     * After this call, allSongs LiveData will emit an empty list automatically.
+     */
+    suspend fun resetLibrary() = withContext(Dispatchers.IO) {
+        songDao.deleteAllSongs()
+    }
 }
