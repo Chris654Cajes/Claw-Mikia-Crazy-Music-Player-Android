@@ -367,6 +367,11 @@ class NowPlayingActivity : AppCompatActivity() {
 
         binding.btnFavorite.setOnClickListener {
             song?.let { s -> activityScope.launch { repository.toggleFavorite(s) } }
+            song!!.isFavorite = !song!!.isFavorite
+
+            binding.btnFavorite.setImageResource(
+                if (song!!.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+            )
         }
     }
 

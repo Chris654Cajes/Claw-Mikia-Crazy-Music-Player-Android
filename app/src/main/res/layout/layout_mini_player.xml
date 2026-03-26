@@ -17,7 +17,7 @@
         android:paddingEnd="0dp"
         android:thumb="@drawable/seekbar_thumb_mini"
         android:progressTint="@color/neon_pink"
-        android:progressBackgroundTint="@color/divider_color"
+        android:progressBackgroundTint="@color/text_primary"
         style="@style/Widget.AppCompat.SeekBar" />
 
     <!-- Song info + controls -->

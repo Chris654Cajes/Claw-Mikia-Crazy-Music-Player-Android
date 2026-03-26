@@ -9,7 +9,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.SeekBar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -177,20 +180,65 @@ class MainActivity : AppCompatActivity() {
      */
     private fun applyMiniPlayerExpansion() {
         val panel = binding.musicPanel
-        val contentVis = if (miniPlayerExpanded) View.VISIBLE else View.GONE
+        val params = panel.root.layoutParams
 
-        panel.seekBar.visibility = contentVis
-        panel.ivPlayingIndicator.visibility = contentVis
-        panel.tvTitle.visibility = contentVis
-        panel.tvArtist.visibility = contentVis
-        panel.tvProgress.visibility = contentVis
+        if (miniPlayerExpanded) {
+            // Expanded → show everything
+            panel.seekBar.visibility = View.VISIBLE
+            panel.ivPlayingIndicator.visibility = View.VISIBLE
+            panel.tvTitle.visibility = View.VISIBLE
+            panel.tvArtist.visibility = View.VISIBLE
+            panel.tvProgress.visibility = View.VISIBLE
+            panel.btnPrev.visibility = View.VISIBLE
+            panel.btnPlayPause.visibility = View.VISIBLE
+            panel.btnNext.visibility = View.VISIBLE
 
+            // Reset cropping
+            params.width = ViewGroup.LayoutParams.MATCH_PARENT
+            params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            panel.root.layoutParams = params
+
+            // Expanded background = bg_card only
+            panel.root.setBackgroundResource(R.color.bg_card)
+        } else {
+            // Collapsed → hide seekbar and other controls
+            panel.seekBar.visibility = View.GONE
+            panel.ivPlayingIndicator.visibility = View.GONE
+            panel.tvTitle.visibility = View.GONE
+            panel.tvArtist.visibility = View.GONE
+            panel.tvProgress.visibility = View.GONE
+            panel.btnPrev.visibility = View.GONE
+            panel.btnPlayPause.visibility = View.GONE
+            panel.btnNext.visibility = View.GONE
+
+            // Crop from the LEFT → decrease width so only toggle button strip remains
+            val collapsedWidth = panel.btnToggleMiniPlayer.width + 80 // tighter strip
+            params.width = collapsedWidth
+            params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            panel.root.layoutParams = params
+
+            // Collapsed background = bg_card + neon pink stroke
+            panel.root.setBackgroundResource(R.drawable.mini_player_border_bg)
+        }
+
+        panel.root.requestLayout()
+
+        // Chevron icon
         panel.btnToggleMiniPlayer.setImageResource(
             if (miniPlayerExpanded) R.drawable.ic_chevron_down
             else R.drawable.ic_chevron_right
         )
+
+        // Accessibility description
         panel.btnToggleMiniPlayer.contentDescription =
             if (miniPlayerExpanded) "Collapse mini player" else "Expand mini player"
+
+        // Tint color change
+        val neonPink = ContextCompat.getColor(this, R.color.neon_pink)
+        val defaultColor = ContextCompat.getColor(this, R.color.text_hint)
+        panel.btnToggleMiniPlayer.setColorFilter(
+            if (miniPlayerExpanded) defaultColor else neonPink
+        )
     }
 
     // ─── Reset library ───────────────────────────────────────────────────────────
