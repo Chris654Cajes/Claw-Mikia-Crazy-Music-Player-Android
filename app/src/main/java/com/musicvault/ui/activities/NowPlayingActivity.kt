@@ -227,6 +227,13 @@ class NowPlayingActivity : AppCompatActivity() {
         // seekPitch range is 0–12 where 6 = 0 semitones
         binding.seekPitch.progress = s.pitchSemitones + 6
 
+        // ── Speed ──────────────────────────────────────────────────────────────
+        // seekSpeed range 0–30 maps to 0.5x–2.0x in steps of 0.05x (30 steps × 0.05 = 1.5 range)
+        // progress = (speed - 0.5) / 0.05  →  1.0x = progress 10
+        val speedProgress = ((s.playbackSpeed.coerceIn(0.5f, 2.0f) - 0.5f) / 0.05f).toInt()
+        binding.seekSpeed.progress = speedProgress
+        binding.tvSpeedValue.text = speedLabel(s.playbackSpeed)
+
         // ── Trim ───────────────────────────────────────────────────────────────
         // Use the song's stored duration as the seekbar ceiling (in milliseconds).
         // Fall back to the service's reported duration if the stored one is 0.
@@ -330,6 +337,53 @@ class NowPlayingActivity : AppCompatActivity() {
                 binding.tvPitchValue.text = pitchLabel(semitones)
                 musicService?.applyPitchToCurrentSong(semitones)
                 activityScope.launch { repository.updatePitch(songId, semitones) }
+            }
+        }
+
+        // ── Speed seekbar ───────────────────────────────────────────────────────
+        // Range 0–30, where each step = 0.05x speed. progress 10 = 1.0x (normal).
+        binding.seekSpeed.max = 30
+        binding.seekSpeed.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
+                val speed = progressToSpeed(progress)
+                binding.tvSpeedValue.text = speedLabel(speed)
+                if (fromUser) musicService?.applySpeedToCurrentSong(speed)
+            }
+
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {
+                val speed = progressToSpeed(sb.progress)
+                activityScope.launch { repository.updateSpeed(songId, speed) }
+            }
+        })
+
+        binding.btnSpeedReset.setOnClickListener {
+            binding.seekSpeed.progress = 10   // 1.0x
+            musicService?.applySpeedToCurrentSong(1.0f)
+            activityScope.launch { repository.updateSpeed(songId, 1.0f) }
+        }
+
+        binding.btnSpeedDown.setOnClickListener {
+            val current = binding.seekSpeed.progress
+            if (current > 0) {
+                val newProgress = current - 1
+                binding.seekSpeed.progress = newProgress
+                val speed = progressToSpeed(newProgress)
+                binding.tvSpeedValue.text = speedLabel(speed)
+                musicService?.applySpeedToCurrentSong(speed)
+                activityScope.launch { repository.updateSpeed(songId, speed) }
+            }
+        }
+
+        binding.btnSpeedUp.setOnClickListener {
+            val current = binding.seekSpeed.progress
+            if (current < 30) {
+                val newProgress = current + 1
+                binding.seekSpeed.progress = newProgress
+                val speed = progressToSpeed(newProgress)
+                binding.tvSpeedValue.text = speedLabel(speed)
+                musicService?.applySpeedToCurrentSong(speed)
+                activityScope.launch { repository.updateSpeed(songId, speed) }
             }
         }
 
@@ -452,6 +506,13 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     private fun pitchLabel(s: Int) = if (s > 0) "+$s" else "$s"
+
+    // progress 0–30 → speed 0.5x–2.0x in 0.05x steps
+    private fun progressToSpeed(progress: Int): Float =
+        (0.5f + progress * 0.05f).coerceIn(0.5f, 2.0f)
+
+    private fun speedLabel(speed: Float): String =
+        "%.2f".format(speed).trimEnd('0').trimEnd('.')
 
     // ─── Progress updates ────────────────────────────────────────────────────────
 

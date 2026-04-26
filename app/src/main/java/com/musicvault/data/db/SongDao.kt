@@ -43,6 +43,9 @@ interface SongDao {
     @Query("UPDATE songs SET pitchSemitones = :pitch WHERE id = :id")
     suspend fun updatePitch(id: Long, pitch: Int)
 
+    @Query("UPDATE songs SET playbackSpeed = :speed WHERE id = :id")
+    suspend fun updateSpeed(id: Long, speed: Float)
+
     @Query("UPDATE songs SET trimStart = :start, trimEnd = :end WHERE id = :id")
     suspend fun updateTrim(id: Long, start: Long, end: Long)
 

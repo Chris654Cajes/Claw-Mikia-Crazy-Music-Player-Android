@@ -1,13 +1,13 @@
-# Claw Mikia - Cross-Platform Music Player
+# Claw Mikia - Android Music Player
 
-[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Windows-green.svg)](https://developer.android.com/)
-[![Language](https://img.shields.io/badge/Language-Kotlin%20%7C%20C%23-blue.svg)](https://kotlinlang.org/)
+[![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com/)
+[![Language](https://img.shields.io/badge/Language-Kotlin-blue.svg)](https://kotlinlang.org/)
 [![Min SDK](https://img.shields.io/badge/Min%20SDK-26-orange.svg)](https://developer.android.com/about/versions/oreo/android-8.0.html)
 [![Target SDK](https://img.shields.io/badge/Target%20SDK-34-green.svg)](https://developer.android.com/about/versions/14)
 
 **Claw Mikia** (also known as **Crazy Music Player** or **MusicVault**) is a feature-rich,
-cross-platform music player application designed to provide an exceptional audio experience on both
-Android and Windows platforms.
+Android music player application designed to provide an exceptional audio experience on
+Android.
 
 ## 🎵 Features
 
@@ -39,11 +39,7 @@ Android and Windows platforms.
 - Lock screen controls
 - Splash screen with smooth transitions
 
-#### Windows (.NET)
 
-- Windows Forms application
-- Native Windows integration
-- Custom controls and themes
 
 ## 📱 Screenshots
 
@@ -58,32 +54,26 @@ Android and Windows platforms.
 - Android Studio Hedgehog or later
 - JDK 17
 - Android SDK 26+ (for testing)
+- Gradle 8.0+
+- Kotlin 1.9+
 
-#### For Windows Development
 
-- Visual Studio 2022 or later
-- .NET 10.0 SDK
-- Windows 10/11 (for testing)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Chris654Cajes/Claw-Mikia-Crazy-Music-Player-Android-.git
+      git clone https://github.com/Chris654Cajes/Claw-Mikia-Crazy-Music-Player-Android-.git
    cd Claw-Mikia
    ```
 
 2. **Build for Android**
    ```bash
-   # Open in Android Studio and run, or use Gradle
+      # Open in Android Studio and run, or use Gradle
    ./gradlew assembleDebug
    ```
 
-3. **Build for Windows**
-   ```bash
-   # Open MusicVault.WinForms.sln in Visual Studio
-   # Build and run the solution
-   ```
+            ```
 
 ## 📁 Project Structure
 
@@ -129,8 +119,9 @@ Claw-Mikia/
 - **Async**: Kotlin Coroutines & Flow
 - **UI**: Android Views, ViewBinding, Material Design 3
 - **Media**: MediaPlayer, MediaSession, Foreground Services
-- **Image Loading**: Glide
+- **Image Loading**: Glide 4.16.0
 - **Lifecycle**: AndroidX Lifecycle components
+- **Build Tool**: Gradle with KSP
 
 ### Windows
 

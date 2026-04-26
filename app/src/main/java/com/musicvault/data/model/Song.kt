@@ -23,6 +23,7 @@ data class Song(
     var isFavorite: Boolean = false,
     var playCount: Int = 0,
     var lastPlayed: Long = 0,
+    var playbackSpeed: Float = 1.0f,   // 0.5x to 2.0x
 
     // Online metadata (fetched from MusicBrainz/Cover Art Archive, never overwrites file)
     var albumName: String = "",

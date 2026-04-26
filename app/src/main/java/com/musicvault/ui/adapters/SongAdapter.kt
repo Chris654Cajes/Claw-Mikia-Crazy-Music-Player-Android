@@ -83,6 +83,9 @@ class SongAdapter(
             val hasTrim = song.trimStart > 0 || (song.trimEnd > 0 && song.trimEnd < song.duration)
             binding.ivTrimBadge.visibility = if (hasTrim) View.VISIBLE else View.GONE
 
+            binding.ivSpeedBadge.visibility =
+                if (song.playbackSpeed != 1.0f) View.VISIBLE else View.GONE
+
             // Favorite
             binding.btnFavorite.setImageResource(
                 if (song.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline

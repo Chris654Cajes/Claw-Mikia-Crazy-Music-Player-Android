@@ -8,7 +8,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.musicvault.data.model.Song
 
-@Database(entities = [Song::class], version = 3, exportSchema = false)
+@Database(entities = [Song::class], version = 4, exportSchema = false)
 abstract class MusicDatabase : RoomDatabase() {
     abstract fun songDao(): SongDao
 
@@ -35,6 +35,13 @@ abstract class MusicDatabase : RoomDatabase() {
             }
         }
 
+        // Migration 3 → 4: add playbackSpeed column
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE songs ADD COLUMN playbackSpeed REAL NOT NULL DEFAULT 1.0")
+            }
+        }
+
         fun getDatabase(context: Context): MusicDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -42,7 +49,7 @@ abstract class MusicDatabase : RoomDatabase() {
                     MusicDatabase::class.java,
                     "music_vault.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

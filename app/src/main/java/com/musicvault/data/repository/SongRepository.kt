@@ -77,6 +77,10 @@ class SongRepository(private val context: Context) {
         songDao.updatePitch(id, pitch)
     }
 
+    suspend fun updateSpeed(id: Long, speed: Float) = withContext(Dispatchers.IO) {
+        songDao.updateSpeed(id, speed)
+    }
+
     suspend fun updateTrim(id: Long, start: Long, end: Long) = withContext(Dispatchers.IO) {
         songDao.updateTrim(id, start, end)
     }

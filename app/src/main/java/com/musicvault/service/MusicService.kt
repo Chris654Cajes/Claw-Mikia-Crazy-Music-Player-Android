@@ -192,7 +192,7 @@ class MusicService : Service() {
 
                 // 1. Set the Prepared Listener
                 setOnPreparedListener { mp ->
-                    applyPitchToCurrentSong(song.pitchSemitones) // ✅ ALWAYS APPLY
+                    applyPlaybackParams(song.pitchSemitones, song.playbackSpeed)
 
                     if (song.trimStart > 0) mp.seekTo(song.trimStart.toInt())
                     mp.start()
@@ -314,10 +314,21 @@ class MusicService : Service() {
     }
 
     fun applyPitchToCurrentSong(semitones: Int) {
+        val speed = currentSong?.playbackSpeed ?: 1.0f
+        applyPlaybackParams(semitones, speed)
+    }
+
+    fun applySpeedToCurrentSong(speed: Float) {
+        val semitones = currentSong?.pitchSemitones ?: 0
+        currentSong?.playbackSpeed = speed
+        applyPlaybackParams(semitones, speed)
+    }
+
+    private fun applyPlaybackParams(semitones: Int, speed: Float) {
         mediaPlayer?.playbackParams = PlaybackParams().apply {
             pitch = if (semitones == 0) 1.0f
             else SEMITONE_RATIO.pow(semitones.toDouble()).toFloat()
-            speed = 1.0f
+            this.speed = speed.coerceIn(0.5f, 2.0f)
         }
     }
 

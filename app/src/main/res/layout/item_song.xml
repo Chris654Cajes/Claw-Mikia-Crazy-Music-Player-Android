@@ -168,6 +168,15 @@
             android:visibility="gone"
             android:layout_marginStart="4dp" />
 
+        <ImageView
+            android:id="@+id/ivSpeedBadge"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginStart="4dp"
+            android:src="@drawable/ic_forward_5"
+            android:tint="@color/neon_orange"
+            android:visibility="gone" />
+
     </LinearLayout>
 
     <!-- Bottom divider -->
