@@ -198,6 +198,14 @@ class MainActivity : AppCompatActivity() {
             params.height = ViewGroup.LayoutParams.WRAP_CONTENT
             panel.root.layoutParams = params
 
+            // Restore toggle button to natural size
+            val btnParams = panel.btnToggleMiniPlayer.layoutParams as? LinearLayout.LayoutParams
+            btnParams?.let {
+                it.width = LinearLayout.LayoutParams.WRAP_CONTENT
+                it.gravity = Gravity.CENTER_VERTICAL
+                panel.btnToggleMiniPlayer.layoutParams = it
+            }
+
             // Expanded background = bg_card only
             panel.root.setBackgroundResource(R.color.bg_card)
         } else {
@@ -211,11 +219,22 @@ class MainActivity : AppCompatActivity() {
             panel.btnPlayPause.visibility = View.GONE
             panel.btnNext.visibility = View.GONE
 
-            // Crop from the LEFT → decrease width so only toggle button strip remains
-            val collapsedWidth = panel.btnToggleMiniPlayer.width + 80 // tighter strip
-            params.width = collapsedWidth
+            // Use a fixed dp width — runtime .width can return 0 if the view
+            // hasn't been laid out yet (e.g. when a new song fires showMusicPanel
+            // while the panel is already collapsed).
+            val density = resources.displayMetrics.density
+            val collapsedWidthPx = (56 * density).toInt()   // 48dp button + 8dp breathing room
+            params.width = collapsedWidthPx
             params.height = ViewGroup.LayoutParams.WRAP_CONTENT
             panel.root.layoutParams = params
+
+            // Restore toggle button to full-width within the collapsed strip
+            val btnParams = panel.btnToggleMiniPlayer.layoutParams as? LinearLayout.LayoutParams
+            btnParams?.let {
+                it.width = LinearLayout.LayoutParams.MATCH_PARENT
+                it.gravity = Gravity.CENTER
+                panel.btnToggleMiniPlayer.layoutParams = it
+            }
 
             // Collapsed background = bg_card + neon pink stroke
             panel.root.setBackgroundResource(R.drawable.mini_player_border_bg)
@@ -223,11 +242,8 @@ class MainActivity : AppCompatActivity() {
 
         panel.root.requestLayout()
 
-        // Chevron icon
-        panel.btnToggleMiniPlayer.setImageResource(
-            if (miniPlayerExpanded) R.drawable.ic_chevron_down
-            else R.drawable.ic_chevron_right
-        )
+        // Always re-assert the text — song changes can wipe it via binding reuse
+        panel.btnToggleMiniPlayer.text = "瞼"
 
         // Accessibility description
         panel.btnToggleMiniPlayer.contentDescription =
@@ -236,7 +252,7 @@ class MainActivity : AppCompatActivity() {
         // Tint color change
         val neonPink = ContextCompat.getColor(this, R.color.neon_pink)
         val defaultColor = ContextCompat.getColor(this, R.color.text_hint)
-        panel.btnToggleMiniPlayer.setColorFilter(
+        panel.btnToggleMiniPlayer.setTextColor(
             if (miniPlayerExpanded) defaultColor else neonPink
         )
     }

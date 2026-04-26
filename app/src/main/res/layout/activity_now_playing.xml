@@ -431,31 +431,80 @@
 
                 </LinearLayout>
 
-                <SeekBar
-                    android:id="@+id/seekPitch"
+                <!-- Pitch step buttons + seekbar row -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:max="12"
-                    android:progress="6"
-                    android:progressTint="@color/neon_green"
-                    android:progressBackgroundTint="@color/seekbar_bg"
-                    android:thumb="@drawable/seekbar_thumb"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <Button
-                    android:id="@+id/btnPitchReset"
+                    <SeekBar
+                        android:id="@+id/seekPitch"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:max="12"
+                        android:progress="6"
+                        android:progressBackgroundTint="@color/seekbar_bg"
+                        android:progressTint="@color/neon_green"
+                        android:thumb="@drawable/seekbar_thumb" />
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:text="Reset to 0"
-                    android:textSize="10sp"
-                    android:fontFamily="@font/orbitron_regular"
-                    android:background="@drawable/bg_button_outline_green"
-                    android:textColor="@color/neon_green"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:layout_gravity="end"
-                    android:layout_marginTop="10dp"
-                    android:stateListAnimator="@null" />
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp">
+
+                    <Button
+                        android:id="@+id/btnPitchDown"
+                        android:layout_width="36dp"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="20dp"
+                        android:background="@drawable/bg_button_outline_green"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:padding="0dp"
+                        android:stateListAnimator="@null"
+                        android:text="−"
+                        android:textColor="@color/neon_green"
+                        android:textSize="18sp" />
+
+                    <Button
+                        android:id="@+id/btnPitchUp"
+                        android:layout_width="36dp"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="20dp"
+                        android:background="@drawable/bg_button_outline_green"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:padding="0dp"
+                        android:stateListAnimator="@null"
+                        android:text="+"
+                        android:textColor="@color/neon_green"
+                        android:textSize="18sp" />
+
+                    <Button
+                        android:id="@+id/btnPitchReset"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="end"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/bg_button_outline_green"
+                        android:fontFamily="@font/orbitron_regular"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:stateListAnimator="@null"
+                        android:text="Reset to 0"
+                        android:textColor="@color/neon_green"
+                        android:textSize="10sp" />
+
+                </LinearLayout>
 
             </LinearLayout>
 

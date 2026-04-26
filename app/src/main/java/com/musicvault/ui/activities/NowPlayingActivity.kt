@@ -205,6 +205,11 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.tvArtist.text = s.artist
         binding.tvFolder.text = if (s.albumName.isNotBlank()) s.albumName else s.folderName
 
+        // Sync favorite button
+        binding.btnFavorite.setImageResource(
+            if (s.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+        )
+
         binding.ivAlbumArt.clearColorFilter()
         if (s.albumArtUrl.isNotBlank()) {
             Glide.with(this).load(s.albumArtUrl)
@@ -304,6 +309,30 @@ class NowPlayingActivity : AppCompatActivity() {
             activityScope.launch { repository.updatePitch(songId, 0) }
         }
 
+        binding.btnPitchDown.setOnClickListener {
+            val current = binding.seekPitch.progress
+            if (current > 0) {
+                val newProgress = current - 1
+                binding.seekPitch.progress = newProgress
+                val semitones = newProgress - 6
+                binding.tvPitchValue.text = pitchLabel(semitones)
+                musicService?.applyPitchToCurrentSong(semitones)
+                activityScope.launch { repository.updatePitch(songId, semitones) }
+            }
+        }
+
+        binding.btnPitchUp.setOnClickListener {
+            val current = binding.seekPitch.progress
+            if (current < 12) {
+                val newProgress = current + 1
+                binding.seekPitch.progress = newProgress
+                val semitones = newProgress - 6
+                binding.tvPitchValue.text = pitchLabel(semitones)
+                musicService?.applyPitchToCurrentSong(semitones)
+                activityScope.launch { repository.updatePitch(songId, semitones) }
+            }
+        }
+
         // ── Trim seekbars ───────────────────────────────────────────────────────
         binding.seekTrimStart.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
@@ -366,12 +395,17 @@ class NowPlayingActivity : AppCompatActivity() {
         })
 
         binding.btnFavorite.setOnClickListener {
-            song?.let { s -> activityScope.launch { repository.toggleFavorite(s) } }
-            song!!.isFavorite = !song!!.isFavorite
-
-            binding.btnFavorite.setImageResource(
-                if (song!!.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
-            )
+            val s = song ?: return@setOnClickListener
+            activityScope.launch {
+                repository.toggleFavorite(s)
+                // Reload from DB to get the authoritative favorite state
+                repository.getSongById(s.id)?.let { fresh ->
+                    song = fresh
+                    binding.btnFavorite.setImageResource(
+                        if (fresh.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+                    )
+                }
+            }
         }
     }
 

@@ -19,7 +19,9 @@ import android.media.PlaybackParams
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.PowerManager
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -54,6 +56,10 @@ class MusicService : Service() {
     private lateinit var audioManager: AudioManager
     private var audioFocusRequest: AudioFocusRequest? = null
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private lateinit var repository: com.musicvault.data.repository.SongRepository
+
+    private val trimHandler = Handler(Looper.getMainLooper())
+    private var trimWatchdog: Runnable? = null
 
     // Use a list of listeners so multiple screens can observe simultaneously
     private val songChangedListeners = mutableListOf<(Song) -> Unit>()
@@ -94,6 +100,7 @@ class MusicService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        repository = com.musicvault.data.repository.SongRepository(applicationContext)
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
         createNotificationChannel()
         initMediaSession()
@@ -146,7 +153,23 @@ class MusicService : Service() {
 
     private fun playCurrent() {
         if (playlist.isEmpty()) return
-        val song = playlist[currentIndex]
+        val songSnapshot = playlist[currentIndex]
+        // Fetch latest data from DB so pitch/trim/isFavorite are always current
+        serviceScope.launch {
+            val freshSong = withContext(Dispatchers.IO) {
+                try {
+                    repository.getSongById(songSnapshot.id)
+                } catch (_: Exception) {
+                    null
+                }
+            } ?: songSnapshot
+            // Update the playlist slot with fresh data
+            playlist = playlist.toMutableList().also { it[currentIndex] = freshSong }
+            playFreshSong(freshSong)
+        }
+    }
+
+    private fun playFreshSong(song: Song) {
         currentSong = song
         notifySongChanged(song)
 
@@ -177,7 +200,8 @@ class MusicService : Service() {
                     notifyPlayState(true)
                     updateSessionPlaybackState(true)
                     updateNotification(song, true)
-                }   
+                    startTrimWatchdog(song)
+                }
 
                 setOnCompletionListener { handleCompletion() }
 
@@ -201,6 +225,29 @@ class MusicService : Service() {
         }
     }
 
+    private fun startTrimWatchdog(song: Song) {
+        stopTrimWatchdog()
+        val trimEnd = song.trimEnd
+        if (trimEnd <= 0) return  // no trim end set — let MediaPlayer fire onCompletion naturally
+        trimWatchdog = object : Runnable {
+            override fun run() {
+                val mp = mediaPlayer ?: return
+                if (!mp.isPlaying) return
+                if (mp.currentPosition >= trimEnd.toInt()) {
+                    handleCompletion()
+                } else {
+                    trimHandler.postDelayed(this, 200)
+                }
+            }
+        }
+        trimHandler.postDelayed(trimWatchdog!!, 200)
+    }
+
+    private fun stopTrimWatchdog() {
+        trimWatchdog?.let { trimHandler.removeCallbacks(it) }
+        trimWatchdog = null
+    }
+
     private fun handleCompletion() {
         when (repeatMode) {
             REPEAT_ONE -> playCurrent()
@@ -210,8 +257,10 @@ class MusicService : Service() {
                     currentIndex++
                     playCurrent()
                 } else {
-                    // End of playlist — replay current song from start
-                    playCurrent()
+                    // End of playlist — stop playback
+                    notifyPlayState(false)
+                    updateSessionPlaybackState(false)
+                    currentSong?.let { updateNotification(it, false) }
                 }
             }
         }
@@ -221,6 +270,7 @@ class MusicService : Service() {
         mediaPlayer?.let {
             if (it.isPlaying) {
                 it.pause()
+                stopTrimWatchdog()
                 abandonAudioFocus()
                 updateSessionPlaybackState(false)
                 notifyPlayState(false)
@@ -230,7 +280,10 @@ class MusicService : Service() {
                 it.start()
                 updateSessionPlaybackState(true)
                 notifyPlayState(true)
-                currentSong?.let { s -> updateNotification(s, true) }
+                currentSong?.let { s ->
+                    updateNotification(s, true)
+                    startTrimWatchdog(s)
+                }
             }
         }
     }
@@ -405,6 +458,7 @@ class MusicService : Service() {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        stopTrimWatchdog()
         mediaPlayer?.stop(); mediaPlayer?.release(); mediaPlayer = null
         abandonAudioFocus()
         mediaSession?.isActive = false
@@ -414,6 +468,7 @@ class MusicService : Service() {
     }
 
     override fun onDestroy() {
+        stopTrimWatchdog()
         serviceScope.cancel()
         mediaPlayer?.release(); mediaPlayer = null
         abandonAudioFocus()
