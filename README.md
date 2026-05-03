@@ -6,8 +6,8 @@
 [![Target SDK](https://img.shields.io/badge/Target%20SDK-34-green.svg)](https://developer.android.com/about/versions/14)
 
 **Claw Mikia** (also known as **Crazy Music Player** or **MusicVault**) is a feature-rich,
-Android music player application designed to provide an exceptional audio experience on
-Android.
+cross-platform music player application designed to provide an exceptional audio experience
+on multiple platforms including Android and Windows.
 
 ## 🎵 Features
 
@@ -23,6 +23,7 @@ Android.
 ### Advanced Features
 
 - **Pitch Control** - Adjust pitch from -6 to +6 semitones without affecting speed
+- **Playback Speed** - Adjust playback speed from 0.5x to 2.0x
 - **Audio Trimming** - Set custom start/end points for songs
 - **Online Metadata** - Auto-fetch album info and cover art from MusicBrainz & Cover Art Archive
 - **Play Statistics** - Track play count and last played time
@@ -39,7 +40,13 @@ Android.
 - Lock screen controls
 - Splash screen with smooth transitions
 
+#### Windows (C# WinForms)
 
+- Modern Windows Forms UI with dark/light theme support
+- Taskbar media controls integration
+- System tray support with minimize to tray
+- Keyboard shortcuts and global hotkeys
+- Drag-and-drop file and folder support
 
 ## 📱 Screenshots
 
@@ -57,7 +64,12 @@ Android.
 - Gradle 8.0+
 - Kotlin 1.9+
 
+#### For Windows Development
 
+- Visual Studio 2022
+- .NET 10.0.103 SDK
+- Windows 10/11 SDK
+- C# 12.0
 
 ### Installation
 
@@ -73,7 +85,11 @@ Android.
    ./gradlew assembleDebug
    ```
 
-            ```
+3. **Build for Windows**
+   ```bash
+      # Open MusicVault.WinForms.sln in Visual Studio 2022
+      # Build solution or run in Debug/Release mode
+   ```
 
 ## 📁 Project Structure
 
@@ -129,6 +145,8 @@ Claw-Mikia/
 - **Framework**: .NET 10.0.103
 - **UI**: Windows Forms (WinForms)
 - **Architecture**: MVVM-ready structure
+- **Database**: Entity Framework Core with SQLite
+- **Audio**: NAudio for advanced audio processing
 - **IDE**: Visual Studio 2022
 
 ## 🎯 Key Components
@@ -144,14 +162,25 @@ The heart of the Android app, handling:
 - Pitch shifting and audio trimming
 - Playlist management with repeat modes
 
-### MusicDatabase (Android)
+### AudioEngine (Windows)
 
-Room database providing:
+The core audio processing engine for Windows:
 
-- Local storage for songs and metadata
+- Audio playback using NAudio
+- Pitch shifting and tempo control
+- Audio trimming and effects
+- Volume normalization
+- Cross-fade between tracks
+
+### MusicDatabase (Cross-platform)
+
+Database providing:
+
+- **Android**: Room (SQLite) for local storage
+- **Windows**: Entity Framework Core with SQLite
 - User preferences (favorites, customizations)
 - Online metadata caching
-- DAO interfaces for data access
+- Cross-platform data models
 
 ### MetadataFetcher (Android)
 
@@ -169,25 +198,27 @@ Intelligent metadata fetching:
 ```kotlin
 @Entity(tableName = "songs")
 data class Song(
-    val id: Long,
-    val title: String,
-    val artist: String,
-    val filePath: String,
-    val folderPath: String,
-    val folderName: String,
-    val duration: Long,
-    val fileSize: Long,
-    val dateAdded: Long,
+   @PrimaryKey(autoGenerate = true)
+   var id: Long = 0,
+   var title: String,
+   var artist: String,
+   var filePath: String,
+   var folderPath: String,
+   var folderName: String,
+   var duration: Long,          // ms
+   var fileSize: Long,
+   var dateAdded: Long = System.currentTimeMillis(),
 
-    // User customizations
-    var pitchSemitones: Int = 0,    // -6 to +6
-    var trimStart: Long = 0,        // ms
-    var trimEnd: Long = -1,         // ms, -1 = use full duration
+   // User customizations (never touch original file)
+   var pitchSemitones: Int = 0,       // -6 to +6
+   var trimStart: Long = 0,           // ms
+   var trimEnd: Long = -1,            // ms, -1 = use full duration
     var isFavorite: Boolean = false,
     var playCount: Int = 0,
     var lastPlayed: Long = 0,
+   var playbackSpeed: Float = 1.0f,   // 0.5x to 2.0x
 
-    // Online metadata
+   // Online metadata (fetched from MusicBrainz/Cover Art Archive, never overwrites file)
     var albumName: String = "",
     var albumArtUrl: String = "",
     var metadataFetched: Boolean = false
@@ -252,6 +283,16 @@ For issues, questions, or suggestions:
 - Open an issue
   on [GitHub](https://github.com/Chris654Cajes/Claw-Mikia-Crazy-Music-Player-Android-/issues)
 - Contact the maintainers
+
+## 🤖 AI Development
+
+For developers looking to contribute or extend the Windows version using AI assistants, see the
+dedicated prompt guide:
+
+**[Claude AI Prompt for C# WinForms Development](docs/claude-ai-prompt-csharp-winforms.md)**
+
+This document contains comprehensive prompts and guidelines for AI-assisted development of the C#
+WinForms version.
 
 ## 🗺️ Roadmap
 
