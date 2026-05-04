@@ -1,12 +1,20 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Claw Mikia</string>
-    <string name="nav_library">Library</string>
-    <string name="nav_folders">Folders</string>
-    <string name="nav_favorites">Favorites</string>
-    <string name="no_songs">No songs found</string>
-    <string name="scan_folder">Choose Music Folder</string>
-    <string name="pitch_label">Pitch / Key</string>
-    <string name="trim_label">Timeline Trim</string>
+    <string name="no_songs">No songs found. Tap the folder icon to scan.</string>
+    <string name="library">Library</string>
+    <string name="favorites">Favorites</string>
+    <string name="folders">Folders</string>
+    <string name="playlists">Playlists</string>
     <string name="now_playing">Now Playing</string>
+    <string name="pitch">Pitch</string>
+    <string name="speed">Speed</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="profiles">Profiles</string>
+    <string name="lyrics">Lyrics</string>
+    <string name="analysis">Analysis</string>
+    <string name="sleep_timer">Sleep Timer</string>
+    <string name="loop">Loop</string>
+    <string name="ab_repeat">A-B Repeat</string>
+    <string name="skip_regions">Skip Regions</string>
+    <string name="waveform">Waveform</string>
 </resources>

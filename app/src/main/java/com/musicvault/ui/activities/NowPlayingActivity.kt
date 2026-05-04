@@ -8,7 +8,9 @@ import android.os.IBinder
 import android.os.Looper
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import androidx.core.content.ContextCompat
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.bumptech.glide.Glide
@@ -19,6 +21,9 @@ import com.musicvault.data.repository.SongRepository
 import com.musicvault.databinding.ActivityNowPlayingBinding
 import com.musicvault.service.MusicService
 import com.musicvault.utils.formatDuration
+import com.musicvault.ui.fragments.EqualizerFragment
+import com.musicvault.ui.fragments.LyricsFragment
+import com.musicvault.ui.fragments.ProfilesFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -461,6 +466,23 @@ class NowPlayingActivity : AppCompatActivity() {
                 }
             }
         }
+
+        // ── Feature buttons ───────────────────────────────────────────────────────
+        binding.btnEqualizer.setOnClickListener {
+            val equalizerFragment = EqualizerFragment()
+            equalizerFragment.onApplyCallback = { profile ->
+                musicService?.applyProfile(profile)
+            }
+            showFeatureFragment(equalizerFragment)
+        }
+
+        binding.btnLyrics.setOnClickListener {
+            showFeatureFragment(LyricsFragment())
+        }
+
+        binding.btnProfiles.setOnClickListener {
+            showFeatureFragment(ProfilesFragment())
+        }
     }
 
     // ─── Repeat button ───────────────────────────────────────────────────────────
@@ -539,5 +561,18 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun stopProgressUpdates() {
         progressRunnable?.let { progressHandler.removeCallbacks(it) }
         progressRunnable = null
+    }
+
+    // ─── Feature Fragments ────────────────────────────────────────────────────────
+
+    private fun showFeatureFragment(fragment: Fragment) {
+        if (fragment is BottomSheetDialogFragment) {
+            fragment.show(supportFragmentManager, fragment.tag)
+        } else {
+            supportFragmentManager.beginTransaction()
+                .replace(android.R.id.content, fragment)
+                .addToBackStack(null)
+                .commit()
+        }
     }
 }

@@ -29,7 +29,15 @@ import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.media.app.NotificationCompat.MediaStyle
 import com.musicvault.R
+import com.musicvault.audio.analysis.AnalysisEngine
+import com.musicvault.audio.dsp.DSPProcessor
+import com.musicvault.data.model.PlaybackProfile
+import com.musicvault.data.model.SkipRegion
 import com.musicvault.data.model.Song
+import com.musicvault.data.repository.PlaylistRepository
+import com.musicvault.data.repository.ProfileRepository
+import com.musicvault.data.repository.SongRepository
+import com.musicvault.lyrics.LyricsManager
 import com.musicvault.ui.activities.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,38 +57,51 @@ class MusicService : Service() {
     private val binder = MusicBinder()
     private var mediaPlayer: MediaPlayer? = null
     private var currentSong: Song? = null
+    private var activeProfile: PlaybackProfile? = null
+    private var skipRegions: List<SkipRegion> = emptyList()
     private var playlist: List<Song> = emptyList()
     private var currentIndex: Int = 0
     private var repeatMode = REPEAT_NONE
+    private var shuffleEnabled = false
+    private var shuffledIndices: List<Int> = emptyList()
+
     private var mediaSession: MediaSessionCompat? = null
     private lateinit var audioManager: AudioManager
     private var audioFocusRequest: AudioFocusRequest? = null
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private lateinit var repository: com.musicvault.data.repository.SongRepository
+
+    private lateinit var repository: SongRepository
+    private lateinit var profileRepository: ProfileRepository
+    private lateinit var playlistRepository: PlaylistRepository
+    private lateinit var lyricsManager: LyricsManager
+    private lateinit var analysisEngine: AnalysisEngine
+    private var dspProcessor: DSPProcessor? = null
 
     private val trimHandler = Handler(Looper.getMainLooper())
     private var trimWatchdog: Runnable? = null
+    private var skipWatchdog: Runnable? = null
+    private var loopWatchdog: Runnable? = null
+    private var abRepeatWatchdog: Runnable? = null
+    private val sleepTimerHandler = Handler(Looper.getMainLooper())
+    private var sleepTimerRunnable: Runnable? = null
+    private var sleepTimerEndMs: Long = -1L
 
-    // Use a list of listeners so multiple screens can observe simultaneously
-    private val songChangedListeners = mutableListOf<(Song) -> Unit>()
-    private val playStateListeners = mutableListOf<(Boolean) -> Unit>()
-
-    // Keep legacy single-callback properties for compatibility but route through lists
     var onSongChanged: ((Song) -> Unit)? = null
     var onPlayStateChanged: ((Boolean) -> Unit)? = null
 
     companion object {
         const val NOTIF_CHANNEL = "music_vault_channel"
-        const val NOTIF_ID      = 101
-        const val REPEAT_NONE   = 0
-        const val REPEAT_ONE    = 1
-        const val REPEAT_ALL    = 2
-        const val ACTION_PLAY   = "com.musicvault.PLAY"
-        const val ACTION_PAUSE  = "com.musicvault.PAUSE"
-        const val ACTION_NEXT   = "com.musicvault.NEXT"
-        const val ACTION_PREV   = "com.musicvault.PREV"
-        const val ACTION_STOP   = "com.musicvault.STOP"
+        const val NOTIF_ID = 101
+        const val REPEAT_NONE = 0
+        const val REPEAT_ONE = 1
+        const val REPEAT_ALL = 2
+        const val ACTION_PLAY = "com.musicvault.PLAY"
+        const val ACTION_PAUSE = "com.musicvault.PAUSE"
+        const val ACTION_NEXT = "com.musicvault.NEXT"
+        const val ACTION_PREV = "com.musicvault.PREV"
+        const val ACTION_STOP = "com.musicvault.STOP"
         private const val SEMITONE_RATIO = 1.0594630943592953
+        private const val WATCHDOG_MS = 100L
     }
 
     private val notifReceiver = object : BroadcastReceiver() {
@@ -100,7 +121,11 @@ class MusicService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        repository = com.musicvault.data.repository.SongRepository(applicationContext)
+        repository = SongRepository(applicationContext)
+        profileRepository = ProfileRepository(applicationContext)
+        playlistRepository = PlaylistRepository(applicationContext)
+        lyricsManager = LyricsManager(applicationContext)
+        analysisEngine = AnalysisEngine(applicationContext)
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
         createNotificationChannel()
         initMediaSession()
@@ -116,32 +141,10 @@ class MusicService : Service() {
         }
     }
 
-    private fun notifySongChanged(song: Song) {
-        onSongChanged?.invoke(song)
-    }
-
-    private fun notifyPlayState(playing: Boolean) {
-        onPlayStateChanged?.invoke(playing)
-    }
-
-    private fun initMediaSession() {
-        val session = MediaSessionCompat(this, "MusicVaultSession")
-        val callback = object : MediaSessionCompat.Callback() {
-            override fun onPlay()            { if (!isPlaying()) togglePlayPause() }
-            override fun onPause()           { if (isPlaying())  togglePlayPause() }
-            override fun onSkipToNext()      { skipNext() }
-            override fun onSkipToPrevious()  { skipPrev() }
-            override fun onStop()            { stopSelf() }
-            override fun onSeekTo(pos: Long) { seekTo(pos.toInt()) }
-        }
-        session.setCallback(callback)
-        session.isActive = true
-        mediaSession = session
-    }
-
     fun setPlaylist(songs: List<Song>, startIndex: Int = 0) {
         playlist = songs
         currentIndex = startIndex.coerceIn(0, (songs.size - 1).coerceAtLeast(0))
+        if (shuffleEnabled) rebuildShuffleIndices()
         playCurrent()
     }
 
@@ -154,7 +157,6 @@ class MusicService : Service() {
     private fun playCurrent() {
         if (playlist.isEmpty()) return
         val songSnapshot = playlist[currentIndex]
-        // Fetch latest data from DB so pitch/trim/isFavorite are always current
         serviceScope.launch {
             val freshSong = withContext(Dispatchers.IO) {
                 try {
@@ -163,328 +165,464 @@ class MusicService : Service() {
                     null
                 }
             } ?: songSnapshot
-            // Update the playlist slot with fresh data
+            val profile = withContext(Dispatchers.IO) {
+                profileRepository.getOrCreateActiveProfile(freshSong.id)
+            }
+            val regions = withContext(Dispatchers.IO) {
+                profileRepository.getEnabledSkipRegions(freshSong.id)
+            }
             playlist = playlist.toMutableList().also { it[currentIndex] = freshSong }
-            playFreshSong(freshSong)
+            activeProfile = profile
+            skipRegions = regions
+            playFreshSong(freshSong, profile)
+            launch(Dispatchers.IO) {
+                lyricsManager.loadForSong(freshSong.id, freshSong.filePath)
+            }
+            analysisEngine.analyzeIfNeeded(freshSong.id, freshSong.filePath, freshSong.duration)
         }
     }
 
-    private fun playFreshSong(song: Song) {
+    private fun playFreshSong(song: Song, profile: PlaybackProfile) {
         currentSong = song
         notifySongChanged(song)
-
+        cancelAllWatchdogs()
         try {
-            mediaPlayer?.reset() // Reset is safer than release/new here
+            mediaPlayer?.reset()
             if (mediaPlayer == null) {
                 mediaPlayer = MediaPlayer().apply {
                     setAudioAttributes(
-                        AudioAttributes.Builder()
-                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                            .setUsage(AudioAttributes.USAGE_MEDIA)
-                            .build()
+                        AudioAttributes.Builder().setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .setUsage(AudioAttributes.USAGE_MEDIA).build()
                     )
                     setWakeMode(this@MusicService, PowerManager.PARTIAL_WAKE_LOCK)
                 }
             }
-
             mediaPlayer?.apply {
                 setDataSource(this@MusicService, Uri.parse(song.filePath))
-
-                // 1. Set the Prepared Listener
                 setOnPreparedListener { mp ->
-                    applyPlaybackParams(song.pitchSemitones, song.playbackSpeed)
-
-                    if (song.trimStart > 0) mp.seekTo(song.trimStart.toInt())
+                    dspProcessor?.release()
+                    dspProcessor = DSPProcessor(mp.audioSessionId).also { it.applyProfile(profile) }
+                    applyPlaybackParams(profile.pitchSemitones.toInt(), profile.playbackSpeed)
+                    if (profile.replayGainEnabled && profile.replayGainDb != 0f) {
+                        val gain =
+                            Math.pow(10.0, profile.replayGainDb / 20.0).toFloat().coerceIn(0f, 1f)
+                        mp.setVolume(gain, gain)
+                    }
+                    val startPos = profile.trimStart.toInt()
+                    if (startPos > 0) mp.seekTo(startPos)
                     mp.start()
-
                     notifyPlayState(true)
-                    updateSessionPlaybackState(true)
-                    updateNotification(song, true)
-                    startTrimWatchdog(song)
+                    updateMediaSessionState(true)
+                    buildAndStartForeground()
+                    startWatchdogs(profile)
+                    serviceScope.launch {
+                        repository.incrementPlayCount(song.id)
+                        playlistRepository.recordPlay(song.id)
+                    }
                 }
+                setOnCompletionListener {
+                    cancelAllWatchdogs()
+                    serviceScope.launch {
+                        playlistRepository.recordPlay(
+                            song.id,
+                            song.duration,
+                            true
+                        )
+                    }
+                    when (repeatMode) {
+                        REPEAT_ONE -> playCurrent()
+                        REPEAT_ALL -> {
+                            advanceIndex(); playCurrent()
+                        }
 
-                setOnCompletionListener { handleCompletion() }
-
-                // 3. Use prepareAsync() to avoid UI stutters
+                        else -> if (currentIndex < playlist.size - 1) {
+                            advanceIndex(); playCurrent()
+                        } else {
+                            notifyPlayState(false); updateMediaSessionState(false)
+                        }
+                    }
+                }
+                setOnErrorListener { _, _, _ -> notifyPlayState(false); true }
                 prepareAsync()
             }
-
-            requestAudioFocus()
-            updateSessionMetadata(song, null)
-            startForeground(NOTIF_ID, buildNotification(song, true, null))
-
-            // Load art in background
-            serviceScope.launch {
-                val bitmap = loadAlbumArt(song)
-                updateSessionMetadata(song, bitmap)
-                val nm = getSystemService(NotificationManager::class.java)
-                nm.notify(NOTIF_ID, buildNotification(song, true, bitmap))
-            }
         } catch (e: Exception) {
-            e.printStackTrace()
+            notifyPlayState(false)
         }
     }
 
-    private fun startTrimWatchdog(song: Song) {
-        stopTrimWatchdog()
-        val trimEnd = song.trimEnd
-        if (trimEnd <= 0) return  // no trim end set — let MediaPlayer fire onCompletion naturally
-        trimWatchdog = object : Runnable {
-            override fun run() {
-                val mp = mediaPlayer ?: return
-                if (!mp.isPlaying) return
-                if (mp.currentPosition >= trimEnd.toInt()) {
-                    handleCompletion()
-                } else {
-                    trimHandler.postDelayed(this, 200)
+    private fun startWatchdogs(profile: PlaybackProfile) {
+        if (profile.trimEnd > 0) {
+            trimWatchdog = object : Runnable {
+                override fun run() {
+                    val mp = mediaPlayer ?: return
+                    if (mp.isPlaying && mp.currentPosition >= profile.trimEnd.toInt()) {
+                        if (repeatMode == REPEAT_ONE) mp.seekTo(profile.trimStart.toInt())
+                        else {
+                            cancelAllWatchdogs(); advanceOrStop()
+                        }
+                        return
+                    }
+                    trimHandler.postDelayed(this, WATCHDOG_MS)
                 }
             }
+            trimHandler.postDelayed(trimWatchdog!!, WATCHDOG_MS)
         }
-        trimHandler.postDelayed(trimWatchdog!!, 200)
+        if (skipRegions.isNotEmpty()) {
+            skipWatchdog = object : Runnable {
+                override fun run() {
+                    val mp = mediaPlayer ?: return
+                    if (mp.isPlaying) {
+                        val pos = mp.currentPosition.toLong()
+                        skipRegions.firstOrNull { pos >= it.startMs && pos < it.endMs }
+                            ?.let { mp.seekTo(it.endMs.toInt()) }
+                    }
+                    trimHandler.postDelayed(this, WATCHDOG_MS)
+                }
+            }
+            trimHandler.postDelayed(skipWatchdog!!, WATCHDOG_MS)
+        }
+        if (profile.loopEnabled && profile.loopStart >= 0 && profile.loopEnd >= 0) {
+            loopWatchdog = object : Runnable {
+                override fun run() {
+                    val mp = mediaPlayer ?: return
+                    if (mp.isPlaying && mp.currentPosition >= profile.loopEnd.toInt()) mp.seekTo(
+                        profile.loopStart.toInt()
+                    )
+                    trimHandler.postDelayed(this, WATCHDOG_MS)
+                }
+            }
+            trimHandler.postDelayed(loopWatchdog!!, WATCHDOG_MS)
+        }
+        if (profile.abRepeatEnabled && profile.abRepeatA >= 0 && profile.abRepeatB >= 0) {
+            abRepeatWatchdog = object : Runnable {
+                override fun run() {
+                    val mp = mediaPlayer ?: return
+                    if (mp.isPlaying && mp.currentPosition >= profile.abRepeatB.toInt()) mp.seekTo(
+                        profile.abRepeatA.toInt()
+                    )
+                    trimHandler.postDelayed(this, WATCHDOG_MS)
+                }
+            }
+            trimHandler.postDelayed(abRepeatWatchdog!!, WATCHDOG_MS)
+        }
     }
 
-    private fun stopTrimWatchdog() {
+    private fun cancelAllWatchdogs() {
         trimWatchdog?.let { trimHandler.removeCallbacks(it) }
-        trimWatchdog = null
+        skipWatchdog?.let { trimHandler.removeCallbacks(it) }
+        loopWatchdog?.let { trimHandler.removeCallbacks(it) }
+        abRepeatWatchdog?.let { trimHandler.removeCallbacks(it) }
+        trimWatchdog = null; skipWatchdog = null; loopWatchdog = null; abRepeatWatchdog = null
     }
 
-    private fun handleCompletion() {
-        when (repeatMode) {
-            REPEAT_ONE -> playCurrent()
-            REPEAT_ALL -> { currentIndex = (currentIndex + 1) % playlist.size; playCurrent() }
-            else -> {
-                if (currentIndex < playlist.size - 1) {
-                    currentIndex++
-                    playCurrent()
-                } else {
-                    // End of playlist — stop playback
-                    notifyPlayState(false)
-                    updateSessionPlaybackState(false)
-                    currentSong?.let { updateNotification(it, false) }
-                }
-            }
+    private fun advanceOrStop() {
+        if (currentIndex < playlist.size - 1) {
+            advanceIndex(); playCurrent()
+        } else {
+            notifyPlayState(false)
         }
     }
 
-    fun togglePlayPause() {
-        mediaPlayer?.let {
-            if (it.isPlaying) {
-                it.pause()
-                stopTrimWatchdog()
-                abandonAudioFocus()
-                updateSessionPlaybackState(false)
-                notifyPlayState(false)
-                currentSong?.let { s -> updateNotification(s, false) }
-            } else {
-                requestAudioFocus()
-                it.start()
-                updateSessionPlaybackState(true)
-                notifyPlayState(true)
-                currentSong?.let { s ->
-                    updateNotification(s, true)
-                    startTrimWatchdog(s)
-                }
+    fun setSleepTimer(durationMs: Long) {
+        cancelSleepTimer()
+        sleepTimerEndMs = System.currentTimeMillis() + durationMs
+        sleepTimerRunnable = Runnable { pause(); sleepTimerEndMs = -1L }
+        sleepTimerHandler.postDelayed(sleepTimerRunnable!!, durationMs)
+    }
+
+    fun cancelSleepTimer() {
+        sleepTimerRunnable?.let { sleepTimerHandler.removeCallbacks(it) }
+        sleepTimerRunnable = null; sleepTimerEndMs = -1L
+    }
+
+    fun getSleepTimerRemainingMs(): Long {
+        if (sleepTimerEndMs < 0) return -1L
+        return (sleepTimerEndMs - System.currentTimeMillis()).coerceAtLeast(0L)
+    }
+
+    fun applyProfile(profile: PlaybackProfile) {
+        activeProfile = profile
+        dspProcessor?.applyProfile(profile)
+        applyPlaybackParams(profile.pitchSemitones.toInt(), profile.playbackSpeed)
+    }
+
+    fun reloadActiveProfile() {
+        val song = currentSong ?: return
+        serviceScope.launch {
+            val profile =
+                withContext(Dispatchers.IO) { profileRepository.getOrCreateActiveProfile(song.id) }
+            val regions =
+                withContext(Dispatchers.IO) { profileRepository.getEnabledSkipRegions(song.id) }
+            activeProfile = profile; skipRegions = regions
+            applyPlaybackParams(profile.pitchSemitones.toInt(), profile.playbackSpeed)
+            dspProcessor?.applyProfile(profile)
+            cancelAllWatchdogs(); startWatchdogs(profile)
+        }
+    }
+
+    private fun applyPlaybackParams(pitchSemitones: Int, speed: Float) {
+        val mp = mediaPlayer ?: return
+        try {
+            val pitch = SEMITONE_RATIO.pow(pitchSemitones.toDouble()).toFloat()
+            mp.playbackParams = PlaybackParams().apply {
+                this.pitch = pitch.coerceIn(0.1f, 8f)
+                this.speed = speed.coerceIn(0.1f, 4f)
             }
+        } catch (_: Exception) {
+        }
+    }
+
+    fun toggleShuffle() {
+        shuffleEnabled = !shuffleEnabled; if (shuffleEnabled) rebuildShuffleIndices()
+    }
+
+    fun isShuffleEnabled(): Boolean = shuffleEnabled
+
+    private fun rebuildShuffleIndices() {
+        val indices = (0 until playlist.size).toMutableList().also { it.shuffle() }
+        val curr = indices.indexOf(currentIndex)
+        if (curr > 0) {
+            indices.removeAt(curr); indices.add(0, currentIndex)
+        }
+        shuffledIndices = indices
+    }
+
+    private fun advanceIndex() {
+        if (shuffleEnabled && shuffledIndices.isNotEmpty()) {
+            val pos = shuffledIndices.indexOf(currentIndex)
+            currentIndex = shuffledIndices[(pos + 1) % shuffledIndices.size]
+        } else {
+            currentIndex = (currentIndex + 1) % playlist.size
         }
     }
 
     fun skipNext() {
-        if (playlist.isEmpty()) return
-        currentIndex = (currentIndex + 1) % playlist.size
-        playCurrent()
+        cancelAllWatchdogs(); advanceIndex(); playCurrent()
     }
 
     fun skipPrev() {
-        if (playlist.isEmpty()) return
-        if (getPosition() > 3000) seekTo(currentSong?.trimStart?.toInt() ?: 0)
-        else { currentIndex = if (currentIndex > 0) currentIndex - 1 else playlist.size - 1; playCurrent() }
+        cancelAllWatchdogs()
+        if (mediaPlayer != null && (mediaPlayer?.currentPosition ?: 0) > 3000) {
+            mediaPlayer?.seekTo(activeProfile?.trimStart?.toInt() ?: 0)
+        } else {
+            if (shuffleEnabled && shuffledIndices.isNotEmpty()) {
+                val pos = shuffledIndices.indexOf(currentIndex)
+                currentIndex =
+                    shuffledIndices[((pos - 1) + shuffledIndices.size) % shuffledIndices.size]
+            } else {
+                currentIndex = ((currentIndex - 1) + playlist.size) % playlist.size
+            }
+            playCurrent()
+        }
     }
 
-    fun seekTo(ms: Int)          { mediaPlayer?.seekTo(ms) }
-    fun getPosition(): Int       = mediaPlayer?.currentPosition ?: 0
-    fun isPlaying(): Boolean     = mediaPlayer?.isPlaying ?: false
-    fun getCurrentSong(): Song?  = currentSong
-    fun setRepeatMode(mode: Int) { repeatMode = mode }
+    fun togglePlayPause() {
+        if (isPlaying()) pause() else resume()
+    }
+
+    private fun pause() {
+        mediaPlayer?.pause()
+        notifyPlayState(false); updateMediaSessionState(false); buildAndStartForeground()
+    }
+
+    private fun resume() {
+        requestAudioFocus()
+        mediaPlayer?.start()
+        notifyPlayState(true); updateMediaSessionState(true); buildAndStartForeground()
+    }
+
+    fun isPlaying(): Boolean = mediaPlayer?.isPlaying ?: false
+    fun seekTo(ms: Int) {
+        mediaPlayer?.seekTo(ms)
+    }
+
+    fun getCurrentPosition(): Int = mediaPlayer?.currentPosition ?: 0
+    fun getPosition(): Int = getCurrentPosition() // Alias for compatibility
+    fun getDuration(): Int = mediaPlayer?.duration ?: (currentSong?.duration?.toInt() ?: 0)
+    fun getCurrentSong(): Song? = currentSong
+    fun getPlaylist(): List<Song> = playlist
+    fun getCurrentIndex(): Int = currentIndex
     fun getRepeatMode(): Int = repeatMode
+    fun setRepeatMode(mode: Int) { repeatMode = mode }
+    fun getActiveProfile(): PlaybackProfile? = activeProfile
+    fun getLyricsManager(): LyricsManager = lyricsManager
+    fun getAnalysisEngine(): AnalysisEngine = analysisEngine
 
-    fun getDuration(): Int {
-        val song = currentSong ?: return 0
-        val end = if (song.trimEnd > 0) song.trimEnd.toInt() else (mediaPlayer?.duration ?: 0)
-        return end - song.trimStart.toInt()
-    }
-
+    // Real-time pitch and speed adjustment methods
     fun applyPitchToCurrentSong(semitones: Int) {
-        val speed = currentSong?.playbackSpeed ?: 1.0f
-        applyPlaybackParams(semitones, speed)
+        activeProfile?.pitchSemitones ?: 0f
+        val newPitch = semitones.toFloat()
+        activeProfile = activeProfile?.copy(pitchSemitones = newPitch)
+        applyPlaybackParams(semitones, activeProfile?.playbackSpeed ?: 1.0f)
     }
 
     fun applySpeedToCurrentSong(speed: Float) {
-        val semitones = currentSong?.pitchSemitones ?: 0
-        currentSong?.playbackSpeed = speed
-        applyPlaybackParams(semitones, speed)
+        activeProfile = activeProfile?.copy(playbackSpeed = speed)
+        applyPlaybackParams(activeProfile?.pitchSemitones?.toInt() ?: 0, speed)
     }
 
-    private fun applyPlaybackParams(semitones: Int, speed: Float) {
-        mediaPlayer?.playbackParams = PlaybackParams().apply {
-            pitch = if (semitones == 0) 1.0f
-            else SEMITONE_RATIO.pow(semitones.toDouble()).toFloat()
-            this.speed = speed.coerceIn(0.5f, 2.0f)
-        }
-    }
+    private fun requestAudioFocus(): Boolean {
+        val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+            .setAudioAttributes(
+                AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()
+            )
+            .setOnAudioFocusChangeListener { change ->
+                when (change) {
+                    AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> pause()
+                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> mediaPlayer?.setVolume(
+                        0.2f,
+                        0.2f
+                    )
 
-    private fun requestAudioFocus() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val req = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .build()
-                )
-                setOnAudioFocusChangeListener { change ->
-                    if (change == AudioManager.AUDIOFOCUS_LOSS && isPlaying()) togglePlayPause()
+                    AudioManager.AUDIOFOCUS_GAIN -> {
+                        mediaPlayer?.setVolume(1f, 1f); if (!isPlaying()) resume()
+                    }
                 }
             }.build()
-            audioFocusRequest = req
-            audioManager.requestAudioFocus(req)
-        }
-    }
-
-    private fun abandonAudioFocus() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
-        }
-    }
-
-    private fun updateSessionMetadata(song: Song, art: Bitmap?) {
-        val session = mediaSession ?: return
-        val builder = MediaMetadataCompat.Builder()
-            .putString(MediaMetadataCompat.METADATA_KEY_TITLE,  song.title)
-            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.artist)
-            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM,
-                song.albumName.ifBlank { song.folderName })
-            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.duration)
-        art?.let { builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, it) }
-        session.setMetadata(builder.build())
-    }
-
-    private fun updateSessionPlaybackState(playing: Boolean) {
-        val session = mediaSession ?: return
-        val state =
-            if (playing) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
-        val pos = mediaPlayer?.currentPosition?.toLong() ?: 0L
-        session.setPlaybackState(
-            PlaybackStateCompat.Builder()
-                .setState(state, pos, 1.0f)
-                .setActions(
-                    PlaybackStateCompat.ACTION_PLAY or
-                            PlaybackStateCompat.ACTION_PAUSE or
-                            PlaybackStateCompat.ACTION_PLAY_PAUSE or
-                            PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
-                            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
-                            PlaybackStateCompat.ACTION_SEEK_TO or
-                            PlaybackStateCompat.ACTION_STOP
-                ).build()
-        )
+        audioFocusRequest = request
+        return audioManager.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val ch = NotificationChannel(
-                NOTIF_CHANNEL, "MusicVault Playback",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Music playback controls"
-                setShowBadge(false)
-                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-            }
-            getSystemService(NotificationManager::class.java).createNotificationChannel(ch)
-        }
+        val channel =
+            NotificationChannel(NOTIF_CHANNEL, "Music Playback", NotificationManager.IMPORTANCE_LOW)
+        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
-    private fun pendingBroadcast(action: String): PendingIntent =
-        PendingIntent.getBroadcast(
-            this, action.hashCode(),
-            Intent(action).setPackage(packageName),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-    private fun buildNotification(song: Song, playing: Boolean, art: Bitmap?): Notification {
-        val openApp = PendingIntent.getActivity(
-            this, 0,
-            Intent(this, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-            },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        val fallbackArt = BitmapFactory.decodeResource(resources, R.drawable.ic_launcher)
-        val token = mediaSession?.sessionToken
-        val builder = NotificationCompat.Builder(this, NOTIF_CHANNEL)
-            .setSmallIcon(R.drawable.ic_music_note)
-            .setContentTitle(song.title)
-            .setContentText(song.artist)
-            .setSubText(song.albumName.ifBlank { song.folderName })
-            .setLargeIcon(art ?: fallbackArt)
-            .setContentIntent(openApp)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setOngoing(playing)
-            .setSilent(true)
-            .setShowWhen(false)
-            .addAction(R.drawable.ic_skip_prev, "Previous", pendingBroadcast(ACTION_PREV))
-            .addAction(
-                if (playing) R.drawable.ic_pause else R.drawable.ic_play,
-                if (playing) "Pause" else "Play",
-                pendingBroadcast(if (playing) ACTION_PAUSE else ACTION_PLAY)
-            )
-            .addAction(R.drawable.ic_skip_next, "Next", pendingBroadcast(ACTION_NEXT))
-            .addAction(R.drawable.ic_close, "Stop", pendingBroadcast(ACTION_STOP))
-        if (token != null) {
-            builder.setStyle(
-                MediaStyle()
-                    .setMediaSession(token)
-                    .setShowActionsInCompactView(0, 1, 2)
-                    .setShowCancelButton(true)
-                    .setCancelButtonIntent(pendingBroadcast(ACTION_STOP))
-            )
-        }
-        return builder.build()
-    }
-
-    private fun updateNotification(song: Song, playing: Boolean) {
+    private fun buildAndStartForeground() {
+        val song = currentSong ?: return
         serviceScope.launch {
-            val art = loadAlbumArt(song)
-            getSystemService(NotificationManager::class.java)
-                .notify(NOTIF_ID, buildNotification(song, playing, art))
+            val art = withContext(Dispatchers.IO) {
+                try {
+                    if (song.albumArtUrl.isNotBlank()) BitmapFactory.decodeStream(URL(song.albumArtUrl).openStream()) else null
+                } catch (_: Exception) {
+                    null
+                }
+            }
+            startForeground(NOTIF_ID, buildNotification(song, art, isPlaying()))
         }
     }
 
-    private suspend fun loadAlbumArt(song: Song): Bitmap? = withContext(Dispatchers.IO) {
-        if (song.albumArtUrl.isBlank()) return@withContext null
-        try {
-            val conn = URL(song.albumArtUrl).openConnection().apply {
-                connectTimeout = 5000; readTimeout = 5000
-            }
-            BitmapFactory.decodeStream(conn.getInputStream())
-        } catch (_: Exception) { null }
+    private fun buildNotification(song: Song, art: Bitmap?, playing: Boolean): Notification {
+        fun pi(action: String) = PendingIntent.getBroadcast(
+            this,
+            action.hashCode(),
+            Intent(action),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        updateMediaSessionMetadata(song, art)
+        return NotificationCompat.Builder(this, NOTIF_CHANNEL)
+            .setSmallIcon(R.drawable.ic_music_note).setContentTitle(song.title)
+            .setContentText(song.artist).setLargeIcon(art)
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    this,
+                    0,
+                    Intent(
+                        this,
+                        MainActivity::class.java
+                    ).apply { addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP) },
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+            )
+            .setOnlyAlertOnce(true).setOngoing(playing)
+            .addAction(android.R.drawable.ic_media_previous, "Prev", pi(ACTION_PREV))
+            .addAction(
+                if (playing) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play,
+                if (playing) "Pause" else "Play",
+                pi(if (playing) ACTION_PAUSE else ACTION_PLAY)
+            )
+            .addAction(android.R.drawable.ic_media_next, "Next", pi(ACTION_NEXT))
+            .setStyle(
+                MediaStyle().setMediaSession(mediaSession?.sessionToken)
+                    .setShowActionsInCompactView(0, 1, 2)
+            )
+            .setPriority(NotificationCompat.PRIORITY_LOW).build()
     }
 
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        stopTrimWatchdog()
-        mediaPlayer?.stop(); mediaPlayer?.release(); mediaPlayer = null
-        abandonAudioFocus()
-        mediaSession?.isActive = false
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
-        super.onTaskRemoved(rootIntent)
+    private fun initMediaSession() {
+        val session = MediaSessionCompat(this, "MusicVaultSession")
+        session.setCallback(object : MediaSessionCompat.Callback() {
+            override fun onPlay() {
+                if (!isPlaying()) togglePlayPause()
+            }
+
+            override fun onPause() {
+                if (isPlaying()) togglePlayPause()
+            }
+
+            override fun onSkipToNext() {
+                skipNext()
+            }
+
+            override fun onSkipToPrevious() {
+                skipPrev()
+            }
+
+            override fun onStop() {
+                stopSelf()
+            }
+
+            override fun onSeekTo(pos: Long) {
+                seekTo(pos.toInt())
+            }
+        })
+        session.isActive = true; mediaSession = session
+    }
+
+    private fun updateMediaSessionMetadata(song: Song, art: Bitmap?) {
+        mediaSession?.setMetadata(
+            MediaMetadataCompat.Builder()
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.title)
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.artist)
+            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.duration)
+            .apply {
+                if (art != null) putBitmap(
+                    MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
+                    art
+                )
+            }
+            .build())
+    }
+
+    private fun updateMediaSessionState(playing: Boolean) {
+        val state =
+            if (playing) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
+        mediaSession?.setPlaybackState(
+            PlaybackStateCompat.Builder()
+                .setState(state, getCurrentPosition().toLong(), activeProfile?.playbackSpeed ?: 1f)
+                .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_SKIP_TO_NEXT or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or PlaybackStateCompat.ACTION_SEEK_TO)
+                .build()
+        )
+    }
+
+    private fun notifySongChanged(song: Song) {
+        onSongChanged?.invoke(song)
+    }
+
+    private fun notifyPlayState(playing: Boolean) {
+        onPlayStateChanged?.invoke(playing)
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startForeground(
+            NOTIF_ID,
+            NotificationCompat.Builder(this, NOTIF_CHANNEL).setSmallIcon(R.drawable.ic_music_note)
+                .setContentTitle("Claw Mikia").setContentText("Ready")
+                .setPriority(NotificationCompat.PRIORITY_LOW).build()
+        )
+        return START_STICKY
     }
 
     override fun onDestroy() {
-        stopTrimWatchdog()
-        serviceScope.cancel()
-        mediaPlayer?.release(); mediaPlayer = null
-        abandonAudioFocus()
-        mediaSession?.release(); mediaSession = null
-        try { unregisterReceiver(notifReceiver) } catch (_: Exception) {}
         super.onDestroy()
+        cancelAllWatchdogs(); cancelSleepTimer()
+        runCatching { unregisterReceiver(notifReceiver) }
+        mediaPlayer?.release(); mediaPlayer = null
+        mediaSession?.release()
+        dspProcessor?.release()
+        audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
+        serviceScope.cancel()
     }
 }

@@ -30,6 +30,7 @@ import com.musicvault.service.MusicService
 import com.musicvault.ui.fragments.FavoritesFragment
 import com.musicvault.ui.fragments.FoldersFragment
 import com.musicvault.ui.fragments.LibraryFragment
+import com.musicvault.ui.fragments.PlaylistsFragment
 import com.musicvault.ui.viewmodels.MainViewModel
 import com.musicvault.utils.formatDuration
 
@@ -124,6 +125,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_library -> showFragment(LibraryFragment())
                 R.id.nav_folders -> showFragment(FoldersFragment())
                 R.id.nav_favorites -> showFragment(FavoritesFragment())
+                R.id.nav_playlists -> showFragment(PlaylistsFragment())
             }
             true
         }
@@ -398,7 +400,9 @@ class MainActivity : AppCompatActivity() {
         progressRunnable = object : Runnable {
             override fun run() {
                 val svc = musicService ?: return
-                val pos = svc.getPosition() - (viewModel.currentSong.value?.trimStart?.toInt() ?: 0)
+                val pos =
+                    svc.getCurrentPosition() - (viewModel.currentSong.value?.trimStart?.toInt()
+                        ?: 0)
                 val dur = svc.getDuration()
                 if (dur > 0) {
                     binding.musicPanel.seekBar.progress =
