@@ -62,32 +62,31 @@ class ProfilesFragment : BottomSheetDialogFragment() {
 
     private fun showCreateProfileDialog() {
         val songId = viewModel.currentSong.value?.id ?: return
-        val editText = EditText(requireContext()).apply { hint = "Profile name" }
-        AlertDialog.Builder(requireContext())
-            .setTitle("New Playback Profile")
-            .setView(editText)
-            .setPositiveButton("Create") { _, _ ->
-                val name = editText.text.toString().trim()
-                    .ifBlank { "Profile ${System.currentTimeMillis() % 1000}" }
-                viewModel.createProfile(songId, name)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+        showAestheticInputDialog(
+            title = "New Playback Profile",
+            hint = "Profile name"
+        ) { name ->
+            val profileName = name.ifBlank { "Profile ${System.currentTimeMillis() % 1000}" }
+            viewModel.createProfile(songId, profileName)
+        }
     }
 
     private fun confirmDelete(profile: PlaybackProfile) {
         if (profile.name == "Default") {
-            AlertDialog.Builder(requireContext())
-                .setMessage("Cannot delete the Default profile.")
-                .setPositiveButton("OK", null).show()
+            showAestheticConfirmDialog(
+                title = "Cannot Delete",
+                message = "Cannot delete the Default profile.",
+                positiveText = "OK"
+            ) { }
             return
         }
-        AlertDialog.Builder(requireContext())
-            .setTitle("Delete Profile")
-            .setMessage("Delete \"${profile.name}\"? This cannot be undone.")
-            .setPositiveButton("Delete") { _, _ -> viewModel.deleteProfile(profile) }
-            .setNegativeButton("Cancel", null)
-            .show()
+        showAestheticConfirmDialog(
+            title = "Delete Profile",
+            message = "Delete \"${profile.name}\"? This cannot be undone.",
+            positiveText = "Delete"
+        ) {
+            viewModel.deleteProfile(profile)
+        }
     }
 
     private fun showProfileDetails(profile: PlaybackProfile) {
@@ -101,10 +100,74 @@ class ProfilesFragment : BottomSheetDialogFragment() {
             if (profile.abRepeatEnabled) appendLine("A-B: ${profile.abRepeatA}ms → ${profile.abRepeatB}ms")
             if (profile.trimEnd > 0) appendLine("Trim: ${profile.trimStart}ms → ${profile.trimEnd}ms")
         }
-        AlertDialog.Builder(requireContext())
-            .setTitle(profile.name)
-            .setMessage(details)
-            .setPositiveButton("OK", null)
-            .show()
+        showAestheticConfirmDialog(
+            title = profile.name,
+            message = details,
+            positiveText = "OK"
+        ) { }
+    }
+
+    // ─── Aesthetic Dialogs ───────────────────────────────────────────────────────
+
+    private fun showAestheticConfirmDialog(
+        title: String,
+        message: String,
+        positiveText: String = "Confirm",
+        onPositive: () -> Unit
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_confirm, null)
+
+        dialogView.findViewById<android.widget.TextView>(R.id.tvTitle).text = title
+        dialogView.findViewById<android.widget.TextView>(R.id.tvMessage).text = message
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        dialogView.findViewById<android.widget.ImageButton>(R.id.btnCancel).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<android.widget.ImageButton>(R.id.btnConfirm).setOnClickListener {
+            onPositive()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun showAestheticInputDialog(
+        title: String,
+        hint: String = "",
+        positiveText: String = "Save",
+        onPositive: (String) -> Unit
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_generic, null)
+
+        dialogView.findViewById<android.widget.TextView>(R.id.tvTitle).text = title
+        val tilInput =
+            dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilInput)
+        val etInput =
+            dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etInput)
+        val btnNegative = dialogView.findViewById<android.widget.ImageButton>(R.id.btnNegative)
+
+        tilInput.visibility = View.VISIBLE
+        tilInput.hint = hint
+        btnNegative.visibility = View.VISIBLE
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        btnNegative.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<android.widget.ImageButton>(R.id.btnPositive).setOnClickListener {
+            onPositive(etInput.text.toString())
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 }

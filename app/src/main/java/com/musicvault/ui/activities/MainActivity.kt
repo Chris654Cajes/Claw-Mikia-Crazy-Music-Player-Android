@@ -263,20 +263,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupResetButton() {
         binding.btnReset.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle("Reset Library")
-                .setMessage(
-                    "This will remove all songs from the library database.\n\n" +
-                            "Your actual MP3 files will NOT be deleted from your device.\n\n" +
-                            "You can re-scan your folder at any time to rebuild the library."
-                )
-                .setPositiveButton("Reset") { _, _ ->
+            showAestheticConfirmDialog(
+                title = "Reset Library",
+                message = "This will remove all songs from the library database.\n\n" +
+                        "Your actual MP3 files will NOT be deleted from your device.\n\n" +
+                        "You can re-scan your folder at any time to rebuild the library.",
+                positiveText = "Reset",
+                onPositive = {
                     // Pause playback before wiping the list
                     if (musicService?.isPlaying() == true) musicService?.togglePlayPause()
                     viewModel.resetLibrary()
                 }
-                .setNegativeButton("Cancel", null)
-                .show()
+            )
         }
     }
 
@@ -369,13 +367,43 @@ class MainActivity : AppCompatActivity() {
     fun playSong(song: Song, playlist: List<Song>) {
         val list = playlist.ifEmpty { listOf(song) }
         val idx = list.indexOfFirst { it.id == song.id }.coerceAtLeast(0)
+
+        android.util.Log.d(
+            "MainActivity",
+            "playSong called: ${song.title}, pitch=${song.pitchSemitones}, speed=${song.playbackSpeed}, trimStart=${song.trimStart}, trimEnd=${song.trimEnd}, repeat=${song.repeatMode}"
+        )
+        
         // Show mini player right away — no waiting for callbacks
         showMusicPanel(song)
         updatePlayButton(true)
         startProgressUpdates()
-        // Tell the service to play — it will fire onSongChanged which re-confirms state
-        musicService?.setPlaylist(list, idx)
-        viewModel.setPlaying(true)
+
+        // Ensure service is bound before calling it
+        if (serviceBound && musicService != null) {
+            android.util.Log.d("MainActivity", "Service bound, calling setPlaylist")
+            musicService?.setPlaylist(list, idx)
+            viewModel.setPlaying(true)
+        } else {
+            android.util.Log.d("MainActivity", "Service not bound, binding first")
+            // Service not bound yet, bind and then play
+            bindToService()
+            // Postpone the play call until service is connected
+            musicService?.let { service ->
+                android.util.Log.d(
+                    "MainActivity",
+                    "Service available after binding, calling setPlaylist"
+                )
+                service.setPlaylist(list, idx)
+                viewModel.setPlaying(true)
+            } ?: run {
+                android.util.Log.d("MainActivity", "Service still null, retrying after delay")
+                // If service is still null, try again after a delay
+                progressHandler.postDelayed({
+                    musicService?.setPlaylist(list, idx)
+                    viewModel.setPlaying(true)
+                }, 500)
+            }
+        }
     }
 
     fun showMusicPanel(song: Song) {
@@ -452,5 +480,69 @@ class MainActivity : AppCompatActivity() {
         if (serviceBound) unbindService(serviceConnection)
         stopProgressUpdates()
         super.onDestroy()
+    }
+
+    // ─── Aesthetic Dialogs ───────────────────────────────────────────────────────
+
+    private fun showAestheticConfirmDialog(
+        title: String,
+        message: String,
+        positiveText: String = "Confirm",
+        onPositive: () -> Unit
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_confirm, null)
+
+        dialogView.findViewById<android.widget.TextView>(R.id.tvTitle).text = title
+        dialogView.findViewById<android.widget.TextView>(R.id.tvMessage).text = message
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        dialogView.findViewById<android.widget.ImageButton>(R.id.btnCancel).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<android.widget.ImageButton>(R.id.btnConfirm).setOnClickListener {
+            onPositive()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun showAestheticInputDialog(
+        title: String,
+        hint: String = "",
+        positiveText: String = "Save",
+        onPositive: (String) -> Unit
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_generic, null)
+
+        dialogView.findViewById<android.widget.TextView>(R.id.tvTitle).text = title
+        val tilInput =
+            dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilInput)
+        val etInput =
+            dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etInput)
+        val btnNegative = dialogView.findViewById<android.widget.ImageButton>(R.id.btnNegative)
+
+        tilInput.visibility = View.VISIBLE
+        tilInput.hint = hint
+        btnNegative.visibility = View.VISIBLE
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        btnNegative.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<android.widget.ImageButton>(R.id.btnPositive).setOnClickListener {
+            onPositive(etInput.text.toString())
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 }

@@ -121,17 +121,13 @@ class EqualizerFragment : BottomSheetDialogFragment() {
         }
 
         view.findViewById<Button>(R.id.btnSavePreset)?.setOnClickListener {
-            val editText = EditText(requireContext()).also { it.hint = "Preset name" }
-            val dialog = android.app.AlertDialog.Builder(requireContext())
-                .setTitle("Save EQ Preset")
-                .setView(editText)
-                .setPositiveButton("Save") { _, _ ->
-                    val name = editText.text?.toString() ?: "Custom"
-                    viewModel.saveCustomEqPreset(name, getCurrentBands())
-                }
-                .setNegativeButton("Cancel", null)
-                .create()
-            dialog.show()
+            showAestheticInputDialog(
+                title = "Save EQ Preset",
+                hint = "Preset name"
+            ) { name ->
+                val presetName = name.ifBlank { "Custom" }
+                viewModel.saveCustomEqPreset(presetName, getCurrentBands())
+            }
         }
     }
 
@@ -249,4 +245,41 @@ class EqualizerFragment : BottomSheetDialogFragment() {
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {}
         }
+
+    // ─── Aesthetic Dialogs ───────────────────────────────────────────────────────
+
+    private fun showAestheticInputDialog(
+        title: String,
+        hint: String = "",
+        positiveText: String = "Save",
+        onPositive: (String) -> Unit
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_generic, null)
+
+        dialogView.findViewById<TextView>(R.id.tvTitle).text = title
+        val tilInput =
+            dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilInput)
+        val etInput =
+            dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etInput)
+        val btnNegative = dialogView.findViewById<ImageButton>(R.id.btnNegative)
+
+        tilInput.visibility = View.VISIBLE
+        tilInput.hint = hint
+        btnNegative.visibility = View.VISIBLE
+
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        btnNegative.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<ImageButton>(R.id.btnPositive).setOnClickListener {
+            onPositive(etInput.text.toString())
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
 }

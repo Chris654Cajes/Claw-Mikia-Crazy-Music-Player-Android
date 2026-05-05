@@ -18,6 +18,7 @@
     <color name="neon_orange_20">#33FF6F00</color>
     <color name="neon_cyan_20">#3300E5FF</color>
     <color name="neon_purple_20">#33AB02FA</color>
+    <color name="text_secondary_20">#338888AA</color>
 
     <!-- Dark theme surfaces -->
     <color name="dark_bg_primary">#0A0A0F</color>

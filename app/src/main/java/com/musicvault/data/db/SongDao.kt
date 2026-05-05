@@ -55,6 +55,9 @@ interface SongDao {
     @Query("UPDATE songs SET playCount = playCount + 1, lastPlayed = :time WHERE id = :id")
     suspend fun incrementPlayCount(id: Long, time: Long)
 
+    @Query("UPDATE songs SET repeatMode = :repeatMode WHERE id = :id")
+    suspend fun updateRepeatMode(id: Long, repeatMode: Int)
+
     @Query("UPDATE songs SET albumName = :album, albumArtUrl = :artUrl, metadataFetched = 1 WHERE id = :id")
     suspend fun updateOnlineMetadata(id: Long, album: String, artUrl: String)
 

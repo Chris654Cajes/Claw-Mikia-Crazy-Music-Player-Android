@@ -68,16 +68,13 @@ class PlaylistsFragment : Fragment() {
     }
 
     private fun showCreatePlaylistDialog() {
-        val et = EditText(requireContext()).apply { hint = "Playlist name" }
-        AlertDialog.Builder(requireContext())
-            .setTitle("New Playlist")
-            .setView(et)
-            .setPositiveButton("Create") { _, _ ->
-                val name = et.text.toString().trim().ifBlank { return@setPositiveButton }
-                scope.launch { repo.createPlaylist(name) }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+        showAestheticPlaylistDialog(
+            title = "New Playlist",
+            hint = "Playlist name",
+            positiveText = "Create"
+        ) { name ->
+            scope.launch { repo.createPlaylist(name) }
+        }
     }
 
     private fun openPlaylist(playlist: Playlist) {
@@ -87,14 +84,13 @@ class PlaylistsFragment : Fragment() {
     }
 
     private fun confirmDelete(playlist: Playlist) {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Delete Playlist")
-            .setMessage("Delete \"${playlist.name}\"? Songs will NOT be deleted.")
-            .setPositiveButton("Delete") { _, _ ->
-                scope.launch(Dispatchers.IO) { repo.deletePlaylist(playlist) }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+        showAestheticConfirmDialog(
+            title = "Delete Playlist",
+            message = "Delete \"${playlist.name}\"? Songs will NOT be deleted.",
+            positiveText = "Delete"
+        ) {
+            scope.launch(Dispatchers.IO) { repo.deletePlaylist(playlist) }
+        }
     }
 
     inner class PlaylistAdapter(
@@ -134,6 +130,70 @@ class PlaylistsFragment : Fragment() {
             (holder.itemView as LinearLayout).addView(del)
             holder.itemView.setOnClickListener { onOpen(pl) }
         }
+    }
+
+    // ─── Aesthetic Dialogs ───────────────────────────────────────────────────────
+
+    private fun showAestheticConfirmDialog(
+        title: String,
+        message: String,
+        positiveText: String = "Confirm",
+        onPositive: () -> Unit
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_confirm, null)
+
+        dialogView.findViewById<TextView>(R.id.tvTitle).text = title
+        dialogView.findViewById<TextView>(R.id.tvMessage).text = message
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        dialogView.findViewById<android.widget.ImageButton>(R.id.btnCancel).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<android.widget.ImageButton>(R.id.btnConfirm).setOnClickListener {
+            onPositive()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun showAestheticPlaylistDialog(
+        title: String,
+        hint: String = "",
+        positiveText: String = "Save",
+        onPositive: (String) -> Unit
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_new_playlist, null)
+
+        dialogView.findViewById<TextView>(R.id.tvTitle).text = title
+        val tilPlaylistName =
+            dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilPlaylistName)
+        val etPlaylistName =
+            dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etPlaylistName)
+
+        tilPlaylistName.hint = hint
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        dialogView.findViewById<android.widget.ImageButton>(R.id.btnCancel).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<android.widget.ImageButton>(R.id.btnCreate).setOnClickListener {
+            val name = etPlaylistName.text.toString().trim()
+            if (name.isNotBlank()) {
+                onPositive(name)
+                dialog.dismiss()
+            }
+        }
+
+        dialog.show()
     }
 }
 

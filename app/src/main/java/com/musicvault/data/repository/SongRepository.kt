@@ -85,6 +85,48 @@ class SongRepository(private val context: Context) {
         songDao.updateTrim(id, start, end)
     }
 
+    suspend fun updateRepeatMode(id: Long, repeatMode: Int) = withContext(Dispatchers.IO) {
+        songDao.updateRepeatMode(id, repeatMode)
+    }
+
+    // Synchronization methods to keep song settings in sync with active profile
+    suspend fun updatePitchAndSyncProfile(id: Long, pitch: Int) = withContext(Dispatchers.IO) {
+        songDao.updatePitch(id, pitch)
+        // Also update the active profile if it exists
+        val profileDao = MusicDatabase.getDatabase(context).playbackProfileDao()
+        val activeProfile = profileDao.getActiveProfile(id)
+        activeProfile?.let { profile ->
+            profileDao.updatePitchSpeed(profile.id, pitch.toFloat(), profile.playbackSpeed)
+        }
+    }
+
+    suspend fun updateSpeedAndSyncProfile(id: Long, speed: Float) = withContext(Dispatchers.IO) {
+        songDao.updateSpeed(id, speed)
+        // Also update the active profile if it exists
+        val profileDao = MusicDatabase.getDatabase(context).playbackProfileDao()
+        val activeProfile = profileDao.getActiveProfile(id)
+        activeProfile?.let { profile ->
+            profileDao.updatePitchSpeed(profile.id, profile.pitchSemitones, speed)
+        }
+    }
+
+    suspend fun updateTrimAndSyncProfile(id: Long, start: Long, end: Long) =
+        withContext(Dispatchers.IO) {
+            songDao.updateTrim(id, start, end)
+            // Also update the active profile if it exists
+            val profileDao = MusicDatabase.getDatabase(context).playbackProfileDao()
+            val activeProfile = profileDao.getActiveProfile(id)
+            activeProfile?.let { profile ->
+                profileDao.updateTrim(profile.id, start, end)
+            }
+        }
+
+    suspend fun updateRepeatModeAndSyncProfile(id: Long, repeatMode: Int) =
+        withContext(Dispatchers.IO) {
+            songDao.updateRepeatMode(id, repeatMode)
+            // Note: repeat mode is stored in song, not profile, so no profile sync needed
+        }
+
     suspend fun toggleFavorite(song: Song) = withContext(Dispatchers.IO) {
         songDao.updateFavorite(song.id, !song.isFavorite)
     }

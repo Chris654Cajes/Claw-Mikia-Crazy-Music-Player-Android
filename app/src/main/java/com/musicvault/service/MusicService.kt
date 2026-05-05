@@ -165,15 +165,29 @@ class MusicService : Service() {
                     null
                 }
             } ?: songSnapshot
+
+            android.util.Log.d(
+                "MusicService",
+                "Loading song: ${freshSong.title}, pitch=${freshSong.pitchSemitones}, speed=${freshSong.playbackSpeed}, trimStart=${freshSong.trimStart}, trimEnd=${freshSong.trimEnd}, repeat=${freshSong.repeatMode}"
+            )
+            
             val profile = withContext(Dispatchers.IO) {
                 profileRepository.getOrCreateActiveProfile(freshSong.id)
             }
+
+            android.util.Log.d(
+                "MusicService",
+                "Active profile: pitch=${profile.pitchSemitones}, speed=${profile.playbackSpeed}, trimStart=${profile.trimStart}, trimEnd=${profile.trimEnd}"
+            )
+            
             val regions = withContext(Dispatchers.IO) {
                 profileRepository.getEnabledSkipRegions(freshSong.id)
             }
             playlist = playlist.toMutableList().also { it[currentIndex] = freshSong }
             activeProfile = profile
             skipRegions = regions
+            // Restore repeat mode from song's persisted state
+            repeatMode = freshSong.repeatMode
             playFreshSong(freshSong, profile)
             launch(Dispatchers.IO) {
                 lyricsManager.loadForSong(freshSong.id, freshSong.filePath)
@@ -443,7 +457,15 @@ class MusicService : Service() {
     fun getPlaylist(): List<Song> = playlist
     fun getCurrentIndex(): Int = currentIndex
     fun getRepeatMode(): Int = repeatMode
-    fun setRepeatMode(mode: Int) { repeatMode = mode }
+    fun setRepeatMode(mode: Int) {
+        repeatMode = mode
+        // Persist repeat mode for current song using synchronized version
+        currentSong?.let { song ->
+            serviceScope.launch {
+                repository.updateRepeatModeAndSyncProfile(song.id, mode)
+            }
+        }
+    }
     fun getActiveProfile(): PlaybackProfile? = activeProfile
     fun getLyricsManager(): LyricsManager = lyricsManager
     fun getAnalysisEngine(): AnalysisEngine = analysisEngine
@@ -454,11 +476,54 @@ class MusicService : Service() {
         val newPitch = semitones.toFloat()
         activeProfile = activeProfile?.copy(pitchSemitones = newPitch)
         applyPlaybackParams(semitones, activeProfile?.playbackSpeed ?: 1.0f)
+
+        // Sync the pitch change back to the song database
+        currentSong?.let { song ->
+            serviceScope.launch {
+                repository.updatePitchAndSyncProfile(song.id, semitones)
+            }
+        }
     }
 
     fun applySpeedToCurrentSong(speed: Float) {
         activeProfile = activeProfile?.copy(playbackSpeed = speed)
         applyPlaybackParams(activeProfile?.pitchSemitones?.toInt() ?: 0, speed)
+
+        // Sync the speed change back to the song database
+        currentSong?.let { song ->
+            serviceScope.launch {
+                repository.updateSpeedAndSyncProfile(song.id, speed)
+            }
+        }
+    }
+
+    fun applyTrimToCurrentSong(startMs: Long, endMs: Long) {
+        activeProfile = activeProfile?.copy(trimStart = startMs, trimEnd = endMs)
+        // Apply trim immediately if currently playing
+        mediaPlayer?.let { mp ->
+            if (mp.isPlaying) {
+                val currentPos = mp.currentPosition.toLong()
+                if (currentPos < startMs) mp.seekTo(startMs.toInt())
+                else if (currentPos > endMs && endMs > 0) mp.seekTo(startMs.toInt())
+            }
+        }
+
+        // Sync the trim change back to the song database
+        currentSong?.let { song ->
+            serviceScope.launch {
+                repository.updateTrimAndSyncProfile(song.id, startMs, endMs)
+            }
+        }
+    }
+
+    fun applyRepeatModeToCurrentSong(repeatMode: Int) {
+        this.repeatMode = repeatMode
+        // Sync the repeat mode change back to the song database
+        currentSong?.let { song ->
+            serviceScope.launch {
+                repository.updateRepeatModeAndSyncProfile(song.id, repeatMode)
+            }
+        }
     }
 
     private fun requestAudioFocus(): Boolean {

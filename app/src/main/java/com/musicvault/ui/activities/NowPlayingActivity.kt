@@ -8,22 +8,25 @@ import android.os.IBinder
 import android.os.Looper
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
 import androidx.core.content.ContextCompat
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.musicvault.R
 import com.musicvault.data.model.Song
 import com.musicvault.data.repository.SongRepository
 import com.musicvault.databinding.ActivityNowPlayingBinding
 import com.musicvault.service.MusicService
-import com.musicvault.utils.formatDuration
 import com.musicvault.ui.fragments.EqualizerFragment
 import com.musicvault.ui.fragments.LyricsFragment
 import com.musicvault.ui.fragments.ProfilesFragment
+import com.musicvault.ui.fragments.SleepTimerFragment
+import com.musicvault.ui.viewmodel.NowPlayingViewModel
+import com.musicvault.utils.formatDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,6 +37,7 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityNowPlayingBinding
     private val activityScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private lateinit var repository: SongRepository
+    private lateinit var viewModel: NowPlayingViewModel
 
     private var musicService: MusicService? = null
     private var song: Song? = null
@@ -54,6 +58,7 @@ class NowPlayingActivity : AppCompatActivity() {
             musicService = (service as MusicService.MusicBinder).getService()
             currentRepeatMode = musicService?.getRepeatMode() ?: MusicService.REPEAT_NONE
             updateRepeatButton()
+            updateShuffleButton()
             registerCallbacks()
             syncNow()
             startProgressUpdates()
@@ -85,6 +90,9 @@ class NowPlayingActivity : AppCompatActivity() {
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
         maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
 
+        // Initialize shared ViewModel so Equalizer / Lyrics / Profiles fragments work
+        viewModel = ViewModelProvider(this)[NowPlayingViewModel::class.java]
+
         songId = intent.getLongExtra(EXTRA_SONG_ID, -1)
 
         setupControls()
@@ -96,17 +104,24 @@ class NowPlayingActivity : AppCompatActivity() {
             BIND_AUTO_CREATE
         )
 
-        // Load from DB immediately so pitch/trim are correct before service binds
+        // Load from DB immediately so title/artist/pitch/trim show before service binds
         if (songId != -1L) {
             activityScope.launch {
-                repository.getSongById(songId)?.let { populate(it) }
+                repository.getSongById(songId)?.let { s ->
+                    populate(s)
+                    viewModel.setSong(s, false)
+                }
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        musicService?.let { registerCallbacks(); syncNow(); startProgressUpdates() }
+        musicService?.let {
+            registerCallbacks()
+            syncNow()
+            startProgressUpdates()
+        }
         syncVolumeSeekBar()
     }
 
@@ -143,7 +158,6 @@ class NowPlayingActivity : AppCompatActivity() {
                 val pct = ((sb.progress.toFloat() / maxVolume) * 100).toInt()
                 binding.tvVolumeValue.text = "$pct"
             }
-
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {}
         })
@@ -163,13 +177,23 @@ class NowPlayingActivity : AppCompatActivity() {
         svc.onSongChanged = { s ->
             runOnUiThread {
                 if (!isDestroyed) {
+                    // --- Fix 2: full UI refresh on song change ---
                     songId = s.id
+                    // Apply immediate fields from the live Song object
                     populate(s)
+                    // Reset playback seekbar for the new song
                     binding.seekPlayback.progress = 0
                     binding.tvCurrentTime.text = formatDuration(0)
-                    // Reload from DB to get latest persisted pitch/trim
+                    // Sync repeat mode from service (may differ per-song)
+                    currentRepeatMode = svc.getRepeatMode()
+                    updateRepeatButton()
+                    updateShuffleButton()
+                    // Reload from DB to pick up persisted pitch/trim/speed
                     activityScope.launch {
-                        repository.getSongById(s.id)?.let { populate(it) }
+                        repository.getSongById(s.id)?.let { fresh ->
+                            populate(fresh)
+                            viewModel.setSong(fresh, svc.isPlaying())
+                        }
                     }
                     startProgressUpdates()
                 }
@@ -181,6 +205,7 @@ class NowPlayingActivity : AppCompatActivity() {
                     binding.btnPlayPause.setImageResource(
                         if (playing) R.drawable.ic_pause else R.drawable.ic_play
                     )
+                    viewModel.setPlaying(playing)
                     if (playing) startProgressUpdates() else stopProgressUpdates()
                 }
             }
@@ -196,12 +221,20 @@ class NowPlayingActivity : AppCompatActivity() {
         songId = cur.id
         populate(cur)
         activityScope.launch {
-            repository.getSongById(cur.id)?.let { populate(it) }
+            repository.getSongById(cur.id)?.let { fresh ->
+                populate(fresh)
+                viewModel.setSong(fresh, svc.isPlaying())
+            }
         }
     }
 
     // ─── Populate UI ─────────────────────────────────────────────────────────────
 
+    /**
+     * Updates every UI element from [s]. Safe to call multiple times (idempotent
+     * for the same song). The DB-fresh version is always preferred over the
+     * in-memory snapshot to avoid stale pitch/speed/trim values.
+     */
     private fun populate(s: Song) {
         song = s
         songId = s.id
@@ -210,11 +243,12 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.tvArtist.text = s.artist
         binding.tvFolder.text = if (s.albumName.isNotBlank()) s.albumName else s.folderName
 
-        // Sync favorite button
+        // Favorite button
         binding.btnFavorite.setImageResource(
             if (s.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
         )
 
+        // Album art
         binding.ivAlbumArt.clearColorFilter()
         if (s.albumArtUrl.isNotBlank()) {
             Glide.with(this).load(s.albumArtUrl)
@@ -229,19 +263,14 @@ class NowPlayingActivity : AppCompatActivity() {
 
         // ── Pitch ──────────────────────────────────────────────────────────────
         binding.tvPitchValue.text = pitchLabel(s.pitchSemitones)
-        // seekPitch range is 0–12 where 6 = 0 semitones
         binding.seekPitch.progress = s.pitchSemitones + 6
 
         // ── Speed ──────────────────────────────────────────────────────────────
-        // seekSpeed range 0–30 maps to 0.5x–2.0x in steps of 0.05x (30 steps × 0.05 = 1.5 range)
-        // progress = (speed - 0.5) / 0.05  →  1.0x = progress 10
         val speedProgress = ((s.playbackSpeed.coerceIn(0.5f, 2.0f) - 0.5f) / 0.05f).toInt()
         binding.seekSpeed.progress = speedProgress
         binding.tvSpeedValue.text = speedLabel(s.playbackSpeed)
 
         // ── Trim ───────────────────────────────────────────────────────────────
-        // Use the song's stored duration as the seekbar ceiling (in milliseconds).
-        // Fall back to the service's reported duration if the stored one is 0.
         val totalMs = when {
             s.duration > 0 -> s.duration
             musicService?.getDuration() != 0 -> musicService!!.getDuration().toLong()
@@ -253,7 +282,6 @@ class NowPlayingActivity : AppCompatActivity() {
         }
         val trimStart = s.trimStart
         val trimEnd = if (s.trimEnd > 0) s.trimEnd else totalMs
-        // Set progress without triggering our drag-listener side-effects
         binding.seekTrimStart.progress = trimStart.toInt()
         binding.seekTrimEnd.progress = trimEnd.toInt()
         updateTrimLabels(trimStart, trimEnd)
@@ -278,6 +306,7 @@ class NowPlayingActivity : AppCompatActivity() {
             musicService?.skipPrev()
         }
 
+        // ── Repeat ─────────────────────────────────────────────────────────────
         binding.btnRepeat.setOnClickListener {
             currentRepeatMode = when (currentRepeatMode) {
                 MusicService.REPEAT_NONE -> MusicService.REPEAT_ALL
@@ -288,6 +317,13 @@ class NowPlayingActivity : AppCompatActivity() {
             updateRepeatButton()
         }
 
+        // ── Shuffle ────────────────────────────────────────────────────────────
+        binding.btnShuffle.setOnClickListener {
+            musicService?.toggleShuffle()
+            updateShuffleButton()
+        }
+
+        // ── Rewind / Forward ────────────────────────────────────────────────────
         binding.btnRewind.setOnClickListener {
             val svc = musicService ?: return@setOnClickListener
             svc.seekTo((svc.getPosition() - 5000).coerceAtLeast(0))
@@ -298,25 +334,23 @@ class NowPlayingActivity : AppCompatActivity() {
         }
 
         // ── Pitch seekbar ───────────────────────────────────────────────────────
-        // Range 0–12, where progress 6 = 0 semitones (centre).
         binding.seekPitch.max = 12
         binding.seekPitch.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
                 val semitones = progress - 6
                 binding.tvPitchValue.text = pitchLabel(semitones)
-                // Apply to the player live so the user hears the change immediately
                 if (fromUser) musicService?.applyPitchToCurrentSong(semitones)
             }
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {
-                // Persist when the user lifts their finger
                 val semitones = sb.progress - 6
                 activityScope.launch { repository.updatePitch(songId, semitones) }
             }
         })
 
         binding.btnPitchReset.setOnClickListener {
-            binding.seekPitch.progress = 6      // 6 = 0 semitones
+            binding.seekPitch.progress = 6
+            binding.tvPitchValue.text = pitchLabel(0)
             musicService?.applyPitchToCurrentSong(0)
             activityScope.launch { repository.updatePitch(songId, 0) }
         }
@@ -346,7 +380,6 @@ class NowPlayingActivity : AppCompatActivity() {
         }
 
         // ── Speed seekbar ───────────────────────────────────────────────────────
-        // Range 0–30, where each step = 0.05x speed. progress 10 = 1.0x (normal).
         binding.seekSpeed.max = 30
         binding.seekSpeed.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
@@ -354,7 +387,6 @@ class NowPlayingActivity : AppCompatActivity() {
                 binding.tvSpeedValue.text = speedLabel(speed)
                 if (fromUser) musicService?.applySpeedToCurrentSong(speed)
             }
-
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {
                 val speed = progressToSpeed(sb.progress)
@@ -363,7 +395,8 @@ class NowPlayingActivity : AppCompatActivity() {
         })
 
         binding.btnSpeedReset.setOnClickListener {
-            binding.seekSpeed.progress = 10   // 1.0x
+            binding.seekSpeed.progress = 10
+            binding.tvSpeedValue.text = speedLabel(1.0f)
             musicService?.applySpeedToCurrentSong(1.0f)
             activityScope.launch { repository.updateSpeed(songId, 1.0f) }
         }
@@ -395,13 +428,11 @@ class NowPlayingActivity : AppCompatActivity() {
         // ── Trim seekbars ───────────────────────────────────────────────────────
         binding.seekTrimStart.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
-                if (!fromUser) return   // ignore programmatic changes (e.g. from populate())
+                if (!fromUser) return
                 val endProgress = binding.seekTrimEnd.progress
-                // Clamp so start never passes (end - 1 s)
                 val clamped = p.coerceAtMost((endProgress - 1000).coerceAtLeast(0))
                 if (p != clamped) {
-                    sb.progress = clamped   // programmatic → fromUser=false → won't recurse
-                    return
+                    sb.progress = clamped; return
                 }
                 updateTrimLabels(clamped.toLong(), endProgress.toLong())
             }
@@ -420,7 +451,6 @@ class NowPlayingActivity : AppCompatActivity() {
                 if (!fromUser) return
                 updateTrimLabels(binding.seekTrimStart.progress.toLong(), p.toLong())
             }
-
             override fun onStartTrackingTouch(sb: SeekBar) {
                 isTrimDragging = true
             }
@@ -436,7 +466,6 @@ class NowPlayingActivity : AppCompatActivity() {
             binding.seekTrimStart.progress = 0
             binding.seekTrimEnd.progress = total.toInt()
             updateTrimLabels(0L, total)
-            // -1 means "use full duration" in the DB schema
             activityScope.launch { repository.updateTrim(s.id, 0L, -1L) }
         }
 
@@ -453,26 +482,70 @@ class NowPlayingActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(sb: SeekBar) {}
         })
 
+        // ── Favorite ────────────────────────────────────────────────────────────
         binding.btnFavorite.setOnClickListener {
             val s = song ?: return@setOnClickListener
             activityScope.launch {
                 repository.toggleFavorite(s)
-                // Reload from DB to get the authoritative favorite state
                 repository.getSongById(s.id)?.let { fresh ->
                     song = fresh
-                    binding.btnFavorite.setImageResource(
-                        if (fresh.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
-                    )
+                    runOnUiThread {
+                        binding.btnFavorite.setImageResource(
+                            if (fresh.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+                        )
+                    }
                 }
             }
         }
 
+        // ── Volume buttons ───────────────────────────────────────────────────────
+        binding.btnVolumeUp.setOnClickListener {
+            val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            val newVolume = (current + (maxVolume / 10)).coerceAtMost(maxVolume)
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
+            syncVolumeSeekBar()
+        }
+
+        binding.btnVolumeDown.setOnClickListener {
+            val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            val newVolume = (current - (maxVolume / 10)).coerceAtLeast(0)
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
+            syncVolumeSeekBar()
+        }
+
+        binding.btnVolumeReset.setOnClickListener {
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
+            syncVolumeSeekBar()
+        }
+
+        // ── Trim buttons ───────────────────────────────────────────────────────
+        binding.btnTrimStart.setOnClickListener {
+            val currentPosition = musicService?.getPosition() ?: 0
+            val trimOffset = song?.trimStart?.toInt() ?: 0
+            val newStart = (currentPosition - trimOffset).coerceAtLeast(0)
+            val endProgress = binding.seekTrimEnd.progress
+            val clamped = newStart.coerceAtMost((endProgress - 1000).coerceAtLeast(0))
+            binding.seekTrimStart.progress = clamped
+            updateTrimLabels(clamped.toLong(), endProgress.toLong())
+            saveTrim()
+        }
+
+        binding.btnTrimEnd.setOnClickListener {
+            val currentPosition = musicService?.getPosition() ?: 0
+            val trimOffset = song?.trimStart?.toInt() ?: 0
+            val newEnd = (currentPosition - trimOffset)
+            val maxEnd = binding.seekTrimEnd.max
+            val clampedEnd = newEnd.coerceIn(binding.seekTrimStart.progress + 1000, maxEnd)
+            binding.seekTrimEnd.progress = clampedEnd
+            updateTrimLabels(binding.seekTrimStart.progress.toLong(), clampedEnd.toLong())
+            saveTrim()
+        }
+
         // ── Feature buttons ───────────────────────────────────────────────────────
         binding.btnEqualizer.setOnClickListener {
+            val svc = musicService
             val equalizerFragment = EqualizerFragment()
-            equalizerFragment.onApplyCallback = { profile ->
-                musicService?.applyProfile(profile)
-            }
+            equalizerFragment.onApplyCallback = { profile -> svc?.applyProfile(profile) }
             showFeatureFragment(equalizerFragment)
         }
 
@@ -481,11 +554,24 @@ class NowPlayingActivity : AppCompatActivity() {
         }
 
         binding.btnProfiles.setOnClickListener {
-            showFeatureFragment(ProfilesFragment())
+            val frag = ProfilesFragment()
+            frag.onProfileActivated = { musicService?.reloadActiveProfile() }
+            showFeatureFragment(frag)
+        }
+
+        // ── Sleep Timer ───────────────────────────────────────────────────────
+        binding.btnSleepTimer.setOnClickListener {
+            val svc = musicService
+            val timerFrag = SleepTimerFragment.newInstance(
+                onSet = { durationMs -> svc?.setSleepTimer(durationMs) },
+                onCancel = { svc?.cancelSleepTimer() },
+                getRemaining = { svc?.getSleepTimerRemainingMs() ?: -1L }
+            )
+            showFeatureFragment(timerFrag)
         }
     }
 
-    // ─── Repeat button ───────────────────────────────────────────────────────────
+    // ─── Repeat / Shuffle buttons ────────────────────────────────────────────────
 
     private fun updateRepeatButton() {
         when (currentRepeatMode) {
@@ -509,12 +595,19 @@ class NowPlayingActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateShuffleButton() {
+        val shuffleOn = musicService?.isShuffleEnabled() ?: false
+        if (shuffleOn) {
+            binding.btnShuffle.setImageResource(R.drawable.ic_shuffle_on)
+            binding.btnShuffle.setColorFilter(ContextCompat.getColor(this, R.color.neon_cyan))
+        } else {
+            binding.btnShuffle.setImageResource(R.drawable.ic_shuffle)
+            binding.btnShuffle.setColorFilter(ContextCompat.getColor(this, R.color.text_hint))
+        }
+    }
+
     // ─── Trim persistence ────────────────────────────────────────────────────────
 
-    /**
-     * Called only from onStopTrackingTouch — never during programmatic progress
-     * changes — so there is no feedback loop risk.
-     */
     private fun saveTrim() {
         val id = songId.takeIf { it != -1L } ?: return
         val start = binding.seekTrimStart.progress.toLong()
@@ -529,7 +622,6 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private fun pitchLabel(s: Int) = if (s > 0) "+$s" else "$s"
 
-    // progress 0–30 → speed 0.5x–2.0x in 0.05x steps
     private fun progressToSpeed(progress: Int): Float =
         (0.5f + progress * 0.05f).coerceIn(0.5f, 2.0f)
 
@@ -551,6 +643,8 @@ class NowPlayingActivity : AppCompatActivity() {
                         ((pos.toFloat() / dur) * 100).toInt().coerceIn(0, 100)
                     binding.tvCurrentTime.text = formatDuration(pos.toLong())
                     binding.tvTotalTime.text = formatDuration(dur.toLong())
+                    // Keep lyrics in sync via ViewModel
+                    viewModel.onLyricsPositionChanged(pos.toLong())
                 }
                 progressHandler.postDelayed(this, 500)
             }
@@ -567,7 +661,7 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private fun showFeatureFragment(fragment: Fragment) {
         if (fragment is BottomSheetDialogFragment) {
-            fragment.show(supportFragmentManager, fragment.tag)
+            fragment.show(supportFragmentManager, fragment::class.java.simpleName)
         } else {
             supportFragmentManager.beginTransaction()
                 .replace(android.R.id.content, fragment)

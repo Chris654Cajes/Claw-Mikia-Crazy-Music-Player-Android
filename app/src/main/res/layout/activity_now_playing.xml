@@ -44,6 +44,15 @@
                 android:gravity="center" />
 
             <ImageButton
+                android:id="@+id/btnShuffle"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Shuffle"
+                android:src="@drawable/ic_shuffle"
+                android:tint="@color/text_hint" />
+
+            <ImageButton
                 android:id="@+id/btnFavorite"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -54,7 +63,7 @@
 
         </LinearLayout>
 
-        <!-- Album art area (decorative gradient disc) -->
+        <!-- Album art -->
         <FrameLayout
             android:layout_width="220dp"
             android:layout_height="220dp"
@@ -254,6 +263,7 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
+                <!-- Volume header -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -298,6 +308,7 @@
 
                 </LinearLayout>
 
+                <!-- Volume seekbar row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -328,6 +339,58 @@
                         android:layout_height="18dp"
                         android:src="@drawable/ic_volume"
                         android:tint="@color/neon_cyan" />
+
+                </LinearLayout>
+
+                <!-- Volume buttons: − and + left-aligned, Reset right-aligned, all same height -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/btnVolumeDown"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_button_outline_cyan"
+                        android:contentDescription="Volume Down"
+                        android:padding="7dp"
+                        android:src="@drawable/ic_volume_down"
+                        android:tint="@color/neon_cyan" />
+
+                    <ImageButton
+                        android:id="@+id/btnVolumeUp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_button_outline_cyan"
+                        android:contentDescription="Volume Up"
+                        android:padding="7dp"
+                        android:src="@drawable/ic_volume_up"
+                        android:tint="@color/neon_cyan" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <Button
+                        android:id="@+id/btnVolumeReset"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_button_outline_cyan"
+                        android:fontFamily="@font/orbitron_regular"
+                        android:gravity="center"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:stateListAnimator="@null"
+                        android:text="Reset to 100%"
+                        android:textColor="@color/neon_cyan"
+                        android:textSize="10sp" />
 
                 </LinearLayout>
 
@@ -377,14 +440,12 @@
 
                 </LinearLayout>
 
-                <!-- Feature buttons row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="horizontal">
 
-                    <!-- Equalizer Button -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -413,7 +474,6 @@
 
                     </LinearLayout>
 
-                    <!-- Lyrics Button -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -442,7 +502,6 @@
 
                     </LinearLayout>
 
-                    <!-- Profiles Button -->
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -466,6 +525,34 @@
                             android:layout_marginTop="4dp"
                             android:fontFamily="@font/orbitron_regular"
                             android:text="Profiles"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="10sp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="8dp">
+
+                        <ImageButton
+                            android:id="@+id/btnSleepTimer"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="@drawable/bg_button_outline_neutral"
+                            android:contentDescription="Sleep Timer"
+                            android:src="@drawable/ic_sleep_timer"
+                            android:tint="@color/text_secondary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="@font/orbitron_regular"
+                            android:text="Sleep"
                             android:textColor="@color/text_secondary"
                             android:textSize="10sp" />
 
@@ -586,16 +673,18 @@
 
                 </LinearLayout>
 
+                <!-- Pitch buttons: − and + left, Reset right, all 36dp height -->
                 <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp">
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <Button
                         android:id="@+id/btnPitchDown"
                         android:layout_width="36dp"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="20dp"
+                        android:layout_height="36dp"
                         android:background="@drawable/bg_button_outline_green"
                         android:fontFamily="@font/orbitron_bold"
                         android:padding="0dp"
@@ -604,13 +693,14 @@
                         android:minWidth="0dp"
                         android:minHeight="0dp"
                         android:textColor="@color/neon_green"
+                        android:gravity="center"
                         android:textSize="18sp" />
 
                     <Button
                         android:id="@+id/btnPitchUp"
                         android:layout_width="36dp"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="20dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="10dp"
                         android:background="@drawable/bg_button_outline_green"
                         android:fontFamily="@font/orbitron_bold"
                         android:padding="0dp"
@@ -619,12 +709,18 @@
                         android:minWidth="0dp"
                         android:minHeight="0dp"
                         android:textColor="@color/neon_green"
+                        android:gravity="center"
                         android:textSize="18sp" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
 
                     <Button
                         android:id="@+id/btnPitchReset"
                         android:layout_width="wrap_content"
-                        android:layout_height="32dp"
+                        android:layout_height="36dp"
                         android:background="@drawable/bg_button_outline_green"
                         android:fontFamily="@font/orbitron_regular"
                         android:paddingStart="14dp"
@@ -632,8 +728,9 @@
                         android:stateListAnimator="@null"
                         android:text="Reset to 0"
                         android:textColor="@color/neon_green"
-                        android:layout_gravity="end"
-                        android:layout_marginTop="10dp"
+                        android:gravity="center"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
                         android:textSize="10sp" />
 
                 </LinearLayout>
@@ -659,7 +756,6 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Card header -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -703,7 +799,6 @@
 
                 </LinearLayout>
 
-                <!-- Tick labels: 0.5x → 1.0x → 2.0x -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -760,7 +855,6 @@
 
                 </LinearLayout>
 
-                <!-- Speed seekbar row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -783,17 +877,18 @@
 
                 </LinearLayout>
 
-                <!-- Step buttons + reset -->
+                <!-- Speed buttons: − and + left, Reset right, all 36dp height -->
                 <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp">
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <Button
                         android:id="@+id/btnSpeedDown"
                         android:layout_width="36dp"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="20dp"
+                        android:layout_height="36dp"
                         android:background="@drawable/bg_button_outline_orange"
                         android:fontFamily="@font/orbitron_bold"
                         android:minWidth="0dp"
@@ -802,13 +897,14 @@
                         android:stateListAnimator="@null"
                         android:text="−"
                         android:textColor="@color/neon_orange"
+                        android:gravity="center"
                         android:textSize="18sp" />
 
                     <Button
                         android:id="@+id/btnSpeedUp"
                         android:layout_width="36dp"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="20dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="10dp"
                         android:background="@drawable/bg_button_outline_orange"
                         android:fontFamily="@font/orbitron_bold"
                         android:minWidth="0dp"
@@ -817,13 +913,18 @@
                         android:stateListAnimator="@null"
                         android:text="+"
                         android:textColor="@color/neon_orange"
+                        android:gravity="center"
                         android:textSize="18sp" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
 
                     <Button
                         android:id="@+id/btnSpeedReset"
                         android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:layout_gravity="end"
+                        android:layout_height="36dp"
                         android:background="@drawable/bg_button_outline_orange"
                         android:fontFamily="@font/orbitron_regular"
                         android:stateListAnimator="@null"
@@ -831,6 +932,9 @@
                         android:paddingStart="14dp"
                         android:paddingEnd="14dp"
                         android:textColor="@color/neon_orange"
+                        android:gravity="center"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
                         android:textSize="10sp" />
 
                 </LinearLayout>
@@ -867,7 +971,7 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_trim"
-                        android:tint="@color/neon_orange" />
+                        android:tint="@color/text_secondary" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -939,19 +1043,69 @@
                     android:layout_marginTop="2dp"
                     android:layout_marginBottom="10dp" />
 
-                <Button
-                    android:id="@+id/btnTrimReset"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:text="Reset Trim"
-                    android:textSize="10sp"
-                    android:fontFamily="@font/orbitron_regular"
-                    android:background="@drawable/bg_button_outline_orange"
-                    android:textColor="@color/neon_orange"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:layout_gravity="end"
-                    android:stateListAnimator="@null" />
+                <!-- Trim buttons: Set Start and Set End left, Reset Trim right -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="36dp"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnTrimStart"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_button_outline_orange"
+                        android:fontFamily="@font/orbitron_regular"
+                        android:gravity="center"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:stateListAnimator="@null"
+                        android:text="Set Start"
+                        android:textColor="@color/neon_orange"
+                        android:textSize="10sp" />
+
+                    <Button
+                        android:id="@+id/btnTrimEnd"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_button_outline_red"
+                        android:fontFamily="@font/orbitron_regular"
+                        android:gravity="center"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:stateListAnimator="@null"
+                        android:text="Set End"
+                        android:textColor="@color/neon_pink"
+                        android:textSize="10sp" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <Button
+                        android:id="@+id/btnTrimReset"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_button_outline_neutral"
+                        android:fontFamily="@font/orbitron_regular"
+                        android:gravity="center"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:stateListAnimator="@null"
+                        android:text="Reset Trim"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
