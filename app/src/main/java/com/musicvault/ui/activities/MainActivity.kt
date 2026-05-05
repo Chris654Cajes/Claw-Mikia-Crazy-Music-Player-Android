@@ -51,21 +51,29 @@ class MainActivity : AppCompatActivity() {
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            musicService = (service as MusicService.MusicBinder).getService()
-            serviceBound = true
-            registerServiceCallbacks()
-            // Restore mini player if service already has a song
-            musicService?.getCurrentSong()?.let { song ->
-                val playing = musicService?.isPlaying() ?: false
-                viewModel.setCurrentSong(song)
-                showMusicPanel(song)
-                updatePlayButton(playing)
-                if (playing) startProgressUpdates()
+            try {
+                musicService = (service as MusicService.MusicBinder).getService()
+                serviceBound = true
+                android.util.Log.d("MainActivity", "Service connected successfully")
+                registerServiceCallbacks()
+                // Restore mini player if service already has a song
+                musicService?.getCurrentSong()?.let { song ->
+                    val playing = musicService?.isPlaying() ?: false
+                    viewModel.setCurrentSong(song)
+                    showMusicPanel(song)
+                    updatePlayButton(playing)
+                    if (playing) startProgressUpdates()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "Error in onServiceConnected: ${e.message}")
+                serviceBound = false
             }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
+            android.util.Log.d("MainActivity", "Service disconnected")
             serviceBound = false
+            musicService = null
         }
     }
 
@@ -141,9 +149,21 @@ class MainActivity : AppCompatActivity() {
         binding.musicPanel.root.visibility = View.GONE
 
         // Play controls
-        binding.musicPanel.btnPlayPause.setOnClickListener { musicService?.togglePlayPause() }
-        binding.musicPanel.btnNext.setOnClickListener { musicService?.skipNext() }
-        binding.musicPanel.btnPrev.setOnClickListener { musicService?.skipPrev() }
+        binding.musicPanel.btnPlayPause.setOnClickListener {
+            android.util.Log.d("MainActivity", "Play/pause button clicked")
+            if (serviceBound && musicService != null) {
+                musicService?.togglePlayPause()
+            } else {
+                android.util.Log.w("MainActivity", "Service not bound when play/pause clicked")
+                bindToService()
+            }
+        }
+        binding.musicPanel.btnNext.setOnClickListener {
+            if (serviceBound) musicService?.skipNext()
+        }
+        binding.musicPanel.btnPrev.setOnClickListener {
+            if (serviceBound) musicService?.skipPrev()
+        }
 
         // Seekbar scrubbing
         binding.musicPanel.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -370,7 +390,7 @@ class MainActivity : AppCompatActivity() {
 
         android.util.Log.d(
             "MainActivity",
-            "playSong called: ${song.title}, pitch=${song.pitchSemitones}, speed=${song.playbackSpeed}, trimStart=${song.trimStart}, trimEnd=${song.trimEnd}, repeat=${song.repeatMode}"
+            "playSong called: ${song.title}, pitch=${song.pitchSemitones}, speed=${song.playbackSpeed}, volume=${song.volume}, trimStart=${song.trimStart}, trimEnd=${song.trimEnd}, repeat=${song.repeatMode}"
         )
         
         // Show mini player right away — no waiting for callbacks
@@ -476,8 +496,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStop() {
+        super.onStop()
+        // Allow music to continue playing when app goes to background
+        // Music will only stop when app is actually destroyed or swiped away
+    }
+
+    override fun onBackPressed() {
+        // Allow music to continue playing when user presses back button
+        super.onBackPressed()
+    }
+
     override fun onDestroy() {
-        if (serviceBound) unbindService(serviceConnection)
+        if (serviceBound) {
+            musicService?.let { service ->
+                // Stop playback and cleanup service when activity is destroyed
+                if (service.isPlaying()) {
+                    service.togglePlayPause()
+                }
+            }
+            unbindService(serviceConnection)
+        }
         stopProgressUpdates()
         super.onDestroy()
     }

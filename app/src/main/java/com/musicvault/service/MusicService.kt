@@ -168,7 +168,7 @@ class MusicService : Service() {
 
             android.util.Log.d(
                 "MusicService",
-                "Loading song: ${freshSong.title}, pitch=${freshSong.pitchSemitones}, speed=${freshSong.playbackSpeed}, trimStart=${freshSong.trimStart}, trimEnd=${freshSong.trimEnd}, repeat=${freshSong.repeatMode}"
+                "Loading song: ${freshSong.title}, pitch=${freshSong.pitchSemitones}, speed=${freshSong.playbackSpeed}, volume=${freshSong.volume}, trimStart=${freshSong.trimStart}, trimEnd=${freshSong.trimEnd}, repeat=${freshSong.repeatMode}"
             )
             
             val profile = withContext(Dispatchers.IO) {
@@ -177,7 +177,7 @@ class MusicService : Service() {
 
             android.util.Log.d(
                 "MusicService",
-                "Active profile: pitch=${profile.pitchSemitones}, speed=${profile.playbackSpeed}, trimStart=${profile.trimStart}, trimEnd=${profile.trimEnd}"
+                "Active profile: pitch=${profile.pitchSemitones}, speed=${profile.playbackSpeed}, volume=${profile.volume}, trimStart=${profile.trimStart}, trimEnd=${profile.trimEnd}"
             )
             
             val regions = withContext(Dispatchers.IO) {
@@ -220,10 +220,34 @@ class MusicService : Service() {
                     if (profile.replayGainEnabled && profile.replayGainDb != 0f) {
                         val gain =
                             Math.pow(10.0, profile.replayGainDb / 20.0).toFloat().coerceIn(0f, 1f)
-                        mp.setVolume(gain, gain)
+                        val finalVolume = (gain * profile.volume).coerceIn(0f, 1f)
+                        mp.setVolume(finalVolume, finalVolume)
+                    } else {
+                        // Apply volume directly if no replay gain
+                        mp.setVolume(profile.volume, profile.volume)
                     }
                     val startPos = profile.trimStart.toInt()
-                    if (startPos > 0) mp.seekTo(startPos)
+                    android.util.Log.d(
+                        "MusicService",
+                        "Trim analysis: startPos=$startPos, trimStart=${profile.trimStart}, trimEnd=${profile.trimEnd}"
+                    )
+                    if (startPos > 0) {
+                        android.util.Log.d(
+                            "MusicService",
+                            "Seeking to start position: $startPos ms"
+                        )
+                        mp.seekTo(startPos)
+                        android.util.Log.d(
+                            "MusicService",
+                            "Seek completed, current position: ${mp.currentPosition}"
+                        )
+                    } else {
+                        android.util.Log.d("MusicService", "Trim start is 0, not seeking")
+                    }
+                    android.util.Log.d(
+                        "MusicService",
+                        "Trim end watchdog: ${profile.trimEnd} ms, enabled: ${profile.trimEnd > 0}"
+                    )
                     mp.start()
                     notifyPlayState(true)
                     updateMediaSessionState(true)
@@ -265,13 +289,34 @@ class MusicService : Service() {
     }
 
     private fun startWatchdogs(profile: PlaybackProfile) {
+        android.util.Log.d(
+            "MusicService",
+            "Starting trim watchdog: trimStart=${profile.trimStart}, trimEnd=${profile.trimEnd}, enabled=${profile.trimEnd > 0}"
+        )
         if (profile.trimEnd > 0) {
             trimWatchdog = object : Runnable {
                 override fun run() {
                     val mp = mediaPlayer ?: return
-                    if (mp.isPlaying && mp.currentPosition >= profile.trimEnd.toInt()) {
-                        if (repeatMode == REPEAT_ONE) mp.seekTo(profile.trimStart.toInt())
-                        else {
+                    val currentPos = mp.currentPosition
+                    val trimEnd = profile.trimEnd.toInt()
+                    android.util.Log.d(
+                        "MusicService",
+                        "Trim watchdog: pos=$currentPos, end=$trimEnd, playing=${mp.isPlaying}"
+                    )
+                    if (mp.isPlaying && currentPos >= trimEnd) {
+                        android.util.Log.d(
+                            "MusicService",
+                            "Trim end reached, seeking to start or advancing"
+                        )
+                        if (repeatMode == REPEAT_ONE) {
+                            val newSeekPos = profile.trimStart.toInt()
+                            android.util.Log.d("MusicService", "REPEAT_ONE: seeking to $newSeekPos")
+                            mp.seekTo(newSeekPos)
+                        } else {
+                            android.util.Log.d(
+                                "MusicService",
+                                "Not REPEAT_ONE: advancing to next song"
+                            )
                             cancelAllWatchdogs(); advanceOrStop()
                         }
                         return
@@ -280,6 +325,12 @@ class MusicService : Service() {
                 }
             }
             trimHandler.postDelayed(trimWatchdog!!, WATCHDOG_MS)
+            android.util.Log.d("MusicService", "Trim watchdog scheduled")
+        } else {
+            android.util.Log.d(
+                "MusicService",
+                "Trim watchdog NOT started: trimEnd=${profile.trimEnd} <= 0"
+            )
         }
         if (skipRegions.isNotEmpty()) {
             skipWatchdog = object : Runnable {
@@ -431,23 +482,105 @@ class MusicService : Service() {
     }
 
     fun togglePlayPause() {
-        if (isPlaying()) pause() else resume()
+        val mp = mediaPlayer
+        if (mp == null) {
+            android.util.Log.e("MusicService", "MediaPlayer is null in togglePlayPause")
+            return
+        }
+
+        try {
+            if (isPlaying()) {
+                pause()
+            } else {
+                resume()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MusicService", "Exception in togglePlayPause: ${e.message}")
+            notifyPlayState(false)
+        }
     }
 
     private fun pause() {
-        mediaPlayer?.pause()
-        notifyPlayState(false); updateMediaSessionState(false); buildAndStartForeground()
+        val mp = mediaPlayer
+        if (mp == null) {
+            android.util.Log.e("MusicService", "MediaPlayer is null in pause")
+            return
+        }
+
+        try {
+            if (mp.isPlaying) {
+                mp.pause()
+                android.util.Log.d("MusicService", "Playback paused successfully")
+            } else {
+                android.util.Log.w("MusicService", "pause() called but MediaPlayer is not playing")
+            }
+            notifyPlayState(false)
+            updateMediaSessionState(false)
+            buildAndStartForeground()
+        } catch (e: Exception) {
+            android.util.Log.e("MusicService", "Exception in pause: ${e.message}")
+            notifyPlayState(false)
+        }
     }
 
     private fun resume() {
-        requestAudioFocus()
-        mediaPlayer?.start()
-        notifyPlayState(true); updateMediaSessionState(true); buildAndStartForeground()
+        val mp = mediaPlayer
+        if (mp == null) {
+            android.util.Log.e("MusicService", "MediaPlayer is null in resume")
+            return
+        }
+
+        try {
+            if (!mp.isPlaying) {
+                if (requestAudioFocus()) {
+                    mp.start()
+                    android.util.Log.d("MusicService", "Playback resumed successfully")
+                    notifyPlayState(true)
+                    updateMediaSessionState(true)
+                    buildAndStartForeground()
+                } else {
+                    android.util.Log.e("MusicService", "Failed to gain audio focus in resume")
+                    notifyPlayState(false)
+                }
+            } else {
+                android.util.Log.w(
+                    "MusicService",
+                    "resume() called but MediaPlayer is already playing"
+                )
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MusicService", "Exception in resume: ${e.message}")
+            notifyPlayState(false)
+        }
     }
 
-    fun isPlaying(): Boolean = mediaPlayer?.isPlaying ?: false
+    fun isPlaying(): Boolean {
+        return try {
+            mediaPlayer?.isPlaying ?: false
+        } catch (e: Exception) {
+            android.util.Log.e("MusicService", "Exception in isPlaying: ${e.message}")
+            false
+        }
+    }
     fun seekTo(ms: Int) {
-        mediaPlayer?.seekTo(ms)
+        val mp = mediaPlayer
+        if (mp == null) {
+            android.util.Log.e("MusicService", "MediaPlayer is null in seekTo")
+            return
+        }
+
+        try {
+            val duration = mp.duration
+            if (duration > 0) {
+                val clampedMs = ms.coerceIn(0, duration)
+                mp.seekTo(clampedMs)
+                android.util.Log.d("MusicService", "Seeked to position: $clampedMs ms")
+            } else {
+                android.util.Log.w("MusicService", "Cannot seek - duration is $duration")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MusicService", "Exception in seekTo: ${e.message}")
+        }
     }
 
     fun getCurrentPosition(): Int = mediaPlayer?.currentPosition ?: 0
@@ -498,6 +631,7 @@ class MusicService : Service() {
     }
 
     fun applyTrimToCurrentSong(startMs: Long, endMs: Long) {
+        android.util.Log.d("MusicService", "Applying trim: start=$startMs, end=$endMs")
         activeProfile = activeProfile?.copy(trimStart = startMs, trimEnd = endMs)
         // Apply trim immediately if currently playing
         mediaPlayer?.let { mp ->
@@ -516,6 +650,32 @@ class MusicService : Service() {
         }
     }
 
+    fun applyVolumeToCurrentSong(volume: Float) {
+        val clampedVolume = volume.coerceIn(0f, 1f)
+        android.util.Log.d("MusicService", "Applying volume: $clampedVolume")
+        activeProfile = activeProfile?.copy(volume = clampedVolume)
+
+        // Apply volume immediately if currently playing
+        mediaPlayer?.let { mp ->
+            val currentVolume =
+                if (activeProfile?.replayGainEnabled == true && activeProfile?.replayGainDb != 0f) {
+                    val gain = Math.pow(10.0, (activeProfile?.replayGainDb ?: 0f) / 20.0).toFloat()
+                        .coerceIn(0f, 1f)
+                    (gain * clampedVolume).coerceIn(0f, 1f)
+                } else {
+                    clampedVolume
+                }
+            mp.setVolume(currentVolume, currentVolume)
+        }
+
+        // Sync the volume change back to the song database
+        currentSong?.let { song ->
+            serviceScope.launch {
+                repository.updateVolumeAndSyncProfile(song.id, clampedVolume)
+            }
+        }
+    }
+
     fun applyRepeatModeToCurrentSong(repeatMode: Int) {
         this.repeatMode = repeatMode
         // Sync the repeat mode change back to the song database
@@ -527,26 +687,44 @@ class MusicService : Service() {
     }
 
     private fun requestAudioFocus(): Boolean {
-        val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-            .setAudioAttributes(
-                AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()
-            )
-            .setOnAudioFocusChangeListener { change ->
-                when (change) {
-                    AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> pause()
-                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> mediaPlayer?.setVolume(
-                        0.2f,
-                        0.2f
-                    )
+        try {
+            val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(
+                    AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()
+                )
+                .setOnAudioFocusChangeListener { change ->
+                    when (change) {
+                        AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                            android.util.Log.d("MusicService", "Audio focus lost, pausing playback")
+                            pause()
+                        }
 
-                    AudioManager.AUDIOFOCUS_GAIN -> {
-                        mediaPlayer?.setVolume(1f, 1f); if (!isPlaying()) resume()
+                        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                            android.util.Log.d(
+                                "MusicService",
+                                "Audio focus loss transient can duck"
+                            )
+                            mediaPlayer?.setVolume(0.2f, 0.2f)
+                        }
+
+                        AudioManager.AUDIOFOCUS_GAIN -> {
+                            android.util.Log.d("MusicService", "Audio focus regained")
+                            mediaPlayer?.setVolume(1f, 1f)
+                            if (!isPlaying()) {
+                                resume()
+                            }
+                        }
                     }
-                }
-            }.build()
-        audioFocusRequest = request
-        return audioManager.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+                }.build()
+            audioFocusRequest = request
+            val result = audioManager.requestAudioFocus(request)
+            android.util.Log.d("MusicService", "Audio focus request result: $result")
+            return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        } catch (e: Exception) {
+            android.util.Log.e("MusicService", "Exception requesting audio focus: ${e.message}")
+            return false
+        }
     }
 
     private fun createNotificationChannel() {
@@ -678,6 +856,12 @@ class MusicService : Service() {
                 .setPriority(NotificationCompat.PRIORITY_LOW).build()
         )
         return START_STICKY
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        // Stop service and cleanup when app is swiped away
+        stopSelf()
     }
 
     override fun onDestroy() {

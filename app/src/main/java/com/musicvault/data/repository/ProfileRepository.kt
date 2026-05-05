@@ -34,7 +34,7 @@ class ProfileRepository(private val context: Context) {
         }
 
     private suspend fun createDefaultProfile(songId: Long): PlaybackProfile {
-        // Fetch song to seed pitch/speed/trim
+        // Fetch song to seed pitch/speed/trim/volume
         val song = db.songDao().getSongById(songId)
         val profile = PlaybackProfile(
             songId = songId,
@@ -42,6 +42,7 @@ class ProfileRepository(private val context: Context) {
             isActive = true,
             pitchSemitones = song?.pitchSemitones?.toFloat() ?: 0f,
             playbackSpeed = song?.playbackSpeed ?: 1.0f,
+            volume = song?.volume ?: 1.0f,
             trimStart = song?.trimStart ?: 0L,
             trimEnd = song?.trimEnd ?: -1L
         )
@@ -104,6 +105,10 @@ class ProfileRepository(private val context: Context) {
 
     suspend fun updateTrim(profileId: Long, start: Long, end: Long) = withContext(Dispatchers.IO) {
         profileDao.updateTrim(profileId, start, end)
+    }
+
+    suspend fun updateVolume(profileId: Long, volume: Float) = withContext(Dispatchers.IO) {
+        profileDao.updateVolume(profileId, volume)
     }
 
     // ─── Skip Regions ─────────────────────────────────────────────────────────

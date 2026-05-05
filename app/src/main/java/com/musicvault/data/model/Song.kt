@@ -20,6 +20,7 @@ data class Song(
     var pitchSemitones: Int = 0,       // -6 to +6
     var trimStart: Long = 0,           // ms
     var trimEnd: Long = -1,            // ms, -1 = use full duration
+    var volume: Float = 1.0f,          // 0.0f to 1.0f
     var isFavorite: Boolean = false,
     var playCount: Int = 0,
     var lastPlayed: Long = 0,

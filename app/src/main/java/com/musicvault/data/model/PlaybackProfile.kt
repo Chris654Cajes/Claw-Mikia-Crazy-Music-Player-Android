@@ -30,6 +30,9 @@ data class PlaybackProfile(
     val pitchSemitones: Float = 0f,          // -12.0 to +12.0 semitones (float for fine control)
     val playbackSpeed: Float = 1.0f,         // 0.25x to 4.0x
 
+    // Volume
+    val volume: Float = 1.0f,                // 0.0f to 1.0f
+
     // Trim / Timeline
     val trimStart: Long = 0L,                // ms
     val trimEnd: Long = -1L,                 // ms, -1 = song end

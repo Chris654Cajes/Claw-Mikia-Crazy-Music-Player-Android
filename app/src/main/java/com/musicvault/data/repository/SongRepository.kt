@@ -127,6 +127,20 @@ class SongRepository(private val context: Context) {
             // Note: repeat mode is stored in song, not profile, so no profile sync needed
         }
 
+    suspend fun updateVolume(id: Long, volume: Float) = withContext(Dispatchers.IO) {
+        songDao.updateVolume(id, volume)
+    }
+
+    suspend fun updateVolumeAndSyncProfile(id: Long, volume: Float) = withContext(Dispatchers.IO) {
+        songDao.updateVolume(id, volume)
+        // Also update the active profile if it exists
+        val profileDao = MusicDatabase.getDatabase(context).playbackProfileDao()
+        val activeProfile = profileDao.getActiveProfile(id)
+        activeProfile?.let { profile ->
+            profileDao.updateVolume(profile.id, volume)
+        }
+    }
+
     suspend fun toggleFavorite(song: Song) = withContext(Dispatchers.IO) {
         songDao.updateFavorite(song.id, !song.isFavorite)
     }

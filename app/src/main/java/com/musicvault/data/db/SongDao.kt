@@ -49,6 +49,9 @@ interface SongDao {
     @Query("UPDATE songs SET trimStart = :start, trimEnd = :end WHERE id = :id")
     suspend fun updateTrim(id: Long, start: Long, end: Long)
 
+    @Query("UPDATE songs SET volume = :volume WHERE id = :id")
+    suspend fun updateVolume(id: Long, volume: Float)
+
     @Query("UPDATE songs SET isFavorite = :fav WHERE id = :id")
     suspend fun updateFavorite(id: Long, fav: Boolean)
 

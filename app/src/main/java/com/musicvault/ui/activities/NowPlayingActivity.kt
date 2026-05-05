@@ -132,8 +132,14 @@ class NowPlayingActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         stopProgressUpdates()
-        musicService?.onSongChanged = null
-        musicService?.onPlayStateChanged = null
+        musicService?.let { service ->
+            // Clear callbacks and stop playback when activity is destroyed
+            service.onSongChanged = null
+            service.onPlayStateChanged = null
+            if (service.isPlaying()) {
+                service.togglePlayPause()
+            }
+        }
         unbindService(serviceConnection)
         super.onDestroy()
     }
@@ -466,6 +472,9 @@ class NowPlayingActivity : AppCompatActivity() {
             binding.seekTrimStart.progress = 0
             binding.seekTrimEnd.progress = total.toInt()
             updateTrimLabels(0L, total)
+            // Apply trim reset immediately to current playback
+            musicService?.applyTrimToCurrentSong(0L, -1L)
+            // Also persist to database
             activityScope.launch { repository.updateTrim(s.id, 0L, -1L) }
         }
 
@@ -612,6 +621,9 @@ class NowPlayingActivity : AppCompatActivity() {
         val id = songId.takeIf { it != -1L } ?: return
         val start = binding.seekTrimStart.progress.toLong()
         val end = binding.seekTrimEnd.progress.toLong()
+        // Apply trim immediately to current playback
+        musicService?.applyTrimToCurrentSong(start, end)
+        // Also persist to database
         activityScope.launch { repository.updateTrim(id, start, end) }
     }
 

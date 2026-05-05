@@ -22,7 +22,7 @@ import com.musicvault.data.model.*
         Playlist::class,
         PlaylistSong::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class MusicDatabase : RoomDatabase() {
@@ -101,6 +101,29 @@ abstract class MusicDatabase : RoomDatabase() {
                 }
             }
         }
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add volume column to songs table if it doesn't exist
+                try {
+                    db.execSQL("ALTER TABLE songs ADD COLUMN volume REAL NOT NULL DEFAULT 1.0")
+                } catch (e: Exception) {
+                    android.util.Log.w(
+                        "MusicDatabase",
+                        "Volume column already exists in songs table: ${e.message}"
+                    )
+                }
+
+                // Add volume column to playback_profiles table if it doesn't exist
+                try {
+                    db.execSQL("ALTER TABLE playback_profiles ADD COLUMN volume REAL NOT NULL DEFAULT 1.0")
+                } catch (e: Exception) {
+                    android.util.Log.w(
+                        "MusicDatabase",
+                        "Volume column already exists in playback_profiles table: ${e.message}"
+                    )
+                }
+            }
+        }
 
         fun getDatabase(context: Context): MusicDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -109,7 +132,13 @@ abstract class MusicDatabase : RoomDatabase() {
                     MusicDatabase::class.java,
                     "music_vault.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5,
+                        MIGRATION_5_6
+                    )
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

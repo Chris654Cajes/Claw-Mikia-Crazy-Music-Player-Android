@@ -81,6 +81,9 @@ interface PlaybackProfileDao {
 
     @Query("UPDATE playback_profiles SET trimStart = :start, trimEnd = :end, updatedAt = :now WHERE id = :id")
     suspend fun updateTrim(id: Long, start: Long, end: Long, now: Long = System.currentTimeMillis())
+
+    @Query("UPDATE playback_profiles SET volume = :volume, updatedAt = :now WHERE id = :id")
+    suspend fun updateVolume(id: Long, volume: Float, now: Long = System.currentTimeMillis())
 }
 
 // ─── SkipRegion DAO ───────────────────────────────────────────────────────────
