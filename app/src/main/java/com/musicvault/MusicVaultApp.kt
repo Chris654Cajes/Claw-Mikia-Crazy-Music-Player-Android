@@ -10,6 +10,8 @@ class MusicVaultApp : Application() {
         const val PREFS_NAME = "music_vault_prefs"
         const val KEY_DARK_MODE = "dark_mode"
         const val KEY_FOLDER_URI = "folder_uri"
+        const val KEY_REPEAT_MODE = "repeat_mode"
+        const val KEY_SHUFFLE_ON = "shuffle_on"
         lateinit var instance: MusicVaultApp
     }
 

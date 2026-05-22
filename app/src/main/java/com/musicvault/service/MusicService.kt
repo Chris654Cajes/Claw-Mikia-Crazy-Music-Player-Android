@@ -134,6 +134,11 @@ class MusicService : Service() {
         lyricsManager = LyricsManager(applicationContext)
         analysisEngine = AnalysisEngine(applicationContext)
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
+
+        val prefs = com.musicvault.MusicVaultApp.instance.prefs
+        repeatMode = prefs.getInt(com.musicvault.MusicVaultApp.KEY_REPEAT_MODE, REPEAT_NONE)
+        shuffleEnabled = prefs.getBoolean(com.musicvault.MusicVaultApp.KEY_SHUFFLE_ON, false)
+
         createNotificationChannel()
         initMediaSession()
 
@@ -197,8 +202,7 @@ class MusicService : Service() {
             }
 
             playlist = playlist.toMutableList().also { it[currentIndex] = freshSong }
-            activeProfile = profile; skipRegions = regions; repeatMode =
-            freshSong.repeatMode; currentArt = art
+            activeProfile = profile; skipRegions = regions; currentArt = art
             playFreshSong(freshSong, profile)
 
             launch(Dispatchers.IO) { lyricsManager.loadForSong(freshSong.id, freshSong.filePath) }
@@ -258,11 +262,17 @@ class MusicService : Service() {
                             true
                         )
                     }
-                    if (repeatMode == REPEAT_ONE) playCurrent(forceReload = true)
-                    else if (currentIndex < playlist.size - 1 || repeatMode == REPEAT_ALL) {
-                        advanceIndex(); playCurrent(forceReload = true)
-                    } else {
-                        isPlayingRequested = false; notifyPlayState(false)
+                    when (repeatMode) {
+                        REPEAT_ONE -> playCurrent(forceReload = true)
+                        REPEAT_ALL -> {
+                            advanceIndex()
+                            playCurrent(forceReload = true)
+                        }
+
+                        else -> { // REPEAT_NONE: definitely stop and nothing else
+                            isPlayingRequested = false
+                            notifyPlayState(false)
+                        }
                     }
                 }
                 setOnErrorListener { _, _, _ ->
@@ -280,7 +290,7 @@ class MusicService : Service() {
         isPlayingRequested = true
         val mp = mediaPlayer
         if (mp == null || !isPrepared) {
-            if (mp == null && playlist.isNotEmpty()) playCurrent(forceReload = true)
+            if (playlist.isNotEmpty()) playCurrent(forceReload = true)
             notifyPlayState(true); return
         }
 
@@ -413,12 +423,17 @@ class MusicService : Service() {
     }
 
     private fun advanceOrStop() {
-        if (currentIndex < playlist.size - 1 || repeatMode == REPEAT_ALL) {
-            if (repeatMode == REPEAT_ALL && currentIndex >= playlist.size - 1) currentIndex = 0
-            else advanceIndex()
-            playCurrent(forceReload = true)
-        } else {
-            pause()
+        when (repeatMode) {
+            REPEAT_ONE -> playCurrent(forceReload = true)
+            REPEAT_ALL -> {
+                if (currentIndex >= playlist.size - 1) currentIndex = 0
+                else advanceIndex()
+                playCurrent(forceReload = true)
+            }
+
+            else -> { // REPEAT_NONE: definitely stop
+                pause()
+            }
         }
     }
 
@@ -613,18 +628,15 @@ class MusicService : Service() {
     fun getCurrentSong(): Song? = currentSong
     fun getRepeatMode(): Int = repeatMode
     fun setRepeatMode(mode: Int) {
-        repeatMode = mode; currentSong?.let {
-            serviceScope.launch {
-                repository.updateRepeatMode(
-                    it.id,
-                    mode
-                )
-            }
-        }
+        repeatMode = mode
+        com.musicvault.MusicVaultApp.instance.prefs.edit()
+            .putInt(com.musicvault.MusicVaultApp.KEY_REPEAT_MODE, mode).apply()
     }
     fun getActiveProfile(): PlaybackProfile? = activeProfile
     fun toggleShuffle() {
         shuffleEnabled = !shuffleEnabled; if (shuffleEnabled) rebuildShuffleIndices()
+        com.musicvault.MusicVaultApp.instance.prefs.edit()
+            .putBoolean(com.musicvault.MusicVaultApp.KEY_SHUFFLE_ON, shuffleEnabled).apply()
     }
 
     fun isShuffleEnabled(): Boolean = shuffleEnabled
