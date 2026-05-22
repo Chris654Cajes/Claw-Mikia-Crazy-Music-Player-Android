@@ -543,25 +543,38 @@ class NowPlayingActivity : AppCompatActivity() {
         }
 
         // ── Trim buttons ───────────────────────────────────────────────────────
-        binding.btnTrimStart.setOnClickListener {
-            val currentPosition = musicService?.getPosition() ?: 0
-            val trimOffset = song?.trimStart?.toInt() ?: 0
-            val newStart = (currentPosition - trimOffset).coerceAtLeast(0)
-            val endProgress = binding.seekTrimEnd.progress
-            val clamped = newStart.coerceAtMost((endProgress - 1000).coerceAtLeast(0))
-            binding.seekTrimStart.progress = clamped
-            updateTrimLabels(clamped.toLong(), endProgress.toLong())
+        binding.btnTrimStartMinus.setOnClickListener {
+            val current = binding.seekTrimStart.progress
+            val newVal = (current - 10000).coerceAtLeast(0)
+            binding.seekTrimStart.progress = newVal
+            updateTrimLabels(newVal.toLong(), binding.seekTrimEnd.progress.toLong())
             saveTrim()
         }
 
-        binding.btnTrimEnd.setOnClickListener {
-            val currentPosition = musicService?.getPosition() ?: 0
-            val trimOffset = song?.trimStart?.toInt() ?: 0
-            val newEnd = (currentPosition - trimOffset)
+        binding.btnTrimStartPlus.setOnClickListener {
+            val current = binding.seekTrimStart.progress
+            val endVal = binding.seekTrimEnd.progress
+            val newVal = (current + 10000).coerceAtMost((endVal - 1000).coerceAtLeast(0))
+            binding.seekTrimStart.progress = newVal
+            updateTrimLabels(newVal.toLong(), endVal.toLong())
+            saveTrim()
+        }
+
+        binding.btnTrimEndMinus.setOnClickListener {
+            val current = binding.seekTrimEnd.progress
+            val startVal = binding.seekTrimStart.progress
+            val newVal = (current - 10000).coerceAtLeast(startVal + 1000)
+            binding.seekTrimEnd.progress = newVal
+            updateTrimLabels(startVal.toLong(), newVal.toLong())
+            saveTrim()
+        }
+
+        binding.btnTrimEndPlus.setOnClickListener {
+            val current = binding.seekTrimEnd.progress
             val maxEnd = binding.seekTrimEnd.max
-            val clampedEnd = newEnd.coerceIn(binding.seekTrimStart.progress + 1000, maxEnd)
-            binding.seekTrimEnd.progress = clampedEnd
-            updateTrimLabels(binding.seekTrimStart.progress.toLong(), clampedEnd.toLong())
+            val newVal = (current + 10000).coerceAtMost(maxEnd)
+            binding.seekTrimEnd.progress = newVal
+            updateTrimLabels(binding.seekTrimStart.progress.toLong(), newVal.toLong())
             saveTrim()
         }
 
