@@ -342,6 +342,8 @@ class MusicService : Service() {
         if (dur > 0) {
             lastSeekTime = System.currentTimeMillis()
             runCatching { mp.seekTo(ms.coerceIn(0, dur)) }
+            // Force MediaSession update so lockscreen seekbar jumps to new position
+            notifyPlayState(isPlayingRequested)
         }
     }
 
@@ -471,8 +473,9 @@ class MusicService : Service() {
 
     private fun notifyPlayState(playing: Boolean) {
         playStateCallbacks.forEach { it(playing) }
-        updateMediaSessionState(playing)
+        // Update Metadata BEFORE State to ensure duration is known when position is set
         updateNotification()
+        updateMediaSessionState(playing)
     }
 
     private fun updateNotification() {
@@ -610,11 +613,21 @@ class MusicService : Service() {
         val tStart = activeProfile?.trimStart ?: 0L
         val absolutePos = getPosition().toLong()
         val relativePos = (absolutePos - tStart).coerceAtLeast(0L)
+
+        // Speed must be 0 if not playing, otherwise Android seekbar won't behave correctly
+        val speed = if (playing) (activeProfile?.playbackSpeed ?: 1f) else 0f
         
         mediaSession?.setPlaybackState(
             PlaybackStateCompat.Builder()
-                .setState(state, relativePos, activeProfile?.playbackSpeed ?: 1f)
-                .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_SKIP_TO_NEXT or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or PlaybackStateCompat.ACTION_SEEK_TO)
+                .setState(state, relativePos, speed)
+                .setActions(
+                    PlaybackStateCompat.ACTION_PLAY or
+                            PlaybackStateCompat.ACTION_PAUSE or
+                            PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
+                            PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
+                            PlaybackStateCompat.ACTION_SEEK_TO or
+                            PlaybackStateCompat.ACTION_PLAY_PAUSE
+                )
                 .build()
         )
     }
