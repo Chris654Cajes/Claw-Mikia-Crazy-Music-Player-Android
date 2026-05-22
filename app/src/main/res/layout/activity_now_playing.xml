@@ -376,17 +376,18 @@
                         android:layout_height="1dp"
                         android:layout_weight="1" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnVolumeReset"
                         android:layout_width="wrap_content"
                         android:layout_height="36dp"
                         android:background="@drawable/bg_button_outline_cyan"
-                        android:fontFamily="@font/orbitron_regular"
+                        android:fontFamily="@font/orbitron_bold"
                         android:gravity="center"
                         android:minWidth="0dp"
                         android:minHeight="0dp"
                         android:paddingStart="14dp"
                         android:paddingEnd="14dp"
+                        android:textAllCaps="false"
                         android:stateListAnimator="@null"
                         android:text="Reset to 100%"
                         android:textColor="@color/neon_cyan"
@@ -681,7 +682,7 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnPitchDown"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
@@ -696,7 +697,7 @@
                         android:gravity="center"
                         android:textSize="18sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnPitchUp"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
@@ -717,14 +718,15 @@
                         android:layout_height="1dp"
                         android:layout_weight="1" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnPitchReset"
                         android:layout_width="wrap_content"
                         android:layout_height="36dp"
                         android:background="@drawable/bg_button_outline_green"
-                        android:fontFamily="@font/orbitron_regular"
+                        android:fontFamily="@font/orbitron_bold"
                         android:paddingStart="14dp"
                         android:paddingEnd="14dp"
+                        android:textAllCaps="false"
                         android:stateListAnimator="@null"
                         android:text="Reset to 0"
                         android:textColor="@color/neon_green"
@@ -885,7 +887,7 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnSpeedDown"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
@@ -900,7 +902,7 @@
                         android:gravity="center"
                         android:textSize="18sp" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnSpeedUp"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
@@ -921,16 +923,17 @@
                         android:layout_height="1dp"
                         android:layout_weight="1" />
 
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnSpeedReset"
                         android:layout_width="wrap_content"
                         android:layout_height="36dp"
                         android:background="@drawable/bg_button_outline_orange"
-                        android:fontFamily="@font/orbitron_regular"
+                        android:fontFamily="@font/orbitron_bold"
                         android:stateListAnimator="@null"
                         android:text="Reset to 1.0x"
                         android:paddingStart="14dp"
                         android:paddingEnd="14dp"
+                        android:textAllCaps="false"
                         android:textColor="@color/neon_orange"
                         android:gravity="center"
                         android:minWidth="0dp"
@@ -950,6 +953,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:layout_marginTop="14dp"
+            android:layout_marginBottom="14dp"
             app:cardBackgroundColor="@color/bg_card"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp">
@@ -1000,8 +1004,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:progressBackgroundTint="@color/seekbar_bg"
-                    android:progressTint="@color/neon_orange"
-                    android:thumb="@drawable/seekbar_thumb_orange" />
+                    android:progressTint="@color/neon_light_blue"
+                    android:thumb="@drawable/seekbar_thumb_blue" />
 
                 <TextView
                     android:id="@+id/tvTrimStart"
@@ -1011,7 +1015,7 @@
                     android:layout_marginBottom="14dp"
                     android:fontFamily="@font/orbitron_regular"
                     android:text="Start: 0:00"
-                    android:textColor="@color/neon_orange"
+                    android:textColor="@color/neon_light_blue"
                     android:textSize="11sp" />
 
                 <TextView
@@ -1043,139 +1047,152 @@
                     android:textColor="@color/neon_red"
                     android:textSize="11sp" />
 
-                <!-- Trim Start Controls -->
+                <!-- Trim Control Buttons Row -->
                 <LinearLayout
-                    android:layout_width="180dp"
-                    android:layout_height="36dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <Button
-                        android:id="@+id/btnTrimStartMinus"
-                        android:layout_width="48dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_button_outline_orange"
-                        android:fontFamily="@font/orbitron_bold"
-                        android:gravity="center"
-                        android:minWidth="0dp"
-                        android:minHeight="0dp"
-                        android:padding="0dp"
-                        android:stateListAnimator="@null"
-                        android:text="−10s"
-                        android:textColor="@color/neon_orange"
-                        android:textSize="9sp" />
+                    <LinearLayout
+                        android:layout_width="180dp"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
-                    <Button
-                        android:id="@+id/btnTrimStartPlus"
-                        android:layout_width="48dp"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_button_outline_orange"
-                        android:fontFamily="@font/orbitron_bold"
-                        android:gravity="center"
-                        android:minWidth="0dp"
-                        android:minHeight="0dp"
-                        android:padding="0dp"
-                        android:stateListAnimator="@null"
-                        android:text="+10s"
-                        android:textColor="@color/neon_orange"
-                        android:textSize="9sp" />
+                        <!-- Trim Start Controls -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="36dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnTrimStartMinus"
+                                android:layout_width="48dp"
+                                android:layout_height="36dp"
+                                android:background="@drawable/bg_button_outline_blue"
+                                android:fontFamily="@font/orbitron_bold"
+                                android:gravity="center"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                android:padding="0dp"
+                                android:stateListAnimator="@null"
+                                android:text="−10s"
+                                android:textColor="@color/neon_light_blue"
+                                android:textSize="9sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnTrimStartPlus"
+                                android:layout_width="48dp"
+                                android:layout_height="36dp"
+                                android:layout_marginStart="8dp"
+                                android:background="@drawable/bg_button_outline_blue"
+                                android:fontFamily="@font/orbitron_bold"
+                                android:gravity="center"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                android:padding="0dp"
+                                android:stateListAnimator="@null"
+                                android:text="+10s"
+                                android:textColor="@color/neon_light_blue"
+                                android:textSize="9sp" />
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1" />
+
+                            <TextView
+                                android:id="@+id/tvTrimStartLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:fontFamily="@font/orbitron_bold"
+                                android:gravity="center"
+                                android:text="START"
+                                android:textColor="@color/neon_light_blue"
+                                android:textSize="10sp" />
+                        </LinearLayout>
+
+                        <!-- Trim End Controls -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="36dp"
+                            android:layout_marginTop="10dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnTrimEndMinus"
+                                android:layout_width="48dp"
+                                android:layout_height="36dp"
+                                android:background="@drawable/bg_button_outline_red"
+                                android:fontFamily="@font/orbitron_bold"
+                                android:gravity="center"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                android:padding="0dp"
+                                android:stateListAnimator="@null"
+                                android:text="−10s"
+                                android:textColor="@color/neon_red"
+                                android:textSize="9sp" />
+
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:id="@+id/btnTrimEndPlus"
+                                android:layout_width="48dp"
+                                android:layout_height="36dp"
+                                android:layout_marginStart="8dp"
+                                android:background="@drawable/bg_button_outline_red"
+                                android:fontFamily="@font/orbitron_bold"
+                                android:gravity="center"
+                                android:minWidth="0dp"
+                                android:minHeight="0dp"
+                                android:padding="0dp"
+                                android:stateListAnimator="@null"
+                                android:text="+10s"
+                                android:textColor="@color/neon_red"
+                                android:textSize="9sp" />
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1" />
+
+                            <TextView
+                                android:id="@+id/tvTrimEndLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:fontFamily="@font/orbitron_bold"
+                                android:gravity="center"
+                                android:text="END"
+                                android:textColor="@color/neon_red"
+                                android:textSize="10sp" />
+                        </LinearLayout>
+
+                    </LinearLayout>
 
                     <View
                         android:layout_width="0dp"
                         android:layout_height="1dp"
                         android:layout_weight="1" />
 
-                    <TextView
-                        android:id="@+id/tvTrimStartLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:fontFamily="@font/orbitron_bold"
-                        android:gravity="center"
-                        android:text="START"
-                        android:textColor="@color/neon_orange"
-                        android:textSize="10sp" />
-                </LinearLayout>
-
-                <!-- Trim End Controls -->
-                <LinearLayout
-                    android:layout_width="180dp"
-                    android:layout_height="36dp"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/btnTrimEndMinus"
-                        android:layout_width="48dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/bg_button_outline_red"
-                        android:fontFamily="@font/orbitron_bold"
-                        android:gravity="center"
-                        android:minWidth="0dp"
-                        android:minHeight="0dp"
-                        android:padding="0dp"
-                        android:stateListAnimator="@null"
-                        android:text="−10s"
-                        android:textColor="@color/neon_pink"
-                        android:textSize="9sp" />
-
-                    <Button
-                        android:id="@+id/btnTrimEndPlus"
-                        android:layout_width="48dp"
-                        android:layout_height="36dp"
-                        android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_button_outline_red"
-                        android:fontFamily="@font/orbitron_bold"
-                        android:gravity="center"
-                        android:minWidth="0dp"
-                        android:minHeight="0dp"
-                        android:padding="0dp"
-                        android:stateListAnimator="@null"
-                        android:text="+10s"
-                        android:textColor="@color/neon_pink"
-                        android:textSize="9sp" />
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="1dp"
-                        android:layout_weight="1" />
-
-                    <TextView
-                        android:id="@+id/tvTrimEndLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:fontFamily="@font/orbitron_bold"
-                        android:gravity="center"
-                        android:text="END"
-                        android:textColor="@color/neon_pink"
-                        android:textSize="10sp" />
-                </LinearLayout>
-
-                <!-- Reset Control -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="36dp"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <Button
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnTrimReset"
-                        android:layout_width="100dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="36dp"
                         android:background="@drawable/bg_button_outline_neutral"
-                        android:fontFamily="@font/orbitron_regular"
+                        android:fontFamily="@font/orbitron_bold"
                         android:gravity="center"
                         android:minWidth="0dp"
                         android:minHeight="0dp"
                         android:paddingStart="14dp"
                         android:paddingEnd="14dp"
+                        android:textAllCaps="false"
                         android:stateListAnimator="@null"
                         android:text="Reset Trim"
                         android:textColor="@color/text_secondary"
                         android:textSize="10sp" />
+
                 </LinearLayout>
 
             </LinearLayout>
