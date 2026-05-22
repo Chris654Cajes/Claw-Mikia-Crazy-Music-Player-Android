@@ -86,8 +86,31 @@ class MusicService : Service() {
     private var sleepTimerRunnable: Runnable? = null
     private var sleepTimerEndMs: Long = -1L
 
-    var onSongChanged: ((Song) -> Unit)? = null
-    var onPlayStateChanged: ((Boolean) -> Unit)? = null
+    private var playJob: kotlinx.coroutines.Job? = null
+    private val playStateCallbacks = java.util.concurrent.CopyOnWriteArrayList<(Boolean) -> Unit>()
+    private val songChangedCallbacks = java.util.concurrent.CopyOnWriteArrayList<(Song) -> Unit>()
+
+    private var isPlayingRequested = false
+    private var isPrepared = false
+    private var lastSeekTime = 0L
+
+    fun addPlayStateCallback(cb: (Boolean) -> Unit) {
+        playStateCallbacks.add(cb)
+        cb(isPlaying())
+    }
+
+    fun removePlayStateCallback(cb: (Boolean) -> Unit) {
+        playStateCallbacks.remove(cb)
+    }
+
+    fun addSongChangedCallback(cb: (Song) -> Unit) {
+        songChangedCallbacks.add(cb)
+        currentSong?.let { cb(it) }
+    }
+
+    fun removeSongChangedCallback(cb: (Song) -> Unit) {
+        songChangedCallbacks.remove(cb)
+    }
 
     companion object {
         const val NOTIF_CHANNEL = "music_vault_channel"
@@ -107,11 +130,13 @@ class MusicService : Service() {
     private val notifReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
             when (intent.action) {
-                ACTION_PLAY, ACTION_PAUSE -> togglePlayPause()
+                ACTION_PLAY -> resume()
+                ACTION_PAUSE -> pause()
                 ACTION_NEXT -> skipNext()
                 ACTION_PREV -> skipPrev()
                 ACTION_STOP -> {
-                    stopSelf(); notifyPlayState(false)
+                    stopSelf()
+                    notifyPlayState(false)
                 }
             }
         }
@@ -130,8 +155,11 @@ class MusicService : Service() {
         createNotificationChannel()
         initMediaSession()
         val filter = IntentFilter().apply {
-            addAction(ACTION_PLAY); addAction(ACTION_PAUSE)
-            addAction(ACTION_NEXT); addAction(ACTION_PREV); addAction(ACTION_STOP)
+            addAction(ACTION_PLAY)
+            addAction(ACTION_PAUSE)
+            addAction(ACTION_NEXT)
+            addAction(ACTION_PREV)
+            addAction(ACTION_STOP)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(notifReceiver, filter, RECEIVER_NOT_EXPORTED)
@@ -150,14 +178,21 @@ class MusicService : Service() {
 
     fun playSong(song: Song) {
         val idx = playlist.indexOfFirst { it.id == song.id }
-        if (idx >= 0) { currentIndex = idx; playCurrent() }
-        else { playlist = listOf(song); currentIndex = 0; playCurrent() }
+        if (idx >= 0) {
+            currentIndex = idx
+            playCurrent()
+        } else {
+            playlist = listOf(song)
+            currentIndex = 0
+            playCurrent()
+        }
     }
 
     private fun playCurrent() {
         if (playlist.isEmpty()) return
         val songSnapshot = playlist[currentIndex]
-        serviceScope.launch {
+        playJob?.cancel()
+        playJob = serviceScope.launch {
             val freshSong = withContext(Dispatchers.IO) {
                 try {
                     repository.getSongById(songSnapshot.id)
@@ -168,25 +203,19 @@ class MusicService : Service() {
 
             android.util.Log.d(
                 "MusicService",
-                "Loading song: ${freshSong.title}, pitch=${freshSong.pitchSemitones}, speed=${freshSong.playbackSpeed}, volume=${freshSong.volume}, trimStart=${freshSong.trimStart}, trimEnd=${freshSong.trimEnd}, repeat=${freshSong.repeatMode}"
+                "Loading song: ${freshSong.title}"
             )
-            
+
             val profile = withContext(Dispatchers.IO) {
                 profileRepository.getOrCreateActiveProfile(freshSong.id)
             }
 
-            android.util.Log.d(
-                "MusicService",
-                "Active profile: pitch=${profile.pitchSemitones}, speed=${profile.playbackSpeed}, volume=${profile.volume}, trimStart=${profile.trimStart}, trimEnd=${profile.trimEnd}"
-            )
-            
             val regions = withContext(Dispatchers.IO) {
                 profileRepository.getEnabledSkipRegions(freshSong.id)
             }
             playlist = playlist.toMutableList().also { it[currentIndex] = freshSong }
             activeProfile = profile
             skipRegions = regions
-            // Restore repeat mode from song's persisted state
             repeatMode = freshSong.repeatMode
             playFreshSong(freshSong, profile)
             launch(Dispatchers.IO) {
@@ -200,6 +229,10 @@ class MusicService : Service() {
         currentSong = song
         notifySongChanged(song)
         cancelAllWatchdogs()
+        isPrepared = false
+        isPlayingRequested = true // We intent to play this song
+        notifyPlayState(true) // Show "Pause" icon immediately
+
         try {
             mediaPlayer?.reset()
             if (mediaPlayer == null) {
@@ -214,157 +247,148 @@ class MusicService : Service() {
             mediaPlayer?.apply {
                 setDataSource(this@MusicService, Uri.parse(song.filePath))
                 setOnPreparedListener { mp ->
+                    isPrepared = true
                     dspProcessor?.release()
                     dspProcessor = DSPProcessor(mp.audioSessionId).also { it.applyProfile(profile) }
                     applyPlaybackParams(profile.pitchSemitones.toInt(), profile.playbackSpeed)
+
                     if (profile.replayGainEnabled && profile.replayGainDb != 0f) {
                         val gain =
                             Math.pow(10.0, profile.replayGainDb / 20.0).toFloat().coerceIn(0f, 1f)
                         val finalVolume = (gain * profile.volume).coerceIn(0f, 1f)
                         mp.setVolume(finalVolume, finalVolume)
                     } else {
-                        // Apply volume directly if no replay gain
                         mp.setVolume(profile.volume, profile.volume)
                     }
+
                     val startPos = profile.trimStart.toInt()
-                    android.util.Log.d(
-                        "MusicService",
-                        "Trim analysis: startPos=$startPos, trimStart=${profile.trimStart}, trimEnd=${profile.trimEnd}"
-                    )
                     if (startPos > 0) {
-                        android.util.Log.d(
-                            "MusicService",
-                            "Seeking to start position: $startPos ms"
-                        )
+                        lastSeekTime = System.currentTimeMillis()
                         mp.seekTo(startPos)
-                        android.util.Log.d(
-                            "MusicService",
-                            "Seek completed, current position: ${mp.currentPosition}"
-                        )
-                    } else {
-                        android.util.Log.d("MusicService", "Trim start is 0, not seeking")
                     }
-                    android.util.Log.d(
-                        "MusicService",
-                        "Trim end watchdog: ${profile.trimEnd} ms, enabled: ${profile.trimEnd > 0}"
-                    )
-                    mp.start()
-                    notifyPlayState(true)
-                    updateMediaSessionState(true)
-                    buildAndStartForeground()
-                    startWatchdogs(profile)
-                    serviceScope.launch {
-                        repository.incrementPlayCount(song.id)
-                        playlistRepository.recordPlay(song.id)
+
+                    // Only start if we still want to play
+                    if (isPlayingRequested) {
+                        mp.start()
+                        notifyPlayState(true)
+                        startWatchdogs(profile)
+                    } else {
+                        notifyPlayState(false)
                     }
                 }
                 setOnCompletionListener {
+                    isPrepared = false
                     cancelAllWatchdogs()
                     serviceScope.launch {
-                        playlistRepository.recordPlay(
-                            song.id,
-                            song.duration,
-                            true
-                        )
+                        playlistRepository.recordPlay(song.id, song.duration, true)
                     }
                     when (repeatMode) {
                         REPEAT_ONE -> playCurrent()
                         REPEAT_ALL -> {
-                            advanceIndex(); playCurrent()
+                            advanceIndex()
+                            playCurrent()
                         }
-
                         else -> if (currentIndex < playlist.size - 1) {
-                            advanceIndex(); playCurrent()
+                            advanceIndex()
+                            playCurrent()
                         } else {
-                            notifyPlayState(false); updateMediaSessionState(false)
+                            pause()
                         }
                     }
                 }
-                setOnErrorListener { _, _, _ -> notifyPlayState(false); true }
+                setOnErrorListener { _, _, _ ->
+                    isPrepared = false
+                    notifyPlayState(false)
+                    true
+                }
                 prepareAsync()
             }
         } catch (e: Exception) {
+            isPrepared = false
             notifyPlayState(false)
         }
     }
 
     private fun startWatchdogs(profile: PlaybackProfile) {
-        android.util.Log.d(
-            "MusicService",
-            "Starting trim watchdog: trimStart=${profile.trimStart}, trimEnd=${profile.trimEnd}, enabled=${profile.trimEnd > 0}"
-        )
-        if (profile.trimEnd > 0) {
-            trimWatchdog = object : Runnable {
+        cancelAllWatchdogs()
+        val currentProfile = activeProfile ?: profile
+
+        if (currentProfile.trimEnd > 0) {
+            val watchdog = object : Runnable {
                 override fun run() {
+                    if (trimWatchdog != this) return
                     val mp = mediaPlayer ?: return
-                    val currentPos = mp.currentPosition
-                    val trimEnd = profile.trimEnd.toInt()
-                    android.util.Log.d(
-                        "MusicService",
-                        "Trim watchdog: pos=$currentPos, end=$trimEnd, playing=${mp.isPlaying}"
-                    )
-                    if (mp.isPlaying && currentPos >= trimEnd) {
-                        android.util.Log.d(
-                            "MusicService",
-                            "Trim end reached, seeking to start or advancing"
-                        )
-                        if (repeatMode == REPEAT_ONE) {
-                            val newSeekPos = profile.trimStart.toInt()
-                            android.util.Log.d("MusicService", "REPEAT_ONE: seeking to $newSeekPos")
-                            mp.seekTo(newSeekPos)
-                        } else {
-                            android.util.Log.d(
-                                "MusicService",
-                                "Not REPEAT_ONE: advancing to next song"
-                            )
-                            cancelAllWatchdogs(); advanceOrStop()
+                    val prof = activeProfile ?: return
+
+                    if (mp.isPlaying && prof.trimEnd > 0) {
+                        val now = System.currentTimeMillis()
+                        if (now - lastSeekTime < 1000) {
+                            trimHandler.postDelayed(this, WATCHDOG_MS)
+                            return
                         }
-                        return
+
+                        val currentPos = mp.currentPosition
+                        val trimEnd = prof.trimEnd.toInt()
+                        if (currentPos >= trimEnd) {
+                            if (repeatMode == REPEAT_ONE) {
+                                seekTo(prof.trimStart.toInt())
+                            } else {
+                                advanceOrStop()
+                            }
+                            return
+                        }
                     }
                     trimHandler.postDelayed(this, WATCHDOG_MS)
                 }
             }
-            trimHandler.postDelayed(trimWatchdog!!, WATCHDOG_MS)
-            android.util.Log.d("MusicService", "Trim watchdog scheduled")
-        } else {
-            android.util.Log.d(
-                "MusicService",
-                "Trim watchdog NOT started: trimEnd=${profile.trimEnd} <= 0"
-            )
+            trimWatchdog = watchdog
+            trimHandler.postDelayed(watchdog, WATCHDOG_MS)
         }
-        if (skipRegions.isNotEmpty()) {
-            skipWatchdog = object : Runnable {
-                override fun run() {
-                    val mp = mediaPlayer ?: return
-                    if (mp.isPlaying) {
-                        val pos = mp.currentPosition.toLong()
-                        skipRegions.firstOrNull { pos >= it.startMs && pos < it.endMs }
-                            ?.let { mp.seekTo(it.endMs.toInt()) }
-                    }
-                    trimHandler.postDelayed(this, WATCHDOG_MS)
+
+        skipWatchdog = object : Runnable {
+            override fun run() {
+                if (skipWatchdog != this) return
+                val mp = mediaPlayer ?: return
+                if (mp.isPlaying && skipRegions.isNotEmpty()) {
+                    val pos = mp.currentPosition.toLong()
+                    skipRegions.firstOrNull { pos >= it.startMs && pos < it.endMs }
+                        ?.let {
+                            mp.seekTo(it.endMs.toInt())
+                        }
                 }
+                trimHandler.postDelayed(this, WATCHDOG_MS)
             }
-            trimHandler.postDelayed(skipWatchdog!!, WATCHDOG_MS)
         }
-        if (profile.loopEnabled && profile.loopStart >= 0 && profile.loopEnd >= 0) {
+        trimHandler.postDelayed(skipWatchdog!!, WATCHDOG_MS)
+
+        if (currentProfile.loopEnabled) {
             loopWatchdog = object : Runnable {
                 override fun run() {
+                    if (loopWatchdog != this) return
                     val mp = mediaPlayer ?: return
-                    if (mp.isPlaying && mp.currentPosition >= profile.loopEnd.toInt()) mp.seekTo(
-                        profile.loopStart.toInt()
-                    )
+                    val prof = activeProfile ?: return
+                    if (mp.isPlaying && prof.loopEnabled && prof.loopEnd > prof.loopStart) {
+                        if (mp.currentPosition >= prof.loopEnd.toInt()) {
+                            mp.seekTo(prof.loopStart.toInt())
+                        }
+                    }
                     trimHandler.postDelayed(this, WATCHDOG_MS)
                 }
             }
             trimHandler.postDelayed(loopWatchdog!!, WATCHDOG_MS)
         }
-        if (profile.abRepeatEnabled && profile.abRepeatA >= 0 && profile.abRepeatB >= 0) {
+
+        if (currentProfile.abRepeatEnabled) {
             abRepeatWatchdog = object : Runnable {
                 override fun run() {
+                    if (abRepeatWatchdog != this) return
                     val mp = mediaPlayer ?: return
-                    if (mp.isPlaying && mp.currentPosition >= profile.abRepeatB.toInt()) mp.seekTo(
-                        profile.abRepeatA.toInt()
-                    )
+                    val prof = activeProfile ?: return
+                    if (mp.isPlaying && prof.abRepeatEnabled && prof.abRepeatB > prof.abRepeatA) {
+                        if (mp.currentPosition >= prof.abRepeatB.toInt()) {
+                            mp.seekTo(prof.abRepeatA.toInt())
+                        }
+                    }
                     trimHandler.postDelayed(this, WATCHDOG_MS)
                 }
             }
@@ -377,27 +401,35 @@ class MusicService : Service() {
         skipWatchdog?.let { trimHandler.removeCallbacks(it) }
         loopWatchdog?.let { trimHandler.removeCallbacks(it) }
         abRepeatWatchdog?.let { trimHandler.removeCallbacks(it) }
-        trimWatchdog = null; skipWatchdog = null; loopWatchdog = null; abRepeatWatchdog = null
+        trimWatchdog = null
+        skipWatchdog = null
+        loopWatchdog = null
+        abRepeatWatchdog = null
     }
 
     private fun advanceOrStop() {
         if (currentIndex < playlist.size - 1) {
-            advanceIndex(); playCurrent()
+            advanceIndex()
+            playCurrent()
         } else {
-            notifyPlayState(false)
+            pause()
         }
     }
 
     fun setSleepTimer(durationMs: Long) {
         cancelSleepTimer()
         sleepTimerEndMs = System.currentTimeMillis() + durationMs
-        sleepTimerRunnable = Runnable { pause(); sleepTimerEndMs = -1L }
+        sleepTimerRunnable = Runnable {
+            pause()
+            sleepTimerEndMs = -1L
+        }
         sleepTimerHandler.postDelayed(sleepTimerRunnable!!, durationMs)
     }
 
     fun cancelSleepTimer() {
         sleepTimerRunnable?.let { sleepTimerHandler.removeCallbacks(it) }
-        sleepTimerRunnable = null; sleepTimerEndMs = -1L
+        sleepTimerRunnable = null
+        sleepTimerEndMs = -1L
     }
 
     fun getSleepTimerRemainingMs(): Long {
@@ -418,27 +450,39 @@ class MusicService : Service() {
                 withContext(Dispatchers.IO) { profileRepository.getOrCreateActiveProfile(song.id) }
             val regions =
                 withContext(Dispatchers.IO) { profileRepository.getEnabledSkipRegions(song.id) }
-            activeProfile = profile; skipRegions = regions
+            activeProfile = profile
+            skipRegions = regions
             applyPlaybackParams(profile.pitchSemitones.toInt(), profile.playbackSpeed)
             dspProcessor?.applyProfile(profile)
-            cancelAllWatchdogs(); startWatchdogs(profile)
+            cancelAllWatchdogs()
+            startWatchdogs(profile)
         }
     }
 
     private fun applyPlaybackParams(pitchSemitones: Int, speed: Float) {
         val mp = mediaPlayer ?: return
+        if (!isPrepared) return
         try {
-            val pitch = SEMITONE_RATIO.pow(pitchSemitones.toDouble()).toFloat()
-            mp.playbackParams = PlaybackParams().apply {
-                this.pitch = pitch.coerceIn(0.1f, 8f)
-                this.speed = speed.coerceIn(0.1f, 4f)
+            val wasPlaying = mp.isPlaying
+            val pitchVal = SEMITONE_RATIO.pow(pitchSemitones.toDouble()).toFloat()
+
+            val params = try {
+                mp.playbackParams
+            } catch (e: Exception) {
+                PlaybackParams()
             }
+            params.pitch = pitchVal.coerceIn(0.1f, 8f)
+            params.speed = speed.coerceIn(0.1f, 4f)
+
+            mp.playbackParams = params
+            if (wasPlaying && !mp.isPlaying) mp.start()
         } catch (_: Exception) {
         }
     }
 
     fun toggleShuffle() {
-        shuffleEnabled = !shuffleEnabled; if (shuffleEnabled) rebuildShuffleIndices()
+        shuffleEnabled = !shuffleEnabled
+        if (shuffleEnabled) rebuildShuffleIndices()
     }
 
     fun isShuffleEnabled(): Boolean = shuffleEnabled
@@ -447,7 +491,8 @@ class MusicService : Service() {
         val indices = (0 until playlist.size).toMutableList().also { it.shuffle() }
         val curr = indices.indexOf(currentIndex)
         if (curr > 0) {
-            indices.removeAt(curr); indices.add(0, currentIndex)
+            indices.removeAt(curr)
+            indices.add(0, currentIndex)
         }
         shuffledIndices = indices
     }
@@ -462,13 +507,15 @@ class MusicService : Service() {
     }
 
     fun skipNext() {
-        cancelAllWatchdogs(); advanceIndex(); playCurrent()
+        cancelAllWatchdogs()
+        advanceIndex()
+        playCurrent()
     }
 
     fun skipPrev() {
         cancelAllWatchdogs()
         if (mediaPlayer != null && (mediaPlayer?.currentPosition ?: 0) > 3000) {
-            mediaPlayer?.seekTo(activeProfile?.trimStart?.toInt() ?: 0)
+            seekTo(activeProfile?.trimStart?.toInt() ?: 0)
         } else {
             if (shuffleEnabled && shuffledIndices.isNotEmpty()) {
                 val pos = shuffledIndices.indexOf(currentIndex)
@@ -482,90 +529,67 @@ class MusicService : Service() {
     }
 
     fun togglePlayPause() {
-        val mp = mediaPlayer
-        if (mp == null) {
-            android.util.Log.e("MusicService", "MediaPlayer is null in togglePlayPause")
-            return
-        }
-
-        try {
-            if (isPlaying()) {
-                pause()
-            } else {
-                resume()
-            }
-        } catch (e: Exception) {
-            android.util.Log.e("MusicService", "Exception in togglePlayPause: ${e.message}")
-            notifyPlayState(false)
-        }
+        if (isPlaying()) pause() else resume()
     }
 
-    private fun pause() {
-        val mp = mediaPlayer
-        if (mp == null) {
-            android.util.Log.e("MusicService", "MediaPlayer is null in pause")
-            return
-        }
+    fun resume() {
+        android.util.Log.d("MusicService", "resume() called. isPrepared=$isPrepared")
+        isPlayingRequested = true
 
-        try {
-            if (mp.isPlaying) {
-                mp.pause()
-                android.util.Log.d("MusicService", "Playback paused successfully")
-            } else {
-                android.util.Log.w("MusicService", "pause() called but MediaPlayer is not playing")
+        val mp = mediaPlayer
+        if (mp == null || !isPrepared) {
+            if (playlist.isNotEmpty() && !isPrepared) {
+                if (mp == null) playCurrent()
             }
-            notifyPlayState(false)
-            updateMediaSessionState(false)
-            buildAndStartForeground()
-        } catch (e: Exception) {
-            android.util.Log.e("MusicService", "Exception in pause: ${e.message}")
-            notifyPlayState(false)
-        }
-    }
-
-    private fun resume() {
-        val mp = mediaPlayer
-        if (mp == null) {
-            android.util.Log.e("MusicService", "MediaPlayer is null in resume")
+            notifyPlayState(true)
             return
         }
 
         try {
             if (!mp.isPlaying) {
+                val prof = activeProfile
+                if (prof != null && prof.trimEnd > 0 && mp.currentPosition >= prof.trimEnd - 500) {
+                    seekTo(prof.trimStart.toInt())
+                }
+
                 if (requestAudioFocus()) {
                     mp.start()
-                    android.util.Log.d("MusicService", "Playback resumed successfully")
                     notifyPlayState(true)
-                    updateMediaSessionState(true)
-                    buildAndStartForeground()
                 } else {
-                    android.util.Log.e("MusicService", "Failed to gain audio focus in resume")
                     notifyPlayState(false)
                 }
             } else {
-                android.util.Log.w(
-                    "MusicService",
-                    "resume() called but MediaPlayer is already playing"
-                )
+                notifyPlayState(true)
             }
         } catch (e: Exception) {
-            android.util.Log.e("MusicService", "Exception in resume: ${e.message}")
             notifyPlayState(false)
         }
     }
 
-    fun isPlaying(): Boolean {
-        return try {
-            mediaPlayer?.isPlaying ?: false
-        } catch (e: Exception) {
-            android.util.Log.e("MusicService", "Exception in isPlaying: ${e.message}")
-            false
-        }
-    }
-    fun seekTo(ms: Int) {
+    fun pause() {
+        android.util.Log.d("MusicService", "pause() called.")
+        isPlayingRequested = false
         val mp = mediaPlayer
         if (mp == null) {
-            android.util.Log.e("MusicService", "MediaPlayer is null in seekTo")
+            notifyPlayState(false)
+            return
+        }
+
+        try {
+            if (isPrepared && mp.isPlaying) {
+                mp.pause()
+            }
+            notifyPlayState(false)
+        } catch (e: Exception) {
+            notifyPlayState(false)
+        }
+    }
+
+    fun isPlaying(): Boolean = isPlayingRequested
+
+    fun seekTo(ms: Int) {
+        val mp = mediaPlayer
+        if (mp == null || !isPrepared) {
             return
         }
 
@@ -573,26 +597,24 @@ class MusicService : Service() {
             val duration = mp.duration
             if (duration > 0) {
                 val clampedMs = ms.coerceIn(0, duration)
+                lastSeekTime = System.currentTimeMillis()
                 mp.seekTo(clampedMs)
-                android.util.Log.d("MusicService", "Seeked to position: $clampedMs ms")
-            } else {
-                android.util.Log.w("MusicService", "Cannot seek - duration is $duration")
             }
         } catch (e: Exception) {
-            android.util.Log.e("MusicService", "Exception in seekTo: ${e.message}")
         }
     }
 
-    fun getCurrentPosition(): Int = mediaPlayer?.currentPosition ?: 0
-    fun getPosition(): Int = getCurrentPosition() // Alias for compatibility
-    fun getDuration(): Int = mediaPlayer?.duration ?: (currentSong?.duration?.toInt() ?: 0)
+    fun getCurrentPosition(): Int = if (isPrepared) mediaPlayer?.currentPosition ?: 0 else 0
+    fun getPosition(): Int = getCurrentPosition()
+    fun getDuration(): Int =
+        if (isPrepared) mediaPlayer?.duration ?: (currentSong?.duration?.toInt()
+            ?: 0) else (currentSong?.duration?.toInt() ?: 0)
     fun getCurrentSong(): Song? = currentSong
     fun getPlaylist(): List<Song> = playlist
     fun getCurrentIndex(): Int = currentIndex
     fun getRepeatMode(): Int = repeatMode
     fun setRepeatMode(mode: Int) {
         repeatMode = mode
-        // Persist repeat mode for current song using synchronized version
         currentSong?.let { song ->
             serviceScope.launch {
                 repository.updateRepeatModeAndSyncProfile(song.id, mode)
@@ -603,14 +625,11 @@ class MusicService : Service() {
     fun getLyricsManager(): LyricsManager = lyricsManager
     fun getAnalysisEngine(): AnalysisEngine = analysisEngine
 
-    // Real-time pitch and speed adjustment methods
     fun applyPitchToCurrentSong(semitones: Int) {
-        activeProfile?.pitchSemitones ?: 0f
         val newPitch = semitones.toFloat()
         activeProfile = activeProfile?.copy(pitchSemitones = newPitch)
         applyPlaybackParams(semitones, activeProfile?.playbackSpeed ?: 1.0f)
 
-        // Sync the pitch change back to the song database
         currentSong?.let { song ->
             serviceScope.launch {
                 repository.updatePitchAndSyncProfile(song.id, semitones)
@@ -622,7 +641,6 @@ class MusicService : Service() {
         activeProfile = activeProfile?.copy(playbackSpeed = speed)
         applyPlaybackParams(activeProfile?.pitchSemitones?.toInt() ?: 0, speed)
 
-        // Sync the speed change back to the song database
         currentSong?.let { song ->
             serviceScope.launch {
                 repository.updateSpeedAndSyncProfile(song.id, speed)
@@ -631,18 +649,24 @@ class MusicService : Service() {
     }
 
     fun applyTrimToCurrentSong(startMs: Long, endMs: Long) {
-        android.util.Log.d("MusicService", "Applying trim: start=$startMs, end=$endMs")
+        val oldProfile = activeProfile
         activeProfile = activeProfile?.copy(trimStart = startMs, trimEnd = endMs)
-        // Apply trim immediately if currently playing
+
         mediaPlayer?.let { mp ->
-            if (mp.isPlaying) {
+            if (isPrepared && mp.isPlaying) {
                 val currentPos = mp.currentPosition.toLong()
-                if (currentPos < startMs) mp.seekTo(startMs.toInt())
-                else if (currentPos > endMs && endMs > 0) mp.seekTo(startMs.toInt())
+                if (currentPos < startMs) {
+                    seekTo(startMs.toInt())
+                } else if (endMs > 0 && currentPos > endMs) {
+                    seekTo(startMs.toInt())
+                }
             }
         }
 
-        // Sync the trim change back to the song database
+        if (oldProfile?.trimEnd != endMs) {
+            activeProfile?.let { startWatchdogs(it) }
+        }
+
         currentSong?.let { song ->
             serviceScope.launch {
                 repository.updateTrimAndSyncProfile(song.id, startMs, endMs)
@@ -652,23 +676,23 @@ class MusicService : Service() {
 
     fun applyVolumeToCurrentSong(volume: Float) {
         val clampedVolume = volume.coerceIn(0f, 1f)
-        android.util.Log.d("MusicService", "Applying volume: $clampedVolume")
         activeProfile = activeProfile?.copy(volume = clampedVolume)
 
-        // Apply volume immediately if currently playing
         mediaPlayer?.let { mp ->
-            val currentVolume =
-                if (activeProfile?.replayGainEnabled == true && activeProfile?.replayGainDb != 0f) {
-                    val gain = Math.pow(10.0, (activeProfile?.replayGainDb ?: 0f) / 20.0).toFloat()
-                        .coerceIn(0f, 1f)
+            if (isPrepared) {
+                val currentVolume =
+                    if (activeProfile?.replayGainEnabled == true && activeProfile?.replayGainDb != 0f) {
+                        val gain =
+                            Math.pow(10.0, (activeProfile?.replayGainDb ?: 0f) / 20.0).toFloat()
+                                .coerceIn(0f, 1f)
                     (gain * clampedVolume).coerceIn(0f, 1f)
                 } else {
                     clampedVolume
                 }
-            mp.setVolume(currentVolume, currentVolume)
+                mp.setVolume(currentVolume, currentVolume)
+            }
         }
 
-        // Sync the volume change back to the song database
         currentSong?.let { song ->
             serviceScope.launch {
                 repository.updateVolumeAndSyncProfile(song.id, clampedVolume)
@@ -678,13 +702,14 @@ class MusicService : Service() {
 
     fun applyRepeatModeToCurrentSong(repeatMode: Int) {
         this.repeatMode = repeatMode
-        // Sync the repeat mode change back to the song database
         currentSong?.let { song ->
             serviceScope.launch {
                 repository.updateRepeatModeAndSyncProfile(song.id, repeatMode)
             }
         }
     }
+
+    private var originalVolume = 1.0f
 
     private fun requestAudioFocus(): Boolean {
         try {
@@ -696,22 +721,24 @@ class MusicService : Service() {
                 .setOnAudioFocusChangeListener { change ->
                     when (change) {
                         AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                            android.util.Log.d("MusicService", "Audio focus lost, pausing playback")
                             pause()
                         }
-
                         AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                            android.util.Log.d(
-                                "MusicService",
-                                "Audio focus loss transient can duck"
-                            )
-                            mediaPlayer?.setVolume(0.2f, 0.2f)
+                            mediaPlayer?.let { mp ->
+                                if (isPrepared) {
+                                    originalVolume = activeProfile?.volume ?: 1.0f
+                                    val duckVolume = originalVolume * 0.2f
+                                    mp.setVolume(duckVolume, duckVolume)
+                                }
+                            }
                         }
-
                         AudioManager.AUDIOFOCUS_GAIN -> {
-                            android.util.Log.d("MusicService", "Audio focus regained")
-                            mediaPlayer?.setVolume(1f, 1f)
-                            if (!isPlaying()) {
+                            mediaPlayer?.let { mp ->
+                                if (isPrepared) {
+                                    mp.setVolume(originalVolume, originalVolume)
+                                }
+                            }
+                            if (isPlayingRequested) {
                                 resume()
                             }
                         }
@@ -719,10 +746,8 @@ class MusicService : Service() {
                 }.build()
             audioFocusRequest = request
             val result = audioManager.requestAudioFocus(request)
-            android.util.Log.d("MusicService", "Audio focus request result: $result")
             return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
         } catch (e: Exception) {
-            android.util.Log.e("MusicService", "Exception requesting audio focus: ${e.message}")
             return false
         }
     }
@@ -743,7 +768,7 @@ class MusicService : Service() {
                     null
                 }
             }
-            startForeground(NOTIF_ID, buildNotification(song, art, isPlaying()))
+            startForeground(NOTIF_ID, buildNotification(song, art, isPlayingRequested))
         }
     }
 
@@ -756,8 +781,10 @@ class MusicService : Service() {
         )
         updateMediaSessionMetadata(song, art)
         return NotificationCompat.Builder(this, NOTIF_CHANNEL)
-            .setSmallIcon(R.drawable.ic_music_note).setContentTitle(song.title)
-            .setContentText(song.artist).setLargeIcon(art)
+            .setSmallIcon(R.drawable.ic_music_note)
+            .setContentTitle(song.title)
+            .setContentText(song.artist)
+            .setLargeIcon(art)
             .setContentIntent(
                 PendingIntent.getActivity(
                     this,
@@ -769,7 +796,8 @@ class MusicService : Service() {
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
             )
-            .setOnlyAlertOnce(true).setOngoing(playing)
+            .setOnlyAlertOnce(true)
+            .setOngoing(playing)
             .addAction(android.R.drawable.ic_media_previous, "Prev", pi(ACTION_PREV))
             .addAction(
                 if (playing) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play,
@@ -781,52 +809,47 @@ class MusicService : Service() {
                 MediaStyle().setMediaSession(mediaSession?.sessionToken)
                     .setShowActionsInCompactView(0, 1, 2)
             )
-            .setPriority(NotificationCompat.PRIORITY_LOW).build()
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
     }
 
     private fun initMediaSession() {
         val session = MediaSessionCompat(this, "MusicVaultSession")
         session.setCallback(object : MediaSessionCompat.Callback() {
             override fun onPlay() {
-                if (!isPlaying()) togglePlayPause()
+                resume()
             }
-
             override fun onPause() {
-                if (isPlaying()) togglePlayPause()
+                pause()
             }
-
             override fun onSkipToNext() {
                 skipNext()
             }
-
             override fun onSkipToPrevious() {
                 skipPrev()
             }
-
             override fun onStop() {
                 stopSelf()
             }
-
             override fun onSeekTo(pos: Long) {
                 seekTo(pos.toInt())
             }
         })
-        session.isActive = true; mediaSession = session
+        session.isActive = true
+        mediaSession = session
     }
 
     private fun updateMediaSessionMetadata(song: Song, art: Bitmap?) {
         mediaSession?.setMetadata(
             MediaMetadataCompat.Builder()
-            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.title)
-            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.artist)
-            .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.duration)
-            .apply {
-                if (art != null) putBitmap(
-                    MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
-                    art
-                )
-            }
-            .build())
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.title)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.artist)
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.duration)
+                .apply {
+                    if (art != null) putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, art)
+                }
+                .build()
+        )
     }
 
     private fun updateMediaSessionState(playing: Boolean) {
@@ -841,34 +864,40 @@ class MusicService : Service() {
     }
 
     private fun notifySongChanged(song: Song) {
-        onSongChanged?.invoke(song)
+        songChangedCallbacks.forEach { it(song) }
     }
 
     private fun notifyPlayState(playing: Boolean) {
-        onPlayStateChanged?.invoke(playing)
+        playStateCallbacks.forEach { it(playing) }
+        updateMediaSessionState(playing)
+        buildAndStartForeground()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(
-            NOTIF_ID,
-            NotificationCompat.Builder(this, NOTIF_CHANNEL).setSmallIcon(R.drawable.ic_music_note)
-                .setContentTitle("Claw Mikia").setContentText("Ready")
-                .setPriority(NotificationCompat.PRIORITY_LOW).build()
-        )
+        if (currentSong == null) {
+            startForeground(
+                NOTIF_ID,
+                NotificationCompat.Builder(this, NOTIF_CHANNEL)
+                    .setSmallIcon(R.drawable.ic_music_note)
+                    .setContentTitle("Claw Mikia").setContentText("Ready")
+                    .setPriority(NotificationCompat.PRIORITY_LOW).build()
+            )
+        }
         return START_STICKY
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-        // Stop service and cleanup when app is swiped away
         stopSelf()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        cancelAllWatchdogs(); cancelSleepTimer()
+        cancelAllWatchdogs()
+        cancelSleepTimer()
         runCatching { unregisterReceiver(notifReceiver) }
-        mediaPlayer?.release(); mediaPlayer = null
+        mediaPlayer?.release()
+        mediaPlayer = null
         mediaSession?.release()
         dspProcessor?.release()
         audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }

@@ -133,12 +133,8 @@ class NowPlayingActivity : AppCompatActivity() {
     override fun onDestroy() {
         stopProgressUpdates()
         musicService?.let { service ->
-            // Clear callbacks and stop playback when activity is destroyed
-            service.onSongChanged = null
-            service.onPlayStateChanged = null
-            if (service.isPlaying()) {
-                service.togglePlayPause()
-            }
+            service.removeSongChangedCallback(songChangedCallback)
+            service.removePlayStateCallback(playStateCallback)
         }
         unbindService(serviceConnection)
         super.onDestroy()
@@ -178,43 +174,50 @@ class NowPlayingActivity : AppCompatActivity() {
 
     // ─── Service callbacks ───────────────────────────────────────────────────────
 
-    private fun registerCallbacks() {
-        val svc = musicService ?: return
-        svc.onSongChanged = { s ->
-            runOnUiThread {
-                if (!isDestroyed) {
-                    // --- Fix 2: full UI refresh on song change ---
-                    songId = s.id
-                    // Apply immediate fields from the live Song object
-                    populate(s)
-                    // Reset playback seekbar for the new song
-                    binding.seekPlayback.progress = 0
-                    binding.tvCurrentTime.text = formatDuration(0)
-                    // Sync repeat mode from service (may differ per-song)
-                    currentRepeatMode = svc.getRepeatMode()
-                    updateRepeatButton()
-                    updateShuffleButton()
-                    // Reload from DB to pick up persisted pitch/trim/speed
-                    activityScope.launch {
-                        repository.getSongById(s.id)?.let { fresh ->
-                            populate(fresh)
-                            viewModel.setSong(fresh, svc.isPlaying())
-                        }
+    private val songChangedCallback: (Song) -> Unit = { s ->
+        runOnUiThread {
+            if (!isDestroyed) {
+                // --- Fix 2: full UI refresh on song change ---
+                songId = s.id
+                // Apply immediate fields from the live Song object
+                populate(s)
+                // Reset playback seekbar for the new song
+                binding.seekPlayback.progress = 0
+                binding.tvCurrentTime.text = formatDuration(0)
+                // Sync repeat mode from service (may differ per-song)
+                currentRepeatMode = musicService?.getRepeatMode() ?: MusicService.REPEAT_NONE
+                updateRepeatButton()
+                updateShuffleButton()
+                // Reload from DB to pick up persisted pitch/trim/speed
+                activityScope.launch {
+                    repository.getSongById(s.id)?.let { fresh ->
+                        populate(fresh)
+                        viewModel.setSong(fresh, musicService?.isPlaying() ?: false)
                     }
-                    startProgressUpdates()
                 }
+                startProgressUpdates()
             }
         }
-        svc.onPlayStateChanged = { playing ->
-            runOnUiThread {
-                if (!isDestroyed) {
-                    binding.btnPlayPause.setImageResource(
-                        if (playing) R.drawable.ic_pause else R.drawable.ic_play
-                    )
-                    viewModel.setPlaying(playing)
-                    if (playing) startProgressUpdates() else stopProgressUpdates()
-                }
+    }
+
+    private val playStateCallback: (Boolean) -> Unit = { playing ->
+        runOnUiThread {
+            if (!isDestroyed) {
+                binding.btnPlayPause.setImageResource(
+                    if (playing) R.drawable.ic_pause else R.drawable.ic_play
+                )
+                viewModel.setPlaying(playing)
+                if (playing) startProgressUpdates() else stopProgressUpdates()
             }
+        }
+    }
+
+    private fun registerCallbacks() {
+        musicService?.let { service ->
+            service.removeSongChangedCallback(songChangedCallback)
+            service.removePlayStateCallback(playStateCallback)
+            service.addSongChangedCallback(songChangedCallback)
+            service.addPlayStateCallback(playStateCallback)
         }
     }
 

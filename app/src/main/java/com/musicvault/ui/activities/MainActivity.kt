@@ -318,7 +318,9 @@ class MainActivity : AppCompatActivity() {
             val p = android.Manifest.permission.POST_NOTIFICATIONS
             if (ContextCompat.checkSelfPermission(this, p) !=
                 android.content.pm.PackageManager.PERMISSION_GRANTED
-            ) notificationPermissionLauncher.launch(p)
+            ) {
+                notificationPermissionLauncher.launch(p)
+            }
         }
     }
 
@@ -330,23 +332,31 @@ class MainActivity : AppCompatActivity() {
         bindService(intent, serviceConnection, BIND_AUTO_CREATE)
     }
 
+    private val songChangedCallback: (Song) -> Unit = { song ->
+        runOnUiThread {
+            viewModel.setCurrentSong(song)
+            viewModel.incrementPlayCount(song.id)
+            showMusicPanel(song)
+            updatePlayButton(true)
+            startProgressUpdates()
+        }
+    }
+
+    private val playStateCallback: (Boolean) -> Unit = { playing ->
+        runOnUiThread {
+            viewModel.setPlaying(playing)
+            updatePlayButton(playing)
+            if (playing) startProgressUpdates() else stopProgressUpdates()
+        }
+    }
+
     /** Always called on connect and on every onResume so callbacks are never stale. */
     private fun registerServiceCallbacks() {
-        musicService?.onSongChanged = { song ->
-            runOnUiThread {
-                viewModel.setCurrentSong(song)
-                viewModel.incrementPlayCount(song.id)
-                showMusicPanel(song)
-                updatePlayButton(true)
-                startProgressUpdates()
-            }
-        }
-        musicService?.onPlayStateChanged = { playing ->
-            runOnUiThread {
-                viewModel.setPlaying(playing)
-                updatePlayButton(playing)
-                if (playing) startProgressUpdates() else stopProgressUpdates()
-            }
+        musicService?.let { service ->
+            service.removeSongChangedCallback(songChangedCallback)
+            service.removePlayStateCallback(playStateCallback)
+            service.addSongChangedCallback(songChangedCallback)
+            service.addPlayStateCallback(playStateCallback)
         }
     }
 
@@ -510,10 +520,8 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         if (serviceBound) {
             musicService?.let { service ->
-                // Stop playback and cleanup service when activity is destroyed
-                if (service.isPlaying()) {
-                    service.togglePlayPause()
-                }
+                service.removeSongChangedCallback(songChangedCallback)
+                service.removePlayStateCallback(playStateCallback)
             }
             unbindService(serviceConnection)
         }
