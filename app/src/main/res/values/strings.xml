@@ -17,4 +17,16 @@
     <string name="ab_repeat">A-B Repeat</string>
     <string name="skip_regions">Skip Regions</string>
     <string name="waveform">Waveform</string>
+    <string name="rename_playlist">Rename Playlist</string>
+    <string name="enter_new_name">Enter new name</string>
+    <string name="rename">Rename</string>
+    <string name="play">Play</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="close">Close</string>
+    <string name="play_all">Play All</string>
+    <string name="tap_to_view_tracks">Tap to view tracks</string>
+    <string name="add_songs">Add Songs</string>
+    <string name="select_songs">Select Songs</string>
+    <string name="add_to_playlist">Add to Playlist</string>
 </resources>

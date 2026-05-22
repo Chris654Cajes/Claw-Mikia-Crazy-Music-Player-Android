@@ -13,6 +13,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.SeekBar
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -24,6 +25,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import com.musicvault.MusicVaultApp
 import com.musicvault.R
+import com.musicvault.data.model.Playlist
 import com.musicvault.data.model.Song
 import com.musicvault.databinding.ActivityMainBinding
 import com.musicvault.service.MusicService
@@ -162,7 +164,12 @@ class MainActivity : AppCompatActivity() {
             if (serviceBound) musicService?.skipNext()
         }
         binding.musicPanel.btnPrev.setOnClickListener {
-            if (serviceBound) musicService?.skipPrev()
+            if (serviceBound) {
+                // Immediate UI feedback for replay/skip
+                binding.musicPanel.seekBar.progress = 0
+                binding.musicPanel.tvProgress.text = "0:00 / 0:00"
+                musicService?.skipPrev()
+            }
         }
 
         // Seekbar scrubbing
@@ -212,6 +219,9 @@ class MainActivity : AppCompatActivity() {
         if (miniPlayerExpanded) {
             // Expanded → show everything
             panel.seekBar.visibility = View.VISIBLE
+            panel.layoutControls.visibility = View.VISIBLE
+
+            // Explicitly show these in case they were hidden individually elsewhere
             panel.ivPlayingIndicator.visibility = View.VISIBLE
             panel.tvTitle.visibility = View.VISIBLE
             panel.tvArtist.visibility = View.VISIBLE
@@ -225,45 +235,37 @@ class MainActivity : AppCompatActivity() {
             params.height = ViewGroup.LayoutParams.WRAP_CONTENT
             panel.root.layoutParams = params
 
-            // Restore toggle button to natural size
-            val btnParams = panel.btnToggleMiniPlayer.layoutParams as? LinearLayout.LayoutParams
+            // Restore toggle button to natural size (matching layout_mini_player.xml)
+            val btnParams = panel.btnToggleMiniPlayer.layoutParams as? RelativeLayout.LayoutParams
             btnParams?.let {
-                it.width = LinearLayout.LayoutParams.WRAP_CONTENT
-                it.gravity = Gravity.CENTER_VERTICAL
+                it.width = (56 * resources.displayMetrics.density).toInt()
+                it.height = (64 * resources.displayMetrics.density).toInt()
                 panel.btnToggleMiniPlayer.layoutParams = it
             }
 
-            // Expanded background = bg_card only
-            panel.root.setBackgroundResource(R.color.bg_card)
+            // Expanded background = bg_mini_player (matches layout_mini_player.xml)
+            panel.root.setBackgroundResource(R.drawable.bg_mini_player)
         } else {
-            // Collapsed → hide seekbar and other controls
+            // Collapsed → hide seekbar and main controls
             panel.seekBar.visibility = View.GONE
-            panel.ivPlayingIndicator.visibility = View.GONE
-            panel.tvTitle.visibility = View.GONE
-            panel.tvArtist.visibility = View.GONE
-            panel.tvProgress.visibility = View.GONE
-            panel.btnPrev.visibility = View.GONE
-            panel.btnPlayPause.visibility = View.GONE
-            panel.btnNext.visibility = View.GONE
+            panel.layoutControls.visibility = View.GONE
 
-            // Use a fixed dp width — runtime .width can return 0 if the view
-            // hasn't been laid out yet (e.g. when a new song fires showMusicPanel
-            // while the panel is already collapsed).
+            // Shrink the root to just the toggle button width
             val density = resources.displayMetrics.density
-            val collapsedWidthPx = (56 * density).toInt()   // 48dp button + 8dp breathing room
+            val collapsedWidthPx = (56 * density).toInt()
             params.width = collapsedWidthPx
-            params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            params.height = (64 * density).toInt() // Match toggle button height
             panel.root.layoutParams = params
 
-            // Restore toggle button to full-width within the collapsed strip
-            val btnParams = panel.btnToggleMiniPlayer.layoutParams as? LinearLayout.LayoutParams
+            // Toggle button fills the collapsed strip
+            val btnParams = panel.btnToggleMiniPlayer.layoutParams as? RelativeLayout.LayoutParams
             btnParams?.let {
-                it.width = LinearLayout.LayoutParams.MATCH_PARENT
-                it.gravity = Gravity.CENTER
+                it.width = RelativeLayout.LayoutParams.MATCH_PARENT
+                it.height = RelativeLayout.LayoutParams.MATCH_PARENT
                 panel.btnToggleMiniPlayer.layoutParams = it
             }
 
-            // Collapsed background = bg_card + neon pink stroke
+            // Collapsed background = accent border
             panel.root.setBackgroundResource(R.drawable.mini_player_border_bg)
         }
 
@@ -607,5 +609,24 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialog.show()
+    }
+
+    fun showAddToPlaylistDialog(song: Song) {
+        val playlists = viewModel.allPlaylists.value ?: emptyList()
+        if (playlists.isEmpty()) {
+            showSnackbar("No playlists found. Create one first.")
+            return
+        }
+
+        val names = playlists.map { it.name }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle("Add to Playlist")
+            .setItems(names) { _, which ->
+                val playlist = playlists[which]
+                viewModel.addSongToPlaylist(playlist.id, song.id)
+                showSnackbar("Added to ${playlist.name}")
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }

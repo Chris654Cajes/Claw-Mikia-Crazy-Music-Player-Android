@@ -4,6 +4,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.*
 import com.musicvault.data.model.Song
+import com.musicvault.data.repository.PlaylistRepository
 import com.musicvault.data.repository.SongRepository
 import com.musicvault.utils.MetadataFetcher
 import kotlinx.coroutines.launch
@@ -11,10 +12,12 @@ import kotlinx.coroutines.launch
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = SongRepository(application)
+    private val playlistRepo = PlaylistRepository(application)
 
     val allSongs: LiveData<List<Song>> = repository.allSongs
     val favorites: LiveData<List<Song>> = repository.favorites
     val folders = repository.folders
+    val allPlaylists = playlistRepo.allPlaylists
 
     private val _searchQuery = MutableLiveData("")
     val searchQuery: LiveData<String> = _searchQuery
@@ -69,6 +72,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun toggleFavorite(song: Song) {
         viewModelScope.launch { repository.toggleFavorite(song) }
+    }
+
+    fun addSongToPlaylist(playlistId: Long, songId: Long) {
+        viewModelScope.launch { playlistRepo.addSongToPlaylist(playlistId, songId) }
     }
 
     fun incrementPlayCount(id: Long) {

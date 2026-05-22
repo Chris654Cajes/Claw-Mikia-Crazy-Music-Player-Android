@@ -307,15 +307,12 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.btnPlayPause.setOnClickListener { musicService?.togglePlayPause() }
 
         binding.btnNext.setOnClickListener {
-            binding.seekPlayback.progress = 0
-            binding.tvCurrentTime.text = formatDuration(0)
-            binding.btnPlayPause.setImageResource(R.drawable.ic_pause)
             musicService?.skipNext()
         }
         binding.btnPrev.setOnClickListener {
+            // Immediate UI feedback for replay
             binding.seekPlayback.progress = 0
             binding.tvCurrentTime.text = formatDuration(0)
-            binding.btnPlayPause.setImageResource(R.drawable.ic_pause)
             musicService?.skipPrev()
         }
 

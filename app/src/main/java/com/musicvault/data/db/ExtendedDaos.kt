@@ -282,8 +282,14 @@ interface PlaylistDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun addSongToPlaylist(entry: PlaylistSong)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPlaylistSongs(entries: List<PlaylistSong>)
+
     @Delete
     suspend fun removeSongFromPlaylist(entry: PlaylistSong)
+
+    @Query("DELETE FROM playlist_songs WHERE playlistId = :playlistId AND songId IN (:songIds)")
+    suspend fun removeSongsFromPlaylist(playlistId: Long, songIds: List<Long>)
 
     @Query("SELECT s.* FROM songs s INNER JOIN playlist_songs ps ON s.id = ps.songId WHERE ps.playlistId = :playlistId ORDER BY ps.position")
     fun getSongsInPlaylist(playlistId: Long): LiveData<List<Song>>

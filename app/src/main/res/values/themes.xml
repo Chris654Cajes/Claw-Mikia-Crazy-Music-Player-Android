@@ -45,10 +45,16 @@
         <item name="colorSecondaryContainer">@color/neon_pink_20</item>
     </style>
 
-    <!-- SeekBar custom style -->
+    <!-- Neon SeekBar custom style -->
     <style name="NeonSeekBar" parent="Widget.AppCompat.SeekBar">
         <item name="android:progressTint">@color/neon_pink</item>
         <item name="android:thumbTint">@color/neon_pink</item>
+    </style>
+
+    <style name="FullScreenDialog" parent="Theme.MusicVault">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/bg_primary</item>
     </style>
 
 </resources>

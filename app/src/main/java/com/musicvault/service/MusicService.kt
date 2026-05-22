@@ -94,6 +94,7 @@ class MusicService : Service() {
     private var isPlayingRequested = false
     private var isPrepared = false
     private var lastSeekTime = 0L
+    private var lastSkipPrevTime = 0L
 
     companion object {
         const val NOTIF_CHANNEL = "music_vault_channel"
@@ -177,6 +178,7 @@ class MusicService : Service() {
     }
 
     private fun playCurrent(forceReload: Boolean = false) {
+        lastSkipPrevTime = 0L // Reset double-tap timer on any manual or automatic song change
         if (playlist.isEmpty()) return
         val targetSong = playlist[currentIndex]
 
@@ -186,24 +188,37 @@ class MusicService : Service() {
 
         loadJob?.cancel()
         loadJob = serviceScope.launch {
+            // 1. Get minimal data needed to start player immediately
             val freshSong = withContext(Dispatchers.IO) {
                 runCatching { repository.getSongById(targetSong.id) }.getOrNull()
             } ?: targetSong
 
-            val profile =
-                withContext(Dispatchers.IO) { profileRepository.getOrCreateActiveProfile(freshSong.id) }
-            val regions =
-                withContext(Dispatchers.IO) { profileRepository.getEnabledSkipRegions(freshSong.id) }
-
-            val art = withContext(Dispatchers.IO) {
-                if (freshSong.albumArtUrl.isNotBlank()) {
-                    runCatching { BitmapFactory.decodeStream(URL(freshSong.albumArtUrl).openStream()) }.getOrNull()
-                } else null
+            val profile = withContext(Dispatchers.IO) {
+                profileRepository.getOrCreateActiveProfile(freshSong.id)
+            }
+            val regions = withContext(Dispatchers.IO) {
+                profileRepository.getEnabledSkipRegions(freshSong.id) 
             }
 
+            // 2. Start Playback NOW
             playlist = playlist.toMutableList().also { it[currentIndex] = freshSong }
-            activeProfile = profile; skipRegions = regions; currentArt = art
+            activeProfile = profile
+            skipRegions = regions
+            currentArt = null // Clear old art while loading new
             playFreshSong(freshSong, profile)
+
+            // 3. Load metadata and assets in background (won't block playback)
+            launch {
+                if (freshSong.albumArtUrl.isNotBlank()) {
+                    val art = withContext(Dispatchers.IO) {
+                        runCatching { BitmapFactory.decodeStream(URL(freshSong.albumArtUrl).openStream()) }.getOrNull()
+                    }
+                    if (art != null && currentSong?.id == freshSong.id) {
+                        currentArt = art
+                        updateNotification()
+                    }
+                }
+            }
 
             launch(Dispatchers.IO) { lyricsManager.loadForSong(freshSong.id, freshSong.filePath) }
             analysisEngine.analyzeIfNeeded(freshSong.id, freshSong.filePath, freshSong.duration)
@@ -352,13 +367,8 @@ class MusicService : Service() {
     }
 
     fun skipPrev() {
-        val pos =
-            if (isPrepared) runCatching { mediaPlayer?.currentPosition }.getOrDefault(0) ?: 0 else 0
-        if (isPrepared && pos > 3000) {
-            seekTo(activeProfile?.trimStart?.toInt() ?: 0)
-        } else {
-            retreatIndex(); playCurrent(forceReload = true)
-        }
+        retreatIndex()
+        playCurrent(forceReload = true)
     }
 
     private fun advanceIndex() {

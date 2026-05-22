@@ -36,14 +36,30 @@ class PlaylistRepository(private val context: Context) {
     fun getSongsInPlaylist(playlistId: Long): LiveData<List<Song>> =
         playlistDao.getSongsInPlaylist(playlistId)
 
+    suspend fun getSongsInPlaylistSync(playlistId: Long): List<Song> = withContext(Dispatchers.IO) {
+        playlistDao.getSongsInPlaylistSync(playlistId)
+    }
+
     suspend fun addSongToPlaylist(playlistId: Long, songId: Long) = withContext(Dispatchers.IO) {
         val position = playlistDao.getSongCount(playlistId)
         playlistDao.addSongToPlaylist(PlaylistSong(playlistId, songId, position))
     }
 
+    suspend fun addSongsToPlaylist(playlistId: Long, songIds: List<Long>) =
+        withContext(Dispatchers.IO) {
+            var position = playlistDao.getSongCount(playlistId)
+            val entries = songIds.map { PlaylistSong(playlistId, it, position++) }
+            playlistDao.insertPlaylistSongs(entries)
+        }
+
     suspend fun removeSongFromPlaylist(playlistId: Long, songId: Long) =
         withContext(Dispatchers.IO) {
             playlistDao.removeSongFromPlaylist(PlaylistSong(playlistId, songId))
+        }
+
+    suspend fun removeSongsFromPlaylist(playlistId: Long, songIds: List<Long>) =
+        withContext(Dispatchers.IO) {
+            playlistDao.removeSongsFromPlaylist(playlistId, songIds)
         }
 
     suspend fun isSongInPlaylist(playlistId: Long, songId: Long): Boolean =

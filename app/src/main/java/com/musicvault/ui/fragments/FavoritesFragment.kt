@@ -32,7 +32,11 @@ class FavoritesFragment : Fragment() {
                 (activity as? MainActivity)?.playSong(song, list)
             },
             onFavoriteClick = { song -> viewModel.toggleFavorite(song) }
-        )
+        ).apply {
+            onLongClick = { song ->
+                (activity as? MainActivity)?.showAddToPlaylistDialog(song)
+            }
+        }
 
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(context)
