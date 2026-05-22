@@ -25,6 +25,10 @@ on multiple platforms including Android and Windows.
 - **Pitch Control** - Adjust pitch from -6 to +6 semitones without affecting speed
 - **Playback Speed** - Adjust playback speed from 0.5x to 2.0x
 - **Audio Trimming** - Set custom start/end points for songs
+- **Sleep Timer** - Auto-stop playback after set time
+- **Lyrics Support** - View and edit lyrics for your tracks
+- **Profiles** - User-specific settings and preferences
+- **Equalizer** - Built-in audio equalizer with presets (planned)
 - **Online Metadata** - Auto-fetch album info and cover art from MusicBrainz & Cover Art Archive
 - **Play Statistics** - Track play count and last played time
 - **Repeat Modes** - Repeat none, repeat one, or repeat all
@@ -298,12 +302,24 @@ WinForms version.
 
 - [ ] **Cross-platform sync** - Sync playlists and preferences between devices
 - [ ] **Equalizer** - Built-in audio equalizer with presets
-- [ ] **Sleep timer** - Auto-stop playback after set time
+- [x] **Sleep timer** - Auto-stop playback after set time
 - [ ] **Car mode** - Simplified UI for driving
 - [ ] **Widgets** - Home screen widgets for quick access
 - [ ] **Gapless playback** - Seamless transitions between tracks
-- [ ] **Lyrics support** - Display synchronized lyrics
+- [x] **Lyrics support** - Display synchronized lyrics
 - [ ] **Multi-room audio** - Stream to multiple devices
+
+## 🛡️ Security & Quality
+
+All dependencies used in this project are from official and reputable sources to ensure security and
+stability:
+
+- **Google / AndroidX**: Core components and UI
+- **JetBrains**: Kotlin Coroutines
+- **Square**: OkHttp for networking
+- **Glide**: Efficient image loading
+
+No unverified or low-quality third-party libraries are used.
 
 ---
 

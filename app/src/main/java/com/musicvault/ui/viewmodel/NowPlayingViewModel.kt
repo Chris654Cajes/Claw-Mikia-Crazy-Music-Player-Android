@@ -1,10 +1,7 @@
 package com.musicvault.ui.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.musicvault.audio.analysis.AnalysisEngine
 import com.musicvault.data.db.MusicDatabase
 import com.musicvault.data.model.*
@@ -26,8 +23,11 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
     private val db = MusicDatabase.getDatabase(application)
 
     // ─── Song State ──────────────────────────────────────────────────────────
-    private val _currentSong = MutableLiveData<Song?>()
-    val currentSong: LiveData<Song?> = _currentSong
+    private val _currentSongId = MutableLiveData<Long?>()
+    val currentSong: LiveData<Song?> = _currentSongId.switchMap { id ->
+        if (id == null) MutableLiveData(null)
+        else songRepository.getSongByIdLiveData(id)
+    }
 
     private val _isPlaying = MutableLiveData(false)
     val isPlaying: LiveData<Boolean> = _isPlaying
@@ -77,7 +77,7 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
     // ─── Operations ──────────────────────────────────────────────────────────
 
     fun setSong(song: Song, playing: Boolean) {
-        _currentSong.value = song
+        _currentSongId.value = song.id
         _isPlaying.value = playing
         loadSongData(song.id, song.filePath)
     }

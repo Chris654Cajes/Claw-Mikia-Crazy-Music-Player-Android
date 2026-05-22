@@ -30,8 +30,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _scanStatus = MutableLiveData<ScanStatus>()
     val scanStatus: LiveData<ScanStatus> = _scanStatus
 
-    private val _currentSong = MutableLiveData<Song?>()
-    val currentSong: LiveData<Song?> = _currentSong
+    private val _currentSongId = MutableLiveData<Long?>(null)
+    val currentSong: LiveData<Song?> = _currentSongId.switchMap { id ->
+        if (id == null) MutableLiveData(null)
+        else repository.getSongByIdLiveData(id)
+    }
 
     private val _isPlaying = MutableLiveData(false)
     val isPlaying: LiveData<Boolean> = _isPlaying
@@ -41,7 +44,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setSearchQuery(q: String) { _searchQuery.value = q }
 
-    fun setCurrentSong(song: Song?) { _currentSong.value = song }
+    fun setCurrentSong(song: Song?) {
+        _currentSongId.value = song?.id
+    }
     fun setPlaying(playing: Boolean) { _isPlaying.value = playing }
 
     fun scanFolder(uri: Uri) {
@@ -92,7 +97,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun resetLibrary() {
         viewModelScope.launch {
             repository.resetLibrary()
-            _currentSong.value = null
+            _currentSongId.value = null
             _isPlaying.value = false
             _scanStatus.value = ScanStatus.Reset
         }

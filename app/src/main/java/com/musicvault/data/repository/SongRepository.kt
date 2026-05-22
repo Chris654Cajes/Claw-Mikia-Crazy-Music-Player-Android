@@ -153,6 +153,8 @@ class SongRepository(private val context: Context) {
         songDao.getSongById(id)
     }
 
+    fun getSongByIdLiveData(id: Long): LiveData<Song?> = songDao.getSongByIdLiveData(id)
+
     suspend fun getSongCount(): Int = withContext(Dispatchers.IO) {
         songDao.getSongCount()
     }

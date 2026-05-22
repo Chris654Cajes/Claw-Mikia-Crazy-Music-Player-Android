@@ -28,6 +28,9 @@ interface SongDao {
     @Query("SELECT * FROM songs WHERE id = :id")
     suspend fun getSongById(id: Long): Song?
 
+    @Query("SELECT * FROM songs WHERE id = :id")
+    fun getSongByIdLiveData(id: Long): LiveData<Song?>
+
     @Query("SELECT * FROM songs WHERE filePath = :path")
     suspend fun getSongByPath(path: String): Song?
 
@@ -61,8 +64,14 @@ interface SongDao {
     @Query("UPDATE songs SET repeatMode = :repeatMode WHERE id = :id")
     suspend fun updateRepeatMode(id: Long, repeatMode: Int)
 
-    @Query("UPDATE songs SET albumName = :album, albumArtUrl = :artUrl, metadataFetched = 1 WHERE id = :id")
-    suspend fun updateOnlineMetadata(id: Long, album: String, artUrl: String)
+    @Query("UPDATE songs SET title = :title, artist = :artist, albumName = :album, albumArtUrl = :artUrl, metadataFetched = 1 WHERE id = :id")
+    suspend fun updateOnlineMetadata(
+        id: Long,
+        title: String,
+        artist: String,
+        album: String,
+        artUrl: String
+    )
 
     @Query("SELECT * FROM songs WHERE metadataFetched = 0 ORDER BY dateAdded DESC")
     suspend fun getSongsWithoutMetadata(): List<Song>

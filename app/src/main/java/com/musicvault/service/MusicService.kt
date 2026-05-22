@@ -27,6 +27,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.asFlow
 import androidx.media.app.NotificationCompat.MediaStyle
 import com.musicvault.R
 import com.musicvault.audio.analysis.AnalysisEngine
@@ -68,6 +69,7 @@ class MusicService : Service() {
     private var shuffledIndices: List<Int> = emptyList()
 
     private var mediaSession: MediaSessionCompat? = null
+    private var currentSongJob: Job? = null
     private lateinit var audioManager: AudioManager
     private var audioFocusRequest: AudioFocusRequest? = null
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -227,6 +229,31 @@ class MusicService : Service() {
 
     private fun playFreshSong(song: Song, profile: PlaybackProfile) {
         currentSong = song; notifySongChanged(song)
+
+        // Observe this song in DB for any metadata updates (like automatic online renaming)
+        currentSongJob?.cancel()
+        currentSongJob = serviceScope.launch {
+            repository.getSongByIdLiveData(song.id).asFlow().collect { fresh ->
+                if (fresh != null && (fresh.title != currentSong?.title || fresh.artist != currentSong?.artist || fresh.albumName != currentSong?.albumName || fresh.albumArtUrl != currentSong?.albumArtUrl)) {
+                    currentSong = fresh
+                    notifySongChanged(fresh)
+                    updateNotification()
+                    // If album art changed, reload it
+                    if (fresh.albumArtUrl.isNotBlank() && fresh.albumArtUrl != song.albumArtUrl) {
+                        launch {
+                            val art = withContext(Dispatchers.IO) {
+                                runCatching { BitmapFactory.decodeStream(URL(fresh.albumArtUrl).openStream()) }.getOrNull()
+                            }
+                            if (art != null && currentSong?.id == fresh.id) {
+                                currentArt = art
+                                updateNotification()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         cancelWatchdogs(); isPrepared = false; isPlayingRequested = true; notifyPlayState(true)
 
         try {
@@ -367,8 +394,17 @@ class MusicService : Service() {
     }
 
     fun skipPrev() {
-        retreatIndex()
-        playCurrent(forceReload = true)
+        val now = System.currentTimeMillis()
+        // If pressed twice within 2 seconds, skip to previous song.
+        // Otherwise, just replay the current song from the start.
+        if (now - lastSkipPrevTime < 2000) {
+            retreatIndex()
+            playCurrent(forceReload = true)
+        } else {
+            val startPos = activeProfile?.trimStart?.toInt() ?: 0
+            seekTo(startPos)
+            lastSkipPrevTime = now
+        }
     }
 
     private fun advanceIndex() {

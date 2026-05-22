@@ -8,6 +8,7 @@ import com.musicvault.data.model.Song
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -18,6 +19,13 @@ object MetadataFetcher {
     private const val MUSICBRAINZ_BASE = "https://musicbrainz.org/ws/2"
     private const val COVERART_BASE    = "https://coverartarchive.org/release"
     private const val USER_AGENT       = "MusicVaultApp/1.0 (android)"
+
+    data class OnlineMetadata(
+        val title: String,
+        val artist: String,
+        val album: String,
+        val artUrl: String
+    )
 
     /** Returns true if the device has an active internet connection. */
     fun isOnline(context: Context): Boolean {
@@ -30,7 +38,7 @@ object MetadataFetcher {
 
     /**
      * For every song that hasn't had metadata fetched yet, query MusicBrainz.
-     * If a match is found, store album name + cover art URL in the DB.
+     * If a match is found, update title, artist, album name + cover art URL in the DB.
      * Original files are never touched.
      * Rate-limited to 1 req/sec to respect MusicBrainz ToS.
      */
@@ -40,8 +48,14 @@ object MetadataFetcher {
         val songs = dao.getSongsWithoutMetadata()
         for (song in songs) {
             try {
-                fetchForSong(song)?.let { (album, artUrl) ->
-                    dao.updateOnlineMetadata(song.id, album, artUrl)
+                fetchForSong(song)?.let { meta ->
+                    dao.updateOnlineMetadata(
+                        song.id,
+                        meta.title,
+                        meta.artist,
+                        meta.album,
+                        meta.artUrl
+                    )
                 }
                 // MusicBrainz rate limit: max 1 request/second
                 delay(1100)
@@ -54,9 +68,9 @@ object MetadataFetcher {
 
     /**
      * Fetch metadata for a single song immediately (e.g. when user taps "refresh").
-     * Returns updated Song or null if offline / no match.
+     * Returns updated OnlineMetadata or null if offline / no match.
      */
-    suspend fun fetchForSongNow(context: Context, song: Song): Pair<String, String>? =
+    suspend fun fetchForSongNow(context: Context, song: Song): OnlineMetadata? =
         withContext(Dispatchers.IO) {
             if (!isOnline(context)) return@withContext null
             try { fetchForSong(song) } catch (_: Exception) { null }
@@ -64,27 +78,36 @@ object MetadataFetcher {
 
     // ── internals ────────────────────────────────────────────────────────────
 
-    private fun fetchForSong(song: Song): Pair<String, String>? {
+    private fun fetchForSong(song: Song): OnlineMetadata? {
         // Build query: title + artist (if artist is not "Unknown Artist")
-        val titleEnc = URLEncoder.encode(song.title, "UTF-8")
-        val hasArtist = song.artist.isNotBlank() && song.artist != "Unknown Artist"
-        val query = if (hasArtist) {
-            val artistEnc = URLEncoder.encode(song.artist, "UTF-8")
-            "recording:$titleEnc AND artist:$artistEnc"
-        } else {
-            "recording:$titleEnc"
-        }
+        // Cleaning title: remove [Official Video], (Lyrics) etc for better matching
+        val cleanedTitle = song.title
+            .replace(Regex("(?i)\\[.*?\\]"), "")
+            .replace(Regex("(?i)\\(.*?\\)"), "")
+            .trim()
 
-        val searchUrl = "$MUSICBRAINZ_BASE/recording/?query=$query&fmt=json&limit=5"
+        val query = if (song.artist.isNotBlank() && song.artist != "Unknown Artist") {
+            "recording:\"$cleanedTitle\" AND artist:\"${song.artist}\""
+        } else {
+            "recording:\"$cleanedTitle\""
+        }
+        val encodedQuery = URLEncoder.encode(query, "UTF-8")
+
+        val searchUrl = "$MUSICBRAINZ_BASE/recording/?query=$encodedQuery&fmt=json&limit=5"
         val searchJson = httpGet(searchUrl) ?: return null
         val recordings = JSONObject(searchJson)
             .optJSONArray("recordings") ?: return null
 
-        // Walk up to 5 results; pick the first one that has a release with a cover
+        // Walk up to 5 results; pick the first one that looks like a good match
         for (i in 0 until minOf(recordings.length(), 5)) {
             val rec = recordings.getJSONObject(i)
+
+            val metaTitle = rec.optString("title", song.title)
+            val artistCredit = rec.optJSONArray("artist-credit")
+            val metaArtist = parseArtistCredit(artistCredit).ifBlank { song.artist }
+
             val releases = rec.optJSONArray("releases") ?: continue
-            for (j in 0 until minOf(releases.length(), 3)) {
+            for (j in 0 until minOf(releases.length(), 5)) {
                 val release = releases.getJSONObject(j)
                 val releaseId = release.optString("id").takeIf { it.isNotBlank() } ?: continue
                 val albumTitle = release.optString("title", "")
@@ -92,17 +115,31 @@ object MetadataFetcher {
                 // Try Cover Art Archive for this release
                 val artUrl = fetchCoverArtUrl(releaseId)
                 if (artUrl != null) {
-                    return Pair(albumTitle, artUrl)
+                    return OnlineMetadata(metaTitle, metaArtist, albumTitle, artUrl)
                 }
             }
-            // Return album name even if no art found (for the first result)
+
+            // If no cover art found after checking releases, return the first valid album name
             val firstRelease = releases.optJSONObject(0)
             val albumTitle = firstRelease?.optString("title", "") ?: ""
             if (albumTitle.isNotBlank()) {
-                return Pair(albumTitle, "")
+                return OnlineMetadata(metaTitle, metaArtist, albumTitle, "")
             }
         }
         return null
+    }
+
+    private fun parseArtistCredit(array: JSONArray?): String {
+        if (array == null || array.length() == 0) return ""
+        val sb = StringBuilder()
+        for (i in 0 until array.length()) {
+            val obj = array.getJSONObject(i)
+            sb.append(obj.optString("name"))
+            if (obj.has("joinphrase")) {
+                sb.append(obj.optString("joinphrase"))
+            }
+        }
+        return sb.toString().trim()
     }
 
     private fun fetchCoverArtUrl(releaseId: String): String? {

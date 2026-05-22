@@ -1,7 +1,3 @@
-/app/build
-/.idea
-/.gradle
-
 # Built application files
 *.apk
 *.ap_
@@ -17,6 +13,9 @@
 bin/
 gen/
 out/
+build/
+app/build/
+.gradle/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -43,6 +42,8 @@ captures/
 .idea/libraries
 .idea/caches
 .idea/modules.xml
+.idea/navEditor.xml
+.idea/deploymentTargetSelector.xml
 
 # Keystore files
 *.jks
@@ -50,6 +51,7 @@ captures/
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
+.cxx
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
@@ -109,13 +111,13 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 
-# Node.js (if using for build tools)
+# Node.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Python (if using for scripts)
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -124,8 +126,6 @@ __pycache__/
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
 
 # Kotlin
 *.kotlin_module
