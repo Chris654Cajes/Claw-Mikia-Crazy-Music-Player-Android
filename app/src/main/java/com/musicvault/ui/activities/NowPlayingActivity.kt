@@ -353,7 +353,7 @@ class NowPlayingActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {
                 val semitones = sb.progress - 6
-                activityScope.launch { repository.updatePitch(songId, semitones) }
+                activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
             }
         })
 
@@ -361,7 +361,7 @@ class NowPlayingActivity : AppCompatActivity() {
             binding.seekPitch.progress = 6
             binding.tvPitchValue.text = pitchLabel(0)
             musicService?.applyPitchToCurrentSong(0)
-            activityScope.launch { repository.updatePitch(songId, 0) }
+            activityScope.launch { repository.updatePitchAndSyncProfile(songId, 0) }
         }
 
         binding.btnPitchDown.setOnClickListener {
@@ -372,7 +372,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 val semitones = newProgress - 6
                 binding.tvPitchValue.text = pitchLabel(semitones)
                 musicService?.applyPitchToCurrentSong(semitones)
-                activityScope.launch { repository.updatePitch(songId, semitones) }
+                activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
             }
         }
 
@@ -384,7 +384,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 val semitones = newProgress - 6
                 binding.tvPitchValue.text = pitchLabel(semitones)
                 musicService?.applyPitchToCurrentSong(semitones)
-                activityScope.launch { repository.updatePitch(songId, semitones) }
+                activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
             }
         }
 
@@ -399,7 +399,7 @@ class NowPlayingActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {
                 val speed = progressToSpeed(sb.progress)
-                activityScope.launch { repository.updateSpeed(songId, speed) }
+                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, speed) }
             }
         })
 
@@ -407,7 +407,7 @@ class NowPlayingActivity : AppCompatActivity() {
             binding.seekSpeed.progress = 10
             binding.tvSpeedValue.text = speedLabel(1.0f)
             musicService?.applySpeedToCurrentSong(1.0f)
-            activityScope.launch { repository.updateSpeed(songId, 1.0f) }
+            activityScope.launch { repository.updateSpeedAndSyncProfile(songId, 1.0f) }
         }
 
         binding.btnSpeedDown.setOnClickListener {
@@ -418,7 +418,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 val speed = progressToSpeed(newProgress)
                 binding.tvSpeedValue.text = speedLabel(speed)
                 musicService?.applySpeedToCurrentSong(speed)
-                activityScope.launch { repository.updateSpeed(songId, speed) }
+                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, speed) }
             }
         }
 
@@ -430,7 +430,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 val speed = progressToSpeed(newProgress)
                 binding.tvSpeedValue.text = speedLabel(speed)
                 musicService?.applySpeedToCurrentSong(speed)
-                activityScope.launch { repository.updateSpeed(songId, speed) }
+                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, speed) }
             }
         }
 
@@ -478,7 +478,7 @@ class NowPlayingActivity : AppCompatActivity() {
             // Apply trim reset immediately to current playback
             musicService?.applyTrimToCurrentSong(0L, -1L)
             // Also persist to database
-            activityScope.launch { repository.updateTrim(s.id, 0L, -1L) }
+            activityScope.launch { repository.updateTrimAndSyncProfile(s.id, 0L, -1L) }
         }
 
         // ── Playback seekbar ────────────────────────────────────────────────────
@@ -627,7 +627,7 @@ class NowPlayingActivity : AppCompatActivity() {
         // Apply trim immediately to current playback
         musicService?.applyTrimToCurrentSong(start, end)
         // Also persist to database
-        activityScope.launch { repository.updateTrim(id, start, end) }
+        activityScope.launch { repository.updateTrimAndSyncProfile(id, start, end) }
     }
 
     private fun updateTrimLabels(start: Long, end: Long) {

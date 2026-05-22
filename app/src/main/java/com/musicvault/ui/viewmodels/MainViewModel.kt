@@ -60,11 +60,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updatePitch(id: Long, pitch: Int) {
-        viewModelScope.launch { repository.updatePitch(id, pitch) }
+        viewModelScope.launch { repository.updatePitchAndSyncProfile(id, pitch) }
     }
 
     fun updateTrim(id: Long, start: Long, end: Long) {
-        viewModelScope.launch { repository.updateTrim(id, start, end) }
+        viewModelScope.launch { repository.updateTrimAndSyncProfile(id, start, end) }
     }
 
     fun toggleFavorite(song: Song) {
