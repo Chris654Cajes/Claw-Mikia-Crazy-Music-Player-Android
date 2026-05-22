@@ -294,6 +294,10 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.seekTrimStart.progress = trimStart.toInt()
         binding.seekTrimEnd.progress = trimEnd.toInt()
         updateTrimLabels(trimStart, trimEnd)
+
+        // Sync main playback duration label
+        val effectiveDur = (trimEnd - trimStart).coerceAtLeast(0L)
+        binding.tvTotalTime.text = formatDuration(effectiveDur)
     }
 
     // ─── Controls ────────────────────────────────────────────────────────────────
@@ -335,11 +339,13 @@ class NowPlayingActivity : AppCompatActivity() {
         // ── Rewind / Forward ────────────────────────────────────────────────────
         binding.btnRewind.setOnClickListener {
             val svc = musicService ?: return@setOnClickListener
-            svc.seekTo((svc.getPosition() - 5000).coerceAtLeast(0))
+            val tStart = song?.trimStart?.toInt() ?: 0
+            svc.seekTo((svc.getPosition() - 5000).coerceAtLeast(tStart))
         }
         binding.btnForward.setOnClickListener {
             val svc = musicService ?: return@setOnClickListener
-            svc.seekTo((svc.getPosition() + 5000).coerceAtMost(svc.getDuration()))
+            val tEnd = if ((song?.trimEnd ?: 0L) > 0L) song!!.trimEnd.toInt() else svc.getDuration()
+            svc.seekTo((svc.getPosition() + 5000).coerceAtMost(tEnd))
         }
 
         // ── Pitch seekbar ───────────────────────────────────────────────────────
@@ -485,9 +491,15 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.seekPlayback.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    val dur = musicService?.getDuration() ?: return
-                    val trimStart = song?.trimStart?.toInt() ?: 0
-                    musicService?.seekTo((progress / 100f * dur).toInt() + trimStart)
+                    val svc = musicService ?: return
+                    val s = song ?: return
+                    val fullDur = svc.getDuration().toLong()
+                    val tStart = s.trimStart
+                    val tEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
+                    val effectiveDur = (tEnd - tStart).coerceAtLeast(0L)
+
+                    val targetRelativePos = (progress / 100f * effectiveDur).toLong()
+                    svc.seekTo((targetRelativePos + tStart).toInt())
                 }
             }
             override fun onStartTrackingTouch(sb: SeekBar) {}
@@ -624,6 +636,10 @@ class NowPlayingActivity : AppCompatActivity() {
         val id = songId.takeIf { it != -1L } ?: return
         val start = binding.seekTrimStart.progress.toLong()
         val end = binding.seekTrimEnd.progress.toLong()
+
+        // Update local song object so startProgressUpdates sees it immediately
+        song = song?.copy(trimStart = start, trimEnd = end)
+        
         // Apply trim immediately to current playback
         musicService?.applyTrimToCurrentSong(start, end)
         // Also persist to database
@@ -650,16 +666,29 @@ class NowPlayingActivity : AppCompatActivity() {
         progressRunnable = object : Runnable {
             override fun run() {
                 val svc = musicService ?: return
-                val trimStart = song?.trimStart?.toInt() ?: 0
-                val pos = (svc.getPosition() - trimStart).coerceAtLeast(0)
-                val dur = svc.getDuration()
-                if (dur > 0) {
-                    binding.seekPlayback.progress =
-                        ((pos.toFloat() / dur) * 100).toInt().coerceIn(0, 100)
-                    binding.tvCurrentTime.text = formatDuration(pos.toLong())
-                    binding.tvTotalTime.text = formatDuration(dur.toLong())
-                    // Keep lyrics in sync via ViewModel
-                    viewModel.onLyricsPositionChanged(pos.toLong())
+                val s = song ?: return
+
+                val fullDur = svc.getDuration().toLong()
+                val trimStart = s.trimStart
+                val trimEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
+                val effectiveDur = (trimEnd - trimStart).coerceAtLeast(0L)
+
+                val absolutePos = svc.getPosition().toLong()
+                val relativePos = (absolutePos - trimStart).coerceAtLeast(0L)
+
+                if (fullDur > 0) {
+                    if (effectiveDur > 0) {
+                        binding.seekPlayback.progress =
+                            ((relativePos.toFloat() / effectiveDur) * 100).toInt().coerceIn(0, 100)
+                        binding.tvCurrentTime.text = formatDuration(relativePos)
+                        binding.tvTotalTime.text = formatDuration(effectiveDur)
+                    } else {
+                        binding.seekPlayback.progress = 0
+                        binding.tvCurrentTime.text = formatDuration(0)
+                        binding.tvTotalTime.text = formatDuration(fullDur)
+                    }
+                    // Keep lyrics in sync via ViewModel (needs absolute position)
+                    viewModel.onLyricsPositionChanged(absolutePos)
                 }
                 progressHandler.postDelayed(this, 500)
             }

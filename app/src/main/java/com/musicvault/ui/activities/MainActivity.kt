@@ -169,10 +169,15 @@ class MainActivity : AppCompatActivity() {
         binding.musicPanel.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    val ms = (progress / 100f * (musicService?.getDuration() ?: 1)).toInt()
-                    musicService?.seekTo(
-                        ms + (viewModel.currentSong.value?.trimStart?.toInt() ?: 0)
-                    )
+                    val svc = musicService ?: return
+                    val s = viewModel.currentSong.value ?: return
+                    val fullDur = svc.getDuration().toLong()
+                    val tStart = s.trimStart
+                    val tEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
+                    val effectiveDur = (tEnd - tStart).coerceAtLeast(0L)
+
+                    val targetRelativePos = (progress / 100f * effectiveDur).toLong()
+                    svc.seekTo((targetRelativePos + tStart).toInt())
                 }
             }
             override fun onStartTrackingTouch(sb: SeekBar) {}
@@ -458,15 +463,26 @@ class MainActivity : AppCompatActivity() {
         progressRunnable = object : Runnable {
             override fun run() {
                 val svc = musicService ?: return
-                val pos =
-                    svc.getCurrentPosition() - (viewModel.currentSong.value?.trimStart?.toInt()
-                        ?: 0)
-                val dur = svc.getDuration()
-                if (dur > 0) {
-                    binding.musicPanel.seekBar.progress =
-                        ((pos.coerceAtLeast(0).toFloat() / dur) * 100).toInt().coerceIn(0, 100)
-                    binding.musicPanel.tvProgress.text =
-                        "${formatDuration(pos.toLong())} / ${formatDuration(dur.toLong())}"
+                val s = viewModel.currentSong.value ?: return
+
+                val fullDur = svc.getDuration().toLong()
+                val trimStart = s.trimStart
+                val trimEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
+                val effectiveDur = (trimEnd - trimStart).coerceAtLeast(0L)
+
+                val absolutePos = svc.getPosition().toLong()
+                val relativePos = (absolutePos - trimStart).coerceAtLeast(0L)
+
+                if (fullDur > 0) {
+                    if (effectiveDur > 0) {
+                        binding.musicPanel.seekBar.progress =
+                            ((relativePos.toFloat() / effectiveDur) * 100).toInt().coerceIn(0, 100)
+                        binding.musicPanel.tvProgress.text =
+                            "${formatDuration(relativePos)} / ${formatDuration(effectiveDur)}"
+                    } else {
+                        binding.musicPanel.seekBar.progress = 0
+                        binding.musicPanel.tvProgress.text = "0:00 / ${formatDuration(fullDur)}"
+                    }
                 }
                 progressHandler.postDelayed(this, 500)
             }

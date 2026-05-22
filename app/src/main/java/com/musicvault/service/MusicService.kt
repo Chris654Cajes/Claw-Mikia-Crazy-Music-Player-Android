@@ -575,7 +575,8 @@ class MusicService : Service() {
                 }
 
                 override fun onSeekTo(pos: Long) {
-                    seekTo(pos.toInt())
+                    val tStart = activeProfile?.trimStart ?: 0L
+                    seekTo((pos + tStart).toInt())
                 }
             })
             isActive = true
@@ -583,11 +584,21 @@ class MusicService : Service() {
     }
 
     private fun updateMediaSessionMetadata(song: Song, art: Bitmap?) {
+        val tStart = activeProfile?.trimStart ?: 0L
+        val tEnd = activeProfile?.trimEnd ?: 0L
+        val fullDur =
+            if (isPrepared) runCatching { mediaPlayer?.duration?.toLong() }.getOrDefault(0L)
+                ?: 0L else song.duration
+        val effectiveDur =
+            if (tEnd > 0L) (tEnd - tStart).coerceAtLeast(0L) else (fullDur - tStart).coerceAtLeast(
+                0L
+            )
+
         mediaSession?.setMetadata(
             MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.title)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.artist)
-                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, song.duration)
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, effectiveDur)
                 .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, art).build()
         )
     }
@@ -595,9 +606,14 @@ class MusicService : Service() {
     private fun updateMediaSessionState(playing: Boolean) {
         val state =
             if (playing) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
+
+        val tStart = activeProfile?.trimStart ?: 0L
+        val absolutePos = getPosition().toLong()
+        val relativePos = (absolutePos - tStart).coerceAtLeast(0L)
+        
         mediaSession?.setPlaybackState(
             PlaybackStateCompat.Builder()
-                .setState(state, getPosition().toLong(), activeProfile?.playbackSpeed ?: 1f)
+                .setState(state, relativePos, activeProfile?.playbackSpeed ?: 1f)
                 .setActions(PlaybackStateCompat.ACTION_PLAY or PlaybackStateCompat.ACTION_PAUSE or PlaybackStateCompat.ACTION_SKIP_TO_NEXT or PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or PlaybackStateCompat.ACTION_SEEK_TO)
                 .build()
         )
@@ -671,7 +687,12 @@ class MusicService : Service() {
         activeProfile = activeProfile?.copy(
             trimStart = start,
             trimEnd = end
-        ); if (isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
+        )
+        if (isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
+
+        // Refresh MediaSession metadata and state so the lockscreen seekbar updates immediately
+        updateNotification()
+        notifyPlayState(isPlayingRequested)
     }
 
     fun setSleepTimer(ms: Long) {
