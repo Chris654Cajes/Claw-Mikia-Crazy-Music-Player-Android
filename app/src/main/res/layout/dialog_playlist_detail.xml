@@ -17,6 +17,7 @@
             android:background="@color/bg_surface"
             android:padding="16dp">
 
+            <!-- 1. LEFT ICON -->
             <ImageButton
                 android:id="@+id/btnBack"
                 android:layout_width="40dp"
@@ -28,34 +29,7 @@
                 android:src="@drawable/ic_close"
                 app:tint="@color/text_primary" />
 
-            <TextView
-                android:id="@+id/tvPlaylistName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:layout_toStartOf="@id/btnPlayAll"
-                android:layout_toEndOf="@id/btnBack"
-                android:ellipsize="marquee"
-                android:fontFamily="@font/orbitron_bold"
-                android:gravity="center"
-                android:maxLines="1"
-                android:text="@string/playlists"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp" />
-
-            <ImageButton
-                android:id="@+id/btnDeleteSelected"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_centerVertical="true"
-                android:layout_marginEnd="8dp"
-                android:layout_toStartOf="@id/btnPlayAll"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/delete"
-                android:src="@drawable/ic_delete"
-                android:visibility="gone"
-                app:tint="@color/neon_red" />
-
+            <!-- 2. RIGHT BUTTON GROUP (Ordered right-to-left for logical anchoring) -->
             <ImageButton
                 android:id="@+id/btnPlayAll"
                 android:layout_width="40dp"
@@ -66,6 +40,53 @@
                 android:contentDescription="@string/play_all"
                 android:src="@drawable/ic_play"
                 app:tint="@color/neon_green" />
+
+            <ImageButton
+                android:id="@+id/fabAddSongs"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_centerVertical="true"
+                android:layout_toStartOf="@id/btnPlayAll"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/add_songs"
+                android:src="@android:drawable/ic_input_add"
+                app:tint="@color/neon_blue" />
+
+            <ImageButton
+                android:id="@+id/btnDeleteSelected"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="8dp"
+                android:layout_toStartOf="@id/fabAddSongs"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/delete"
+                android:src="@drawable/ic_delete"
+                android:visibility="gone"
+                app:tint="@color/neon_red" />
+
+            <!-- 3. CENTER TITLE (Dynamically bound between edge components) -->
+            <TextView
+                android:id="@+id/tvPlaylistName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_toStartOf="@id/btnDeleteSelected"
+                android:layout_toEndOf="@id/btnBack"
+                android:ellipsize="marquee"
+                android:fadingEdge="horizontal"
+                android:fontFamily="@font/orbitron_bold"
+                android:gravity="center"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:maxLines="1"
+                android:scrollHorizontally="true"
+                android:singleLine="true"
+                android:text="@string/playlists"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp" />
+
         </RelativeLayout>
 
         <!-- Track List -->
@@ -75,19 +96,8 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:paddingBottom="100dp" />
+        <!-- Track List -->
 
     </LinearLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddSongs"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:contentDescription="@string/add_songs"
-        android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/neon_blue"
-        app:layout_anchor="@id/rvTracks"
-        app:layout_anchorGravity="bottom|end"
-        app:tint="@android:color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

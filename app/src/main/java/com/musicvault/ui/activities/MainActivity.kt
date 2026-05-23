@@ -142,53 +142,50 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFragment(fragment: Fragment) {
-        val appBar = binding.root.findViewById<View>(R.id.appBarLayout)
-        val container = binding.root.findViewById<View>(R.id.fragmentContainer)
-
+        val appBar = binding.appBarLayout
+        val container = binding.fragmentContainer
         val layoutParams =
-            container?.layoutParams as? androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams
+            container.layoutParams as? androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams
+
+        // Force the container to always occupy full screen height
+        layoutParams?.height =
+            androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams.MATCH_PARENT
 
         if (fragment is PlaylistsFragment) {
-            // 1. Hide the activity header and kill the scrolling behavior block
-            appBar?.visibility = View.GONE
+            // 1. Hide the activity header and remove scrolling behavior
+            appBar.visibility = View.GONE
             layoutParams?.behavior = null
-            container?.layoutParams = layoutParams
+            container.layoutParams = layoutParams
 
-            // 2. Query system windows insets to safely inject status bar margin padding
+            // 2. Safe padding injection for BOTH top status bar and bottom system navigation
             androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
-                val statusBarHeight =
-                    insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars()).top
-                // Set the exact height of the status bar as a top margin so it never overlaps
-                val params =
-                    view.layoutParams as? androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams
-                params?.topMargin = statusBarHeight
-                view.layoutParams = params
+                val systemBars =
+                    insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+                // Protects the top from the status bar and the bottom from overlapping the system navigation
+                view.setPadding(0, systemBars.top, 0, systemBars.bottom)
                 insets
             }
         } else {
             // 1. Restore the activity header and scrolling constraints
-            appBar?.visibility = View.VISIBLE
-            val scrollingBehavior =
+            appBar.visibility = View.VISIBLE
+            layoutParams?.behavior =
                 com.google.android.material.appbar.AppBarLayout.ScrollingViewBehavior()
-            layoutParams?.behavior = scrollingBehavior
+            container.layoutParams = layoutParams
 
-            // 2. Clear out the manual status bar top margin since AppBar layout handles it
-            layoutParams?.topMargin = 0
-            container?.layoutParams = layoutParams
-
-            // Clear the listener for other tabs
-            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(container, null)
+            // 2. Only preserve bottom padding for the system navigation bar
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
+                val systemBars =
+                    insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+                view.setPadding(0, 0, 0, systemBars.bottom)
+                insets
+            }
         }
 
+        // Execute the fragment transaction
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
             .commit()
-
-        // Force layout engine to cleanly compute the new constraint passes
-        binding.root.requestApplyInsets()
     }
-
-
 
     // ─── Mini player ─────────────────────────────────────────────────────────────
 

@@ -3,6 +3,7 @@ package com.musicvault.ui.fragments
 import android.os.Bundle
 import android.view.*
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -66,7 +67,7 @@ class PlaylistsFragment : Fragment() {
         recycler.layoutManager = LinearLayoutManager(requireContext())
         recycler.adapter = adapter
 
-        view.findViewById<FloatingActionButton>(R.id.fabNewPlaylist)?.setOnClickListener {
+        view.findViewById<ImageButton>(R.id.fabNewPlaylist)?.setOnClickListener {
             showCreatePlaylistDialog()
         }
 
@@ -302,11 +303,11 @@ class PlaylistsFragment : Fragment() {
             .setView(dialogView)
             .create()
 
-        dialogView.findViewById<android.widget.ImageButton>(R.id.btnCancel).setOnClickListener {
+        dialogView.findViewById<ImageButton>(R.id.btnCancel).setOnClickListener {
             dialog.dismiss()
         }
 
-        dialogView.findViewById<android.widget.ImageButton>(R.id.btnConfirm).setOnClickListener {
+        dialogView.findViewById<ImageButton>(R.id.btnConfirm).setOnClickListener {
             onPositive()
             dialog.dismiss()
         }
@@ -334,11 +335,11 @@ class PlaylistsFragment : Fragment() {
             .setView(dialogView)
             .create()
 
-        dialogView.findViewById<android.widget.ImageButton>(R.id.btnCancel).setOnClickListener {
+        dialogView.findViewById<ImageButton>(R.id.btnCancel).setOnClickListener {
             dialog.dismiss()
         }
 
-        dialogView.findViewById<android.widget.ImageButton>(R.id.btnCreate).setOnClickListener {
+        dialogView.findViewById<ImageButton>(R.id.btnCreate).setOnClickListener {
             val name = etPlaylistName.text.toString().trim()
             if (name.isNotBlank()) {
                 onPositive(name)
