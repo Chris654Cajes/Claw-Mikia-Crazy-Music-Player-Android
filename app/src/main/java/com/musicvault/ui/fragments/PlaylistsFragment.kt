@@ -6,10 +6,8 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -25,13 +23,20 @@ import com.musicvault.ui.activities.MainActivity
 import com.musicvault.ui.adapters.SongAdapter
 import kotlinx.coroutines.*
 
+// ─── Filter modes ─────────────────────────────────────────────────────────────
+private enum class PlaylistFilter { ALL, SMART, MANUAL, HAS_SONGS, EMPTY, RECENT }
+
 class PlaylistsFragment : Fragment() {
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private lateinit var repo: PlaylistRepository
     private lateinit var songRepo: SongRepository
     private lateinit var adapter: PlaylistAdapter
-    private lateinit var recycler: RecyclerView
+
+    private var allPlaylists: List<Playlist> = emptyList()
+    private var songCounts: Map<Long, Int> = emptyMap()
+    private var activeFilter: PlaylistFilter = PlaylistFilter.ALL
+    private var searchQuery: String = ""
 
     companion object {
         fun newInstance() = PlaylistsFragment()
@@ -54,9 +59,10 @@ class PlaylistsFragment : Fragment() {
             onOpen = { playlist -> openPlaylist(playlist) },
             onPlay = { playlist -> playPlaylist(playlist) },
             onEdit = { playlist -> editPlaylist(playlist) },
-            onDelete = { playlist -> confirmDelete(playlist) }
+            onDelete = { playlist -> confirmDelete(playlist) },
+            getSongCount = { playlistId -> songCounts[playlistId] ?: 0 }
         )
-        recycler = view.findViewById(R.id.rvPlaylists)
+        val recycler = view.findViewById<RecyclerView>(R.id.rvPlaylists)
         recycler.layoutManager = LinearLayoutManager(requireContext())
         recycler.adapter = adapter
 
@@ -64,10 +70,130 @@ class PlaylistsFragment : Fragment() {
             showCreatePlaylistDialog()
         }
 
+        setupSearchView(view)
+        setupFilterChips(view)
+
         repo.allPlaylists.observe(viewLifecycleOwner) { playlists ->
-            adapter.submitList(playlists)
+            allPlaylists = playlists
+            loadSongCountsThenFilter(view)
         }
     }
+
+    // ─── Song counts ──────────────────────────────────────────────────────────
+
+    private fun loadSongCountsThenFilter(view: View) {
+        scope.launch {
+            val counts = mutableMapOf<Long, Int>()
+            allPlaylists.forEach { pl ->
+                counts[pl.id] = withContext(Dispatchers.IO) {
+                    repo.getSongsInPlaylistSync(pl.id).size
+                }
+            }
+            songCounts = counts
+            applyFilterAndSearch(view)
+        }
+    }
+
+    // ─── Search ───────────────────────────────────────────────────────────────
+
+    private fun setupSearchView(view: View) {
+        val sv = view.findViewById<SearchView>(R.id.searchPlaylists)
+        sv.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?) = false
+            override fun onQueryTextChange(newText: String?): Boolean {
+                searchQuery = newText?.trim() ?: ""
+                applyFilterAndSearch(view)
+                return true
+            }
+        })
+    }
+
+    // ─── Filter chips ─────────────────────────────────────────────────────────
+
+    private fun setupFilterChips(view: View) {
+        val chips = mapOf(
+            R.id.chipAll to PlaylistFilter.ALL,
+            R.id.chipSmart to PlaylistFilter.SMART,
+            R.id.chipManual to PlaylistFilter.MANUAL,
+            R.id.chipHasSongs to PlaylistFilter.HAS_SONGS,
+            R.id.chipEmpty to PlaylistFilter.EMPTY,
+            R.id.chipRecent to PlaylistFilter.RECENT
+        )
+        chips.forEach { (id, filter) ->
+            view.findViewById<TextView>(id)?.setOnClickListener {
+                activeFilter = filter
+                updateChipHighlights(view, id)
+                applyFilterAndSearch(view)
+            }
+        }
+        // Start with "All" highlighted
+        updateChipHighlights(view, R.id.chipAll)
+    }
+
+    private fun updateChipHighlights(view: View, selectedId: Int) {
+        val chipAlphaMap = mapOf(
+            R.id.chipAll to 1f,
+            R.id.chipSmart to 1f,
+            R.id.chipManual to 1f,
+            R.id.chipHasSongs to 1f,
+            R.id.chipEmpty to 1f,
+            R.id.chipRecent to 1f
+        )
+        chipAlphaMap.keys.forEach { id ->
+            view.findViewById<TextView>(id)?.alpha = if (id == selectedId) 1f else 0.4f
+        }
+    }
+
+    // ─── Apply filter + search ────────────────────────────────────────────────
+
+    private fun applyFilterAndSearch(view: View) {
+        val now = System.currentTimeMillis()
+        val recentCutoff = now - (7 * 24 * 60 * 60 * 1000L) // 7 days
+
+        val filtered = allPlaylists.filter { pl ->
+            // 1. Filter chip
+            val passesFilter = when (activeFilter) {
+                PlaylistFilter.ALL -> true
+                PlaylistFilter.SMART -> pl.isSmartPlaylist
+                PlaylistFilter.MANUAL -> !pl.isSmartPlaylist
+                PlaylistFilter.HAS_SONGS -> (songCounts[pl.id] ?: 0) > 0
+                PlaylistFilter.EMPTY -> (songCounts[pl.id] ?: 0) == 0
+                PlaylistFilter.RECENT -> pl.updatedAt >= recentCutoff
+            }
+            if (!passesFilter) return@filter false
+
+            // 2. Search query — match name, description, song count as string, or smart/manual label
+            if (searchQuery.isBlank()) return@filter true
+            val q = searchQuery.lowercase()
+            val count = songCounts[pl.id] ?: 0
+            val typeLabel = if (pl.isSmartPlaylist) "smart" else "manual"
+            pl.name.lowercase().contains(q) ||
+                    pl.description.lowercase().contains(q) ||
+                    count.toString().contains(q) ||
+                    typeLabel.contains(q)
+        }
+
+        adapter.submitList(filtered)
+
+        // Show/hide empty state
+        val emptyState = view.findViewById<View>(R.id.emptyState)
+        val tvEmptyHint = view.findViewById<TextView>(R.id.tvEmptyHint)
+        emptyState?.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
+        tvEmptyHint?.text = when {
+            searchQuery.isNotBlank() -> "No results for \"$searchQuery\""
+            activeFilter != PlaylistFilter.ALL -> "No playlists match this filter"
+            else -> "Tap + to create your first playlist"
+        }
+
+        // Show count label when filtered
+        val tvCount = view.findViewById<TextView>(R.id.tvFilterCount)
+        val showCount = searchQuery.isNotBlank() || activeFilter != PlaylistFilter.ALL
+        tvCount?.visibility = if (showCount) View.VISIBLE else View.GONE
+        tvCount?.text =
+            "${filtered.size} of ${allPlaylists.size} playlist${if (allPlaylists.size != 1) "s" else ""}"
+    }
+
+    // ─── Actions ──────────────────────────────────────────────────────────────
 
     private fun showCreatePlaylistDialog() {
         showAestheticPlaylistDialog(
@@ -119,11 +245,14 @@ class PlaylistsFragment : Fragment() {
         )
     }
 
+    // ─── Adapter ──────────────────────────────────────────────────────────────
+
     inner class PlaylistAdapter(
         private val onOpen: (Playlist) -> Unit,
         private val onPlay: (Playlist) -> Unit,
         private val onEdit: (Playlist) -> Unit,
-        private val onDelete: (Playlist) -> Unit
+        private val onDelete: (Playlist) -> Unit,
+        private val getSongCount: (Long) -> Int
     ) : ListAdapter<Playlist, PlaylistAdapter.VH>(object : DiffUtil.ItemCallback<Playlist>() {
         override fun areItemsTheSame(a: Playlist, b: Playlist) = a.id == b.id
         override fun areContentsTheSame(a: Playlist, b: Playlist) = a == b
@@ -145,7 +274,10 @@ class PlaylistsFragment : Fragment() {
         override fun onBindViewHolder(holder: VH, pos: Int) {
             val pl = getItem(pos)
             holder.name.text = pl.name
-            holder.info.text = holder.itemView.context.getString(R.string.tap_to_view_tracks)
+            val count = getSongCount(pl.id)
+            val typeTag = if (pl.isSmartPlaylist) " · Smart" else ""
+            val desc = if (pl.description.isNotBlank()) " · ${pl.description}" else ""
+            holder.info.text = "$count song${if (count != 1) "s" else ""}$typeTag$desc"
             holder.btnPlay.setOnClickListener { onPlay(pl) }
             holder.btnEdit.setOnClickListener { onEdit(pl) }
             holder.btnDelete.setOnClickListener { onDelete(pl) }
@@ -153,7 +285,7 @@ class PlaylistsFragment : Fragment() {
         }
     }
 
-    // ─── Aesthetic Dialogs ───────────────────────────────────────────────────────
+    // ─── Aesthetic Dialogs ────────────────────────────────────────────────────
 
     private fun showAestheticConfirmDialog(
         title: String,
@@ -216,7 +348,14 @@ class PlaylistsFragment : Fragment() {
 
         dialog.show()
     }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        scope.cancel()
+    }
 }
+
+// ─── PlaylistDetailFragment (unchanged) ──────────────────────────────────────
 
 class PlaylistDetailFragment : Fragment() {
     private lateinit var adapter: SongAdapter
@@ -295,15 +434,6 @@ class PlaylistDetailFragment : Fragment() {
         }
         rv.adapter = adapter
 
-        // If selection mode starts, show the delete button
-        rv.addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
-            // We use long press in Adapter, but we need to sync UI here
-        })
-
-        // Actually, let's use a simpler way to sync UI for selection mode.
-        // We'll wrap the adapter and observe its state if we had a ViewModel, 
-        // but here we'll just check it periodically or add a listener to the adapter.
-
         repo.getSongsInPlaylist(playlistId).observe(viewLifecycleOwner) { songs ->
             adapter.submitList(songs)
             view.findViewById<View>(R.id.btnPlayAll).setOnClickListener {
@@ -318,6 +448,8 @@ class PlaylistDetailFragment : Fragment() {
         SongSelectionFragment.newInstance(playlistId).show(childFragmentManager, "song_selection")
     }
 }
+
+// ─── SongSelectionFragment (unchanged) ───────────────────────────────────────
 
 class SongSelectionFragment : androidx.fragment.app.DialogFragment() {
     private lateinit var repo: SongRepository

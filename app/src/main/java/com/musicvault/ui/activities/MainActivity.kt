@@ -142,8 +142,53 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction().replace(R.id.fragmentContainer, fragment).commit()
+        val appBar = binding.root.findViewById<View>(R.id.appBarLayout)
+        val container = binding.root.findViewById<View>(R.id.fragmentContainer)
+
+        val layoutParams =
+            container?.layoutParams as? androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams
+
+        if (fragment is PlaylistsFragment) {
+            // 1. Hide the activity header and kill the scrolling behavior block
+            appBar?.visibility = View.GONE
+            layoutParams?.behavior = null
+            container?.layoutParams = layoutParams
+
+            // 2. Query system windows insets to safely inject status bar margin padding
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
+                val statusBarHeight =
+                    insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars()).top
+                // Set the exact height of the status bar as a top margin so it never overlaps
+                val params =
+                    view.layoutParams as? androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams
+                params?.topMargin = statusBarHeight
+                view.layoutParams = params
+                insets
+            }
+        } else {
+            // 1. Restore the activity header and scrolling constraints
+            appBar?.visibility = View.VISIBLE
+            val scrollingBehavior =
+                com.google.android.material.appbar.AppBarLayout.ScrollingViewBehavior()
+            layoutParams?.behavior = scrollingBehavior
+
+            // 2. Clear out the manual status bar top margin since AppBar layout handles it
+            layoutParams?.topMargin = 0
+            container?.layoutParams = layoutParams
+
+            // Clear the listener for other tabs
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(container, null)
+        }
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .commit()
+
+        // Force layout engine to cleanly compute the new constraint passes
+        binding.root.requestApplyInsets()
     }
+
+
 
     // ─── Mini player ─────────────────────────────────────────────────────────────
 
