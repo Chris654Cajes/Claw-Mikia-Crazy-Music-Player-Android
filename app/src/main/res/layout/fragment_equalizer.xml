@@ -25,7 +25,7 @@
                 android:layout_weight="1"
                 android:fontFamily="@font/orbitron_bold"
                 android:letterSpacing="0.15"
-                android:text="EQUALIZER"
+                android:text="@string/equalizer"
                 android:textColor="@color/neon_pink"
                 android:textSize="14sp" />
 
@@ -73,7 +73,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="Reset"
+                android:text="@string/reset"
                 android:textColor="@color/text_secondary" />
 
             <Button
@@ -82,7 +82,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Save Preset"
+                android:text="@string/save_preset"
                 android:textColor="@color/neon_cyan" />
         </LinearLayout>
 
@@ -106,7 +106,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:letterSpacing="0.1"
-                android:text="BASS BOOST"
+                android:text="@string/bass_boost"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
@@ -138,7 +138,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:letterSpacing="0.1"
-                android:text="REVERB"
+                android:text="@string/reverb"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
@@ -169,7 +169,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:letterSpacing="0.1"
-                android:text="LOUDNESS"
+                android:text="@string/loudness"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 

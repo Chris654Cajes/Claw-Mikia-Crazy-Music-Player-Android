@@ -2,7 +2,6 @@ package com.musicvault.ui.fragments
 
 import android.os.Bundle
 import android.view.*
-import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,15 +19,10 @@ class ProfilesFragment : BottomSheetDialogFragment() {
     private lateinit var adapter: ProfilesAdapter
     var onProfileActivated: (() -> Unit)? = null
 
-    companion object {
-        fun newInstance(onActivated: () -> Unit = {}): ProfilesFragment =
-            ProfilesFragment().also { it.onProfileActivated = onActivated }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         return inflater.inflate(R.layout.fragment_profiles, container, false)
     }
@@ -43,7 +37,7 @@ class ProfilesFragment : BottomSheetDialogFragment() {
                 dismiss()
             },
             onDelete = { profile -> confirmDelete(profile) },
-            onClick = { profile -> showProfileDetails(profile) }
+            onClick = { profile -> showProfileDetails(profile) },
         )
 
         view.findViewById<RecyclerView>(R.id.rvProfiles).apply {
@@ -75,15 +69,13 @@ class ProfilesFragment : BottomSheetDialogFragment() {
         if (profile.name == "Default") {
             showAestheticConfirmDialog(
                 title = "Cannot Delete",
-                message = "Cannot delete the Default profile.",
-                positiveText = "OK"
+                message = "Cannot delete the Default profile."
             ) { }
             return
         }
         showAestheticConfirmDialog(
             title = "Delete Profile",
-            message = "Delete \"${profile.name}\"? This cannot be undone.",
-            positiveText = "Delete"
+            message = "Delete \"${profile.name}\"? This cannot be undone."
         ) {
             viewModel.deleteProfile(profile)
         }
@@ -91,7 +83,7 @@ class ProfilesFragment : BottomSheetDialogFragment() {
 
     private fun showProfileDetails(profile: PlaybackProfile) {
         val details = buildString {
-            appendLine("Pitch: ${if (profile.pitchSemitones >= 0) "+${profile.pitchSemitones}" else "${profile.pitchSemitones}"} semitones")
+            appendLine("Pitch: ${if (profile.pitchSemitones >= 0) "+${profile.pitchSemitones}" else profile.pitchSemitones} semitones")
             appendLine("Speed: ${"%.2f".format(profile.playbackSpeed)}x")
             appendLine("EQ: ${if (profile.eqEnabled) profile.eqPresetName else "Off"}")
             appendLine("Bass Boost: ${if (profile.bassBoostEnabled) profile.bassBoostStrength else "Off"}")
@@ -102,8 +94,7 @@ class ProfilesFragment : BottomSheetDialogFragment() {
         }
         showAestheticConfirmDialog(
             title = profile.name,
-            message = details,
-            positiveText = "OK"
+            message = details
         ) { }
     }
 
@@ -112,8 +103,7 @@ class ProfilesFragment : BottomSheetDialogFragment() {
     private fun showAestheticConfirmDialog(
         title: String,
         message: String,
-        positiveText: String = "Confirm",
-        onPositive: () -> Unit
+        onPositive: () -> Unit,
     ) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_confirm, null)
 
@@ -139,8 +129,7 @@ class ProfilesFragment : BottomSheetDialogFragment() {
     private fun showAestheticInputDialog(
         title: String,
         hint: String = "",
-        positiveText: String = "Save",
-        onPositive: (String) -> Unit
+        onPositive: (String) -> Unit,
     ) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_generic, null)
 

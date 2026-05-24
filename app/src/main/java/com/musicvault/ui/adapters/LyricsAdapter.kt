@@ -3,10 +3,10 @@ package com.musicvault.ui.adapters
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.graphics.Color
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -43,12 +43,12 @@ class LyricsAdapter : ListAdapter<LyricLine, LyricsAdapter.ViewHolder>(DIFF) {
         val textView = TextView(parent.context)
         textView.layoutParams = ViewGroup.MarginLayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
+            ViewGroup.LayoutParams.WRAP_CONTENT,
         ).apply { setMargins(0, 4, 0, 4) }
         textView.setPadding(24, 10, 24, 10)
         textView.textSize = 16f
         textView.gravity = android.view.Gravity.CENTER
-        textView.setTextColor(Color.parseColor("#8888AA"))
+        textView.setTextColor("#8888AA".toColorInt())
         return ViewHolder(textView)
     }
 
@@ -61,15 +61,15 @@ class LyricsAdapter : ListAdapter<LyricLine, LyricsAdapter.ViewHolder>(DIFF) {
         if (karaokeMode) {
             holder.tvLine.textSize = if (isActive) 20f else 15f
             holder.tvLine.setTextColor(
-                if (isActive) Color.parseColor("#FA024D")  // neon pink highlight
-                else Color.parseColor("#44445A")
+                if (isActive) "#FA024D".toColorInt() // neon pink highlight
+                else "#44445A".toColorInt()
             )
             holder.tvLine.alpha = if (isActive) 1f else 0.5f
         } else {
             holder.tvLine.textSize = if (isActive) 18f else 15f
             holder.tvLine.setTextColor(
-                if (isActive) Color.parseColor("#F0F0FF")
-                else Color.parseColor("#8888AA")
+                if (isActive) "#F0F0FF".toColorInt()
+                else "#8888AA".toColorInt()
             )
             holder.tvLine.alpha = if (isActive) 1f else 0.75f
         }

@@ -29,4 +29,20 @@
     <string name="add_songs">Add Songs</string>
     <string name="select_songs">Select Songs</string>
     <string name="add_to_playlist">Add to Playlist</string>
+    <string name="karaoke_mode">Karaoke Mode</string>
+    <string name="no_lyrics_found">No lyrics found</string>
+    <string name="add_lyrics">Add Lyrics</string>
+    <string name="fetch_lyrics">Fetch Lyrics</string>
+    <string name="reset">Reset</string>
+    <string name="save_preset">Save Preset</string>
+    <string name="bass_boost">Bass Boost</string>
+    <string name="reverb">Reverb</string>
+    <string name="loudness">Loudness</string>
+    <string name="zero_progress">0:00 / 0:00</string>
+    <string name="progress_format">%1$s / %2$s</string>
+    <string name="trim_start_label">Start: %1$s</string>
+    <string name="trim_end_label">End: %1$s</string>
+    <string name="repeat_all">ALL</string>
+    <string name="repeat_one">ONE</string>
+    <string name="repeat_none">OFF</string>
 </resources>

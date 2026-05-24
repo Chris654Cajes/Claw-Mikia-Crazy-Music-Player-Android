@@ -1,7 +1,6 @@
 package com.musicvault.ui.activities
 
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
@@ -9,19 +8,18 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.SeekBar
+import androidx.activity.addCallback
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import com.musicvault.MusicVaultApp
 import com.musicvault.R
@@ -80,26 +78,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val folderPickerLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocumentTree()
+        ActivityResultContracts.OpenDocumentTree(),
     ) { uri ->
         uri?.let {
             contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            MusicVaultApp.instance.prefs.edit()
-                .putString(MusicVaultApp.KEY_FOLDER_URI, it.toString()).apply()
+            MusicVaultApp.instance.prefs.edit {
+                putString(MusicVaultApp.KEY_FOLDER_URI, it.toString())
+            }
             viewModel.scanFolder(it)
         }
     }
 
     private val notificationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
+        ActivityResultContracts.RequestPermission(),
     ) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setupSystemBars()
         setupNavigation()
         setupMusicPanel()
         setupSearchBar()
@@ -109,22 +107,19 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermission()
         showFragment(LibraryFragment())
 
+        onBackPressedDispatcher.addCallback(this) {
+            // Allow music to continue playing when user presses back button
+            // If we have custom logic for back, put it here.
+            // Otherwise, default behavior is fine.
+            isEnabled = false
+            onBackPressedDispatcher.onBackPressed()
+        }
+
         viewModel.isPlaying.observe(this) { isPlaying ->
             binding.musicPanel.btnPlayPause.setImageResource(
                 if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
             )
         }
-    }
-
-    // ─── System bars ────────────────────────────────────────────────────────────
-
-    private fun setupSystemBars() {
-        WindowInsetsControllerCompat(window, window.decorView).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
-        }
-        window.statusBarColor = android.graphics.Color.BLACK
-        window.navigationBarColor = android.graphics.Color.BLACK
     }
 
     // ─── Navigation ─────────────────────────────────────────────────────────────
@@ -209,29 +204,32 @@ class MainActivity : AppCompatActivity() {
             if (serviceBound) {
                 // Immediate UI feedback for replay/skip
                 binding.musicPanel.seekBar.progress = 0
-                binding.musicPanel.tvProgress.text = "0:00 / 0:00"
+                binding.musicPanel.tvProgress.text = getString(R.string.zero_progress)
                 musicService?.skipPrev()
             }
         }
 
         // Seekbar scrubbing
-        binding.musicPanel.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    val svc = musicService ?: return
-                    val s = viewModel.currentSong.value ?: return
-                    val fullDur = svc.getDuration().toLong()
-                    val tStart = s.trimStart
-                    val tEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
-                    val effectiveDur = (tEnd - tStart).coerceAtLeast(0L)
+        binding.musicPanel.seekBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
+                    if (fromUser) {
+                        val svc = musicService ?: return
+                        val s = viewModel.currentSong.value ?: return
+                        val fullDur = svc.getDuration().toLong()
+                        val tStart = s.trimStart
+                        val tEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
+                        val effectiveDur = (tEnd - tStart).coerceAtLeast(0L)
 
-                    val targetRelativePos = (progress / 100f * effectiveDur).toLong()
-                    svc.seekTo((targetRelativePos + tStart).toInt())
+                        val targetRelativePos = (progress / 100f * effectiveDur).toLong()
+                        svc.seekTo((targetRelativePos + tStart).toInt())
+                    }
                 }
-            }
-            override fun onStartTrackingTouch(sb: SeekBar) {}
-            override fun onStopTrackingTouch(sb: SeekBar) {}
-        })
+
+                override fun onStartTrackingTouch(sb: SeekBar) {}
+                override fun onStopTrackingTouch(sb: SeekBar) {}
+            },
+        )
 
         // Tap the info area (not a button) → open Now Playing
         binding.musicPanel.root.setOnClickListener {
@@ -337,12 +335,11 @@ class MainActivity : AppCompatActivity() {
                 message = "This will remove all songs from the library database.\n\n" +
                         "Your actual MP3 files will NOT be deleted from your device.\n\n" +
                         "You can re-scan your folder at any time to rebuild the library.",
-                positiveText = "Reset",
                 onPositive = {
                     // Pause playback before wiping the list
                     if (musicService?.isPlaying() == true) musicService?.togglePlayPause()
                     viewModel.resetLibrary()
-                }
+                },
             )
         }
     }
@@ -350,13 +347,14 @@ class MainActivity : AppCompatActivity() {
     // ─── Search ──────────────────────────────────────────────────────────────────
 
     private fun setupSearchBar() {
-        binding.searchView.setOnQueryTextListener(object :
-            androidx.appcompat.widget.SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(q: String?) = true
-            override fun onQueryTextChange(q: String?): Boolean {
-                viewModel.setSearchQuery(q ?: ""); return true
-            }
-        })
+        binding.searchView.setOnQueryTextListener(
+            object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(q: String?) = true
+                override fun onQueryTextChange(q: String?): Boolean {
+                    viewModel.setSearchQuery(q ?: ""); return true
+                }
+            },
+        )
         binding.btnScan.setOnClickListener { folderPickerLauncher.launch(null) }
     }
 
@@ -454,7 +452,7 @@ class MainActivity : AppCompatActivity() {
         
         // Show mini player right away — no waiting for callbacks
         showMusicPanel(song)
-        updatePlayButton(true)
+        updatePlayButton(playing = true)
         startProgressUpdates()
 
         // Ensure service is bound before calling it
@@ -521,11 +519,18 @@ class MainActivity : AppCompatActivity() {
                     if (effectiveDur > 0) {
                         binding.musicPanel.seekBar.progress =
                             ((relativePos.toFloat() / effectiveDur) * 100).toInt().coerceIn(0, 100)
-                        binding.musicPanel.tvProgress.text =
-                            "${formatDuration(relativePos)} / ${formatDuration(effectiveDur)}"
+                        binding.musicPanel.tvProgress.text = getString(
+                            R.string.progress_format,
+                            formatDuration(relativePos),
+                            formatDuration(effectiveDur),
+                        )
                     } else {
                         binding.musicPanel.seekBar.progress = 0
-                        binding.musicPanel.tvProgress.text = "0:00 / ${formatDuration(fullDur)}"
+                        binding.musicPanel.tvProgress.text = getString(
+                            R.string.progress_format,
+                            "0:00",
+                            formatDuration(fullDur),
+                        )
                     }
                 }
                 progressHandler.postDelayed(this, 500)
@@ -572,11 +577,6 @@ class MainActivity : AppCompatActivity() {
         // Music will only stop when app is actually destroyed or swiped away
     }
 
-    override fun onBackPressed() {
-        // Allow music to continue playing when user presses back button
-        super.onBackPressed()
-    }
-
     override fun onDestroy() {
         if (serviceBound) {
             musicService?.let { service ->
@@ -594,8 +594,7 @@ class MainActivity : AppCompatActivity() {
     private fun showAestheticConfirmDialog(
         title: String,
         message: String,
-        positiveText: String = "Confirm",
-        onPositive: () -> Unit
+        onPositive: () -> Unit,
     ) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_confirm, null)
 
@@ -612,41 +611,6 @@ class MainActivity : AppCompatActivity() {
 
         dialogView.findViewById<android.widget.ImageButton>(R.id.btnConfirm).setOnClickListener {
             onPositive()
-            dialog.dismiss()
-        }
-
-        dialog.show()
-    }
-
-    private fun showAestheticInputDialog(
-        title: String,
-        hint: String = "",
-        positiveText: String = "Save",
-        onPositive: (String) -> Unit
-    ) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_generic, null)
-
-        dialogView.findViewById<android.widget.TextView>(R.id.tvTitle).text = title
-        val tilInput =
-            dialogView.findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilInput)
-        val etInput =
-            dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etInput)
-        val btnNegative = dialogView.findViewById<android.widget.ImageButton>(R.id.btnNegative)
-
-        tilInput.visibility = View.VISIBLE
-        tilInput.hint = hint
-        btnNegative.visibility = View.VISIBLE
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .create()
-
-        btnNegative.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        dialogView.findViewById<android.widget.ImageButton>(R.id.btnPositive).setOnClickListener {
-            onPositive(etInput.text.toString())
             dialog.dismiss()
         }
 
