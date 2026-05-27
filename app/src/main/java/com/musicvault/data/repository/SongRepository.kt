@@ -73,7 +73,7 @@ class SongRepository(private val context: Context) {
         }
     }
 
-    suspend fun updatePitch(id: Long, pitch: Int) = withContext(Dispatchers.IO) {
+    suspend fun updatePitch(id: Long, pitch: Float) = withContext(Dispatchers.IO) {
         songDao.updatePitch(id, pitch)
     }
 
@@ -90,13 +90,13 @@ class SongRepository(private val context: Context) {
     }
 
     // Synchronization methods to keep song settings in sync with active profile
-    suspend fun updatePitchAndSyncProfile(id: Long, pitch: Int) = withContext(Dispatchers.IO) {
+    suspend fun updatePitchAndSyncProfile(id: Long, pitch: Float) = withContext(Dispatchers.IO) {
         songDao.updatePitch(id, pitch)
         // Also update the active profile if it exists
         val profileDao = MusicDatabase.getDatabase(context).playbackProfileDao()
         val activeProfile = profileDao.getActiveProfile(id)
         activeProfile?.let { profile ->
-            profileDao.updatePitchSpeed(profile.id, pitch.toFloat(), profile.playbackSpeed)
+            profileDao.updatePitchSpeed(profile.id, pitch, profile.playbackSpeed)
         }
     }
 

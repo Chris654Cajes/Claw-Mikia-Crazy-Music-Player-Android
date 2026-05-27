@@ -115,6 +115,36 @@
             android:gravity="center"
             android:layout_marginTop="4dp" />
 
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvBpm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:alpha="0.8"
+                android:fontFamily="@font/orbitron_bold"
+                android:text=""
+                android:textColor="@color/neon_yellow"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/tvKey"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:alpha="0.8"
+                android:fontFamily="@font/orbitron_bold"
+                android:text=""
+                android:textColor="@color/neon_green"
+                android:textSize="10sp" />
+
+        </LinearLayout>
+
         <TextView
             android:id="@+id/tvFolder"
             android:layout_width="match_parent"
@@ -371,6 +401,17 @@
                         android:src="@drawable/ic_volume_up"
                         android:tint="@color/neon_cyan" />
 
+                    <ImageButton
+                        android:id="@+id/btnVolumeMute"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_button_outline_cyan"
+                        android:contentDescription="Mute"
+                        android:padding="7dp"
+                        android:src="@drawable/ic_volume_off"
+                        android:tint="@color/neon_cyan" />
+
                     <View
                         android:layout_width="0dp"
                         android:layout_height="1dp"
@@ -392,172 +433,6 @@
                         android:text="Reset to 100%"
                         android:textColor="@color/neon_cyan"
                         android:textSize="10sp" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
-
-        <!-- ═══════════════════ FEATURES CARD ═══════════════════ -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="14dp"
-            android:layout_marginEnd="16dp"
-            app:cardBackgroundColor="@color/bg_card"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_apps"
-                        android:tint="@color/neon_pink" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/orbitron_bold"
-                        android:letterSpacing="0.14"
-                        android:paddingStart="8dp"
-                        android:text="AUDIO FEATURES"
-                        android:textColor="@color/text_primary"
-                        android:textSize="11sp" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="horizontal">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                        <ImageButton
-                            android:id="@+id/btnEqualizer"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="@drawable/bg_button_outline_cyan"
-                            android:contentDescription="Equalizer"
-                            android:src="@drawable/ic_equalizer"
-                            android:tint="@color/neon_cyan" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:fontFamily="@font/orbitron_regular"
-                            android:text="Equalizer"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="10sp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                        <ImageButton
-                            android:id="@+id/btnLyrics"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="@drawable/bg_button_outline_pink"
-                            android:contentDescription="Lyrics"
-                            android:src="@drawable/ic_lyrics"
-                            android:tint="@color/neon_pink" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:fontFamily="@font/orbitron_regular"
-                            android:text="Lyrics"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="10sp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                        <ImageButton
-                            android:id="@+id/btnProfiles"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="@drawable/bg_button_outline_orange"
-                            android:contentDescription="Profiles"
-                            android:src="@drawable/ic_person"
-                            android:tint="@color/neon_orange" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:fontFamily="@font/orbitron_regular"
-                            android:text="Profiles"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="10sp" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="8dp">
-
-                        <ImageButton
-                            android:id="@+id/btnSleepTimer"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="@drawable/bg_button_outline_neutral"
-                            android:contentDescription="Sleep Timer"
-                            android:src="@drawable/ic_sleep_timer"
-                            android:tint="@color/text_secondary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:fontFamily="@font/orbitron_regular"
-                            android:text="Sleep"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="10sp" />
-
-                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -946,13 +821,166 @@
 
         </androidx.cardview.widget.CardView>
 
+        <!-- ═══════════════════ A-B REPEAT CARD ═══════════════════ -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginEnd="16dp"
+            app:cardBackgroundColor="@color/bg_card"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_repeat"
+                        android:tint="@color/neon_purple" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:letterSpacing="0.14"
+                        android:paddingStart="8dp"
+                        android:text="A-B REPEAT / LOOP"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:text="LOOP"
+                        android:textColor="@color/text_hint"
+                        android:textSize="8sp" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchLoop"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp"
+                        android:scaleX="0.7"
+                        android:scaleY="0.7" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:text="A-B"
+                        android:textColor="@color/text_hint"
+                        android:textSize="8sp" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchAbRepeat"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:scaleX="0.7"
+                        android:scaleY="0.7" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnSetPointA"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_button_outline_purple"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:stateListAnimator="@null"
+                        android:text="Set A"
+                        android:textColor="@color/neon_purple"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:id="@+id/tvPointA"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:fontFamily="@font/orbitron_regular"
+                        android:text="A: --:--"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnSetPointB"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_button_outline_purple"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:stateListAnimator="@null"
+                        android:text="Set B"
+                        android:textColor="@color/neon_purple"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:id="@+id/tvPointB"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:fontFamily="@font/orbitron_regular"
+                        android:text="B: --:--"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnResetAb"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_button_outline_purple"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:stateListAnimator="@null"
+                        android:text="Reset"
+                        android:textColor="@color/neon_purple"
+                        android:textSize="10sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
         <!-- ═══════════════════ TRIM CARD ═══════════════════ -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
             android:layout_marginTop="14dp"
+            android:layout_marginEnd="16dp"
             android:layout_marginBottom="14dp"
             app:cardBackgroundColor="@color/bg_card"
             app:cardCornerRadius="16dp"
@@ -1187,9 +1215,9 @@
                         android:minHeight="0dp"
                         android:paddingStart="14dp"
                         android:paddingEnd="14dp"
-                        android:textAllCaps="false"
                         android:stateListAnimator="@null"
                         android:text="Reset Trim"
+                        android:textAllCaps="false"
                         android:textColor="@color/text_secondary"
                         android:textSize="10sp" />
 

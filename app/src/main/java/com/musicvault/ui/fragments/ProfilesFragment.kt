@@ -83,7 +83,8 @@ class ProfilesFragment : BottomSheetDialogFragment() {
 
     private fun showProfileDetails(profile: PlaybackProfile) {
         val details = buildString {
-            appendLine("Pitch: ${if (profile.pitchSemitones >= 0) "+${profile.pitchSemitones}" else profile.pitchSemitones} semitones")
+            val p = profile.pitchSemitones
+            appendLine("Pitch: ${if (p >= 0) "+%.1f".format(p) else "%.1f".format(p)} semitones")
             appendLine("Speed: ${"%.2f".format(profile.playbackSpeed)}x")
             appendLine("EQ: ${if (profile.eqEnabled) profile.eqPresetName else "Off"}")
             appendLine("Bass Boost: ${if (profile.bassBoostEnabled) profile.bassBoostStrength else "Off"}")

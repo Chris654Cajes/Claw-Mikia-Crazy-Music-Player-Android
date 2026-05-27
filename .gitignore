@@ -1,16 +1,10 @@
-# Android Studio / IntelliJ
+# IDE
 .idea/
 *.iml
 *.iws
 .project
 .settings
 .classpath
-bin/
-gen/
-out/
-build/
-app/build/
-.gradle/
 .navigation/
 captures/
 .externalNativeBuild
@@ -29,17 +23,26 @@ lint/
 .idea/navEditor.xml
 .idea/deploymentTargetSelector.xml
 
-# Local configuration file (sdk path, etc)
+# Build
+build/
+app/build/
+.gradle/
+bin/
+gen/
+out/
+
+# Local configuration
 local.properties
 
-# Keystore files
+# Keystore
 *.jks
 *.keystore
+*.p12
 
 # Google Services
 google-services.json
 
-# OS generated files
+# OS generated
 .DS_Store
 .DS_Store?
 ._*
@@ -48,7 +51,7 @@ google-services.json
 ehthumbs.db
 Thumbs.db
 
-# Temporary files
+# Temporary / Backup
 *.tmp
 *.temp
 *.swp
@@ -57,25 +60,32 @@ Thumbs.db
 *.bak
 *.backup
 *.orig
+*.log
 
-# Database files
+# Databases
 *.db
 *.sqlite
 *.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
 
-# Kotlin / Java
+# Kotlin / Java / Android
 *.kotlin_module
 *.class
 R.txt
+*.apk
+*.ap_
+*.aab
 
-# Test results
+# Test
 test-results/
 androidTest-results/
 coverage/
 *.coverage
 *.lcov
 
-# Documentation build
+# Documentation
 docs/build/
 
 # Editor specific
@@ -83,7 +93,7 @@ docs/build/
 *.sublime-project
 *.sublime-workspace
 
-# Python (if any scripts are used)
+# Python
 __pycache__/
 *.py[cod]
 *$py.class

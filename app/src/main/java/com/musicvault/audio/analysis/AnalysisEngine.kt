@@ -9,7 +9,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -17,14 +16,13 @@ import kotlinx.coroutines.launch
  * Results are persisted to Room so analysis only runs once per song.
  * Long-running analysis is dispatched on IO via coroutines to avoid ANRs.
  */
-class AnalysisEngine(private val context: Context) {
+class AnalysisEngine(context: Context) {
 
-    private val TAG = "AnalysisEngine"
+    private val tag = "AnalysisEngine"
     private val db = MusicDatabase.getDatabase(context)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private val _analysisProgress = MutableStateFlow<AnalysisProgress>(AnalysisProgress.Idle)
-    val analysisProgress: StateFlow<AnalysisProgress> = _analysisProgress
 
     private val waveformAnalyzer = WaveformAnalyzer(context)
     private val bpmKeyAnalyzer = BpmKeyAnalyzer(context)
@@ -42,42 +40,13 @@ class AnalysisEngine(private val context: Context) {
         scope.launch {
             try {
                 val existing = db.songAnalysisDao().getForSong(songId)
-                if (existing != null && existing.analysisVersion >= CURRENT_VERSION) {
+                if (existing != null && (existing.analysisVersion >= CURRENT_VERSION)) {
                     return@launch
                 }
                 runFullAnalysis(songId, filePath, durationMs)
             } catch (e: Exception) {
-                Log.e(TAG, "Analysis failed for $songId: ${e.message}")
+                Log.e(tag, "Analysis failed for $songId: ${e.message}")
                 _analysisProgress.value = AnalysisProgress.Failed(songId, e.message ?: "unknown")
-            }
-        }
-    }
-
-    /** Force re-analysis even if cached. */
-    fun forceAnalyze(songId: Long, filePath: String, durationMs: Long) {
-        scope.launch {
-            runFullAnalysis(songId, filePath, durationMs)
-        }
-    }
-
-    /** Generates and caches waveform data. */
-    fun generateWaveform(songId: Long, filePath: String) {
-        scope.launch {
-            try {
-                val existing = db.waveformCacheDao().getForSong(songId)
-                if (existing != null) return@launch
-
-                _analysisProgress.value = AnalysisProgress.Analyzing(songId, "Waveform")
-                val amplitudes = waveformAnalyzer.analyze(filePath)
-                val cache = WaveformCache(
-                    songId = songId,
-                    amplitudes = amplitudes.joinToString(",") { "%.4f".format(it) },
-                    sampleCount = amplitudes.size
-                )
-                db.waveformCacheDao().insert(cache)
-                _analysisProgress.value = AnalysisProgress.Done(songId)
-            } catch (e: Exception) {
-                Log.e(TAG, "Waveform generation failed: ${e.message}")
             }
         }
     }
@@ -114,13 +83,9 @@ class AnalysisEngine(private val context: Context) {
 
         _analysisProgress.value = AnalysisProgress.Done(songId)
         Log.d(
-            TAG,
+            tag,
             "Analysis complete for $songId: BPM=${bpmKeyResult.bpm}, Key=${bpmKeyResult.key}"
         )
-    }
-
-    fun cancelAll() {
-        // Jobs in scope are cancelled when the scope is cancelled
     }
 
     companion object {

@@ -28,15 +28,7 @@ class MusicVaultApp : Application() {
         val isDark = prefs.getBoolean(KEY_DARK_MODE, true)
         AppCompatDelegate.setDefaultNightMode(
             if (isDark) AppCompatDelegate.MODE_NIGHT_YES
-            else AppCompatDelegate.MODE_NIGHT_NO
+            else AppCompatDelegate.MODE_NIGHT_NO,
         )
     }
-
-    fun toggleTheme() {
-        val isDark = prefs.getBoolean(KEY_DARK_MODE, true)
-        prefs.edit().putBoolean(KEY_DARK_MODE, !isDark).apply()
-        applyTheme()
-    }
-
-    fun isDarkMode(): Boolean = prefs.getBoolean(KEY_DARK_MODE, true)
 }

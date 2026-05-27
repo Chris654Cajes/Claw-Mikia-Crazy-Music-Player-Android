@@ -40,7 +40,7 @@ class ProfileRepository(private val context: Context) {
             songId = songId,
             name = "Default",
             isActive = true,
-            pitchSemitones = song?.pitchSemitones?.toFloat() ?: 0f,
+            pitchSemitones = song?.pitchSemitones ?: 0f,
             playbackSpeed = song?.playbackSpeed ?: 1.0f,
             volume = song?.volume ?: 1.0f,
             trimStart = song?.trimStart ?: 0L,

@@ -67,7 +67,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun updatePitch(id: Long, pitch: Int) {
+    fun updatePitch(id: Long, pitch: Float) {
         viewModelScope.launch { repository.updatePitchAndSyncProfile(id, pitch) }
     }
 

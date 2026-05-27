@@ -85,6 +85,8 @@ class MusicService : Service() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private var trimWatchdog: Runnable? = null
     private var skipWatchdog: Runnable? = null
+    private var loopWatchdog: Runnable? = null
+    private var abRepeatWatchdog: Runnable? = null
 
     private val sleepTimerHandler = Handler(Looper.getMainLooper())
     private var sleepTimerRunnable: Runnable? = null
@@ -276,8 +278,8 @@ class MusicService : Service() {
                     dspProcessor?.release()
                     dspProcessor =
                         runCatching { DSPProcessor(mp.audioSessionId).also { it.applyProfile(profile) } }.getOrNull()
-                    
-                    applyPlaybackParams(profile.pitchSemitones.toInt(), profile.playbackSpeed)
+
+                    applyPlaybackParams(profile.pitchSemitones, profile.playbackSpeed)
                     applyVolumeInternal(profile)
 
                     val startPos = profile.trimStart.toInt()
@@ -463,11 +465,39 @@ class MusicService : Service() {
             }
             mainHandler.postDelayed(skipWatchdog!!, WATCHDOG_MS)
         }
+        if (profile.loopEnabled && profile.loopStart >= 0 && profile.loopEnd > profile.loopStart) {
+            loopWatchdog = Runnable {
+                val mp = mediaPlayer ?: return@Runnable
+                if (isPrepared && mp.isPlaying) {
+                    val cur = mp.currentPosition.toLong()
+                    if (cur >= profile.loopEnd) {
+                        seekTo(profile.loopStart.toInt())
+                    }
+                }
+                mainHandler.postDelayed(loopWatchdog!!, WATCHDOG_MS)
+            }
+            mainHandler.postDelayed(loopWatchdog!!, WATCHDOG_MS)
+        }
+        if (profile.abRepeatEnabled && profile.abRepeatA >= 0 && profile.abRepeatB > profile.abRepeatA) {
+            abRepeatWatchdog = Runnable {
+                val mp = mediaPlayer ?: return@Runnable
+                if (isPrepared && mp.isPlaying) {
+                    val cur = mp.currentPosition.toLong()
+                    if (cur >= profile.abRepeatB) {
+                        seekTo(profile.abRepeatA.toInt())
+                    }
+                }
+                mainHandler.postDelayed(abRepeatWatchdog!!, WATCHDOG_MS)
+            }
+            mainHandler.postDelayed(abRepeatWatchdog!!, WATCHDOG_MS)
+        }
     }
 
     private fun cancelWatchdogs() {
         trimWatchdog?.let { mainHandler.removeCallbacks(it) }; trimWatchdog = null
         skipWatchdog?.let { mainHandler.removeCallbacks(it) }; skipWatchdog = null
+        loopWatchdog?.let { mainHandler.removeCallbacks(it) }; loopWatchdog = null
+        abRepeatWatchdog?.let { mainHandler.removeCallbacks(it) }; abRepeatWatchdog = null
     }
 
     private fun advanceOrStop() {
@@ -497,7 +527,7 @@ class MusicService : Service() {
         mp.setVolume(finalVol, finalVol)
     }
 
-    private fun applyPlaybackParams(pitchSemitones: Int, speed: Float) {
+    private fun applyPlaybackParams(pitchSemitones: Float, speed: Float) {
         val mp = mediaPlayer ?: return
         if (!isPrepared) return
         runCatching {
@@ -697,7 +727,6 @@ class MusicService : Service() {
     fun getPosition(): Int =
         if (isPrepared) runCatching { mediaPlayer?.currentPosition }.getOrDefault(0) ?: 0 else 0
 
-    fun getCurrentPosition(): Int = getPosition()
     fun getDuration(): Int = if (isPrepared) runCatching { mediaPlayer?.duration }.getOrDefault(0)
         ?: 0 else (currentSong?.duration?.toInt() ?: 0)
     fun getCurrentSong(): Song? = currentSong
@@ -707,7 +736,6 @@ class MusicService : Service() {
         com.musicvault.MusicVaultApp.instance.prefs.edit()
             .putInt(com.musicvault.MusicVaultApp.KEY_REPEAT_MODE, mode).apply()
     }
-    fun getActiveProfile(): PlaybackProfile? = activeProfile
     fun toggleShuffle() {
         shuffleEnabled = !shuffleEnabled; if (shuffleEnabled) rebuildShuffleIndices()
         com.musicvault.MusicVaultApp.instance.prefs.edit()
@@ -718,19 +746,17 @@ class MusicService : Service() {
     private fun rebuildShuffleIndices() {
         if (playlist.isNotEmpty()) shuffledIndices = (playlist.indices).shuffled()
     }
-    fun getLyricsManager(): LyricsManager = lyricsManager
-    fun getAnalysisEngine(): AnalysisEngine = analysisEngine
 
     fun applyProfile(profile: PlaybackProfile) {
         activeProfile = profile
         dspProcessor?.applyProfile(profile)
-        applyPlaybackParams(profile.pitchSemitones.toInt(), profile.playbackSpeed)
+        applyPlaybackParams(profile.pitchSemitones, profile.playbackSpeed)
         applyVolumeInternal(profile)
         if (isPlayingRequested) startWatchdogs(profile)
     }
 
-    fun applyPitchToCurrentSong(s: Int) {
-        activeProfile = activeProfile?.copy(pitchSemitones = s.toFloat()); applyPlaybackParams(
+    fun applyPitchToCurrentSong(s: Float) {
+        activeProfile = activeProfile?.copy(pitchSemitones = s); applyPlaybackParams(
             s,
             activeProfile?.playbackSpeed ?: 1f
         )
@@ -738,7 +764,7 @@ class MusicService : Service() {
 
     fun applySpeedToCurrentSong(s: Float) {
         activeProfile = activeProfile?.copy(playbackSpeed = s); applyPlaybackParams(
-            activeProfile?.pitchSemitones?.toInt() ?: 0, s
+            activeProfile?.pitchSemitones ?: 0f, s
         )
     }
 
@@ -754,33 +780,18 @@ class MusicService : Service() {
         notifyPlayState(isPlayingRequested)
     }
 
-    fun setSleepTimer(ms: Long) {
-        cancelSleepTimer()
-        sleepTimerEndMs = System.currentTimeMillis() + ms
-        sleepTimerRunnable = Runnable { pause(); sleepTimerEndMs = -1L }
-        sleepTimerHandler.postDelayed(sleepTimerRunnable!!, ms)
+    fun applyLoopToCurrentSong(start: Long, end: Long, enabled: Boolean) {
+        activeProfile = activeProfile?.copy(loopStart = start, loopEnd = end, loopEnabled = enabled)
+        if (isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
+    }
+
+    fun applyAbRepeatToCurrentSong(a: Long, b: Long, enabled: Boolean) {
+        activeProfile = activeProfile?.copy(abRepeatA = a, abRepeatB = b, abRepeatEnabled = enabled)
+        if (isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
     }
 
     fun cancelSleepTimer() {
         sleepTimerRunnable?.let { sleepTimerHandler.removeCallbacks(it) }; sleepTimerRunnable =
             null; sleepTimerEndMs = -1L
-    }
-
-    fun getSleepTimerRemainingMs(): Long {
-        if (sleepTimerEndMs < 0) return -1L; return (sleepTimerEndMs - System.currentTimeMillis()).coerceAtLeast(
-            0L
-        )
-    }
-
-    fun reloadActiveProfile() {
-        val s = currentSong ?: return
-        serviceScope.launch {
-            val profile =
-                withContext(Dispatchers.IO) { profileRepository.getOrCreateActiveProfile(s.id) }
-            val regions =
-                withContext(Dispatchers.IO) { profileRepository.getEnabledSkipRegions(s.id) }
-            activeProfile = profile; skipRegions = regions
-            applyProfile(profile)
-        }
     }
 }

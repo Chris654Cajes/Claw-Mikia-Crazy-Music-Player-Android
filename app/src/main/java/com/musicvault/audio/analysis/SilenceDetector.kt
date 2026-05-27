@@ -15,13 +15,13 @@ import kotlin.math.sqrt
  */
 class SilenceDetector(private val context: Context) {
 
-    private val TAG = "SilenceDetector"
+    private val tag = "SilenceDetector"
 
     data class SilenceResult(
         val silenceRegions: List<Pair<Long, Long>>,   // (startMs, endMs)
         val suggestedLoopStart: Long,
         val suggestedLoopEnd: Long,
-        val chorusTimestamps: List<Long>
+        val chorusTimestamps: List<Long>,
     )
 
     suspend fun detect(filePath: String, durationMs: Long): SilenceResult =
@@ -29,7 +29,7 @@ class SilenceDetector(private val context: Context) {
             try {
                 detectInternal(filePath, durationMs)
             } catch (e: Exception) {
-                Log.w(TAG, "Silence detection failed: ${e.message}")
+                Log.w(tag, "Silence detection failed: ${e.message}")
                 SilenceResult(emptyList(), -1L, -1L, emptyList())
             }
         }
@@ -58,11 +58,12 @@ class SilenceDetector(private val context: Context) {
                 if (bytes <= 0) break
                 val timeMs = extractor.sampleTime / 1000
                 var rms = 0.0
-                for (j in 0 until bytes / 2) {
+                val nSamples = bytes / 2
+                for (j in 0 until nSamples) {
                     val s = (buffer[j * 2 + 1].toInt() shl 8) or (buffer[j * 2].toInt() and 0xFF)
                     rms += s.toDouble() * s
                 }
-                frameEnergyMs.add(Pair(timeMs, sqrt(rms / (bytes / 2)).toFloat()))
+                frameEnergyMs.add(Pair(timeMs, sqrt(rms / nSamples).toFloat()))
                 extractor.advance()
                 if (frameEnergyMs.size > 5000) break
             }

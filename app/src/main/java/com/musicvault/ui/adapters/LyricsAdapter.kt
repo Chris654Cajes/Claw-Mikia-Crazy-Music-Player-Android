@@ -41,10 +41,13 @@ class LyricsAdapter : ListAdapter<LyricLine, LyricsAdapter.ViewHolder>(DIFF) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val textView = TextView(parent.context)
-        textView.layoutParams = ViewGroup.MarginLayoutParams(
+        textView.layoutParams = RecyclerView.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT,
-        ).apply { setMargins(0, 4, 0, 4) }
+        ).apply {
+            topMargin = 4
+            bottomMargin = 4
+        }
         textView.setPadding(24, 10, 24, 10)
         textView.textSize = 16f
         textView.gravity = android.view.Gravity.CENTER

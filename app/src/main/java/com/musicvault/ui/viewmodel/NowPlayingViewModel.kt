@@ -1,14 +1,22 @@
 package com.musicvault.ui.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.*
-import com.musicvault.audio.analysis.AnalysisEngine
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.switchMap
+import androidx.lifecycle.viewModelScope
 import com.musicvault.data.db.MusicDatabase
-import com.musicvault.data.model.*
+import com.musicvault.data.model.EqPreset
+import com.musicvault.data.model.LyricLine
+import com.musicvault.data.model.LyricsMeta
+import com.musicvault.data.model.PlaybackProfile
+import com.musicvault.data.model.SkipRegion
+import com.musicvault.data.model.Song
+import com.musicvault.data.model.SongAnalysis
 import com.musicvault.data.repository.PlaylistRepository
 import com.musicvault.data.repository.ProfileRepository
 import com.musicvault.data.repository.SongRepository
-import com.musicvault.lyrics.LyricsManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -57,6 +65,9 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
     // ─── Lyrics ───────────────────────────────────────────────────────────────
     private val _lyrics = MutableLiveData<List<LyricLine>>(emptyList())
     val lyrics: LiveData<List<LyricLine>> = _lyrics
+
+    private val _lyricsMeta = MutableLiveData<LyricsMeta?>(null)
+    val lyricsMeta: LiveData<LyricsMeta?> = _lyricsMeta
 
     private val _currentLyricLine = MutableLiveData<LyricLine?>()
     val currentLyricLine: LiveData<LyricLine?> = _currentLyricLine
@@ -121,7 +132,9 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
 
             // Load lyrics
             val lines = withContext(Dispatchers.IO) { db.lyricsDao().getLinesSync(songId) }
+            val meta = withContext(Dispatchers.IO) { db.lyricsDao().getMeta(songId) }
             _lyrics.value = lines
+            _lyricsMeta.value = meta
             _hasLyrics.value = lines.isNotEmpty()
         }
     }

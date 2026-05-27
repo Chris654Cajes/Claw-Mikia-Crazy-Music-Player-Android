@@ -97,10 +97,12 @@ class SongAdapter(
 
             // Pitch/Trim/Speed badges
             binding.tvPitchBadge.visibility =
-                if (song.pitchSemitones != 0) View.VISIBLE else View.GONE
-            if (song.pitchSemitones != 0) {
+                if (song.pitchSemitones != 0f) View.VISIBLE else View.GONE
+            if (song.pitchSemitones != 0f) {
                 binding.tvPitchBadge.text =
-                    if (song.pitchSemitones > 0) "+${song.pitchSemitones}" else "${song.pitchSemitones}"
+                    if (song.pitchSemitones > 0) "+%.1f".format(song.pitchSemitones) else "%.1f".format(
+                        song.pitchSemitones
+                    )
             }
             binding.ivTrimBadge.visibility =
                 if (song.trimStart > 0 || (song.trimEnd > 0 && song.trimEnd < song.duration)) View.VISIBLE else View.GONE

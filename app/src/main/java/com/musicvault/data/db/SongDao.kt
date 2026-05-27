@@ -44,7 +44,7 @@ interface SongDao {
     fun getDistinctFolders(): LiveData<List<FolderInfo>>
 
     @Query("UPDATE songs SET pitchSemitones = :pitch WHERE id = :id")
-    suspend fun updatePitch(id: Long, pitch: Int)
+    suspend fun updatePitch(id: Long, pitch: Float)
 
     @Query("UPDATE songs SET playbackSpeed = :speed WHERE id = :id")
     suspend fun updateSpeed(id: Long, speed: Float)

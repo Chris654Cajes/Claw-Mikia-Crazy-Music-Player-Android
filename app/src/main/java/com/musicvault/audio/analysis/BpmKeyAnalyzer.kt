@@ -17,7 +17,7 @@ import kotlin.math.*
  */
 class BpmKeyAnalyzer(private val context: Context) {
 
-    private val TAG = "BpmKeyAnalyzer"
+    private val tag = "BpmKeyAnalyzer"
 
     data class AnalysisResult(
         val bpm: Float,
@@ -30,22 +30,24 @@ class BpmKeyAnalyzer(private val context: Context) {
         try {
             analyzeInternal(filePath)
         } catch (e: Exception) {
-            Log.w(TAG, "BPM/Key analysis failed: ${e.message}")
+            Log.w(tag, "BPM/Key analysis failed: ${e.message}")
             AnalysisResult(0f, 0f, "", 0f)
         }
     }
 
     private fun analyzeInternal(filePath: String): AnalysisResult {
         val mmr = MediaMetadataRetriever()
-        mmr.setDataSource(context, Uri.parse(filePath))
-
-        // Try BPM from metadata first (some files embed it)
-        mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
-        mmr.release()
+        try {
+            mmr.setDataSource(context, Uri.parse(filePath))
+            // Try BPM from metadata first (some files embed it)
+            mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+        } finally {
+            mmr.release()
+        }
 
         // Compute via energy envelope autocorrelation
         val bpmResult = estimateBpmFromEnergy(filePath)
-        val keyResult = estimateKey(filePath)
+        val keyResult = estimateKey()
 
         return AnalysisResult(
             bpm = bpmResult.first,
@@ -83,11 +85,12 @@ class BpmKeyAnalyzer(private val context: Context) {
                 bytesRead = extractor.readSampleData(bb, 0)
                 if (bytesRead <= 0) break
                 var rms = 0.0
-                for (j in 0 until bytesRead / 2) {
+                val nSamples = bytesRead / 2
+                for (j in 0 until nSamples) {
                     val s = (buffer[j * 2 + 1].toInt() shl 8) or (buffer[j * 2].toInt() and 0xFF)
                     rms += s.toDouble() * s
                 }
-                energies.add(sqrt(rms / (bytesRead / 2)).toFloat())
+                energies.add(sqrt(rms / nSamples).toFloat())
                 extractor.advance()
                 if (energies.size > 3000) break // cap at 30 seconds
             }
@@ -122,35 +125,13 @@ class BpmKeyAnalyzer(private val context: Context) {
         }
     }
 
-    private fun estimateKey(filePath: String): Pair<String, Float> {
+    private fun estimateKey(): Pair<String, Float> {
         // Simplified chroma-based key detection using Krumhansl-Schmuckler profiles
         val majorProfile = floatArrayOf(
-            6.35f,
-            2.23f,
-            3.48f,
-            2.33f,
-            4.38f,
-            4.09f,
-            2.52f,
-            5.19f,
-            2.39f,
-            3.66f,
-            2.29f,
-            2.88f
+            6.35f, 2.23f, 3.48f, 2.33f, 4.38f, 4.09f, 2.52f, 5.19f, 2.39f, 3.66f, 2.29f, 2.88f
         )
         val minorProfile = floatArrayOf(
-            6.33f,
-            2.68f,
-            3.52f,
-            5.38f,
-            2.60f,
-            3.53f,
-            2.54f,
-            4.75f,
-            3.98f,
-            2.69f,
-            3.34f,
-            3.17f
+            6.33f, 2.68f, 3.52f, 5.38f, 2.60f, 3.53f, 2.54f, 4.75f, 3.98f, 2.69f, 3.34f, 3.17f
         )
         val noteNames = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
 
@@ -185,8 +166,16 @@ class BpmKeyAnalyzer(private val context: Context) {
     private fun pearsonCorrelation(x: FloatArray, y: FloatArray): Float {
         val n = minOf(x.size, y.size)
         if (n == 0) return 0f
-        val mx = x.take(n).average().toFloat()
-        val my = y.take(n).average().toFloat()
+
+        var sumX = 0f
+        var sumY = 0f
+        for (i in 0 until n) {
+            sumX += x[i]
+            sumY += y[i]
+        }
+        val mx = sumX / n
+        val my = sumY / n
+
         var num = 0f
         var dx = 0f
         var dy = 0f

@@ -23,7 +23,6 @@ import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import com.musicvault.MusicVaultApp
 import com.musicvault.R
-import com.musicvault.data.model.Playlist
 import com.musicvault.data.model.Song
 import com.musicvault.databinding.ActivityMainBinding
 import com.musicvault.service.MusicService
@@ -117,7 +116,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.isPlaying.observe(this) { isPlaying ->
             binding.musicPanel.btnPlayPause.setImageResource(
-                if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+                if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
             )
         }
     }
@@ -190,7 +189,7 @@ class MainActivity : AppCompatActivity() {
         // Play controls
         binding.musicPanel.btnPlayPause.setOnClickListener {
             android.util.Log.d("MainActivity", "Play/pause button clicked")
-            if (serviceBound && musicService != null) {
+            if (serviceBound && (musicService != null)) {
                 musicService?.togglePlayPause()
             } else {
                 android.util.Log.w("MainActivity", "Service not bound when play/pause clicked")
@@ -335,12 +334,11 @@ class MainActivity : AppCompatActivity() {
                 message = "This will remove all songs from the library database.\n\n" +
                         "Your actual MP3 files will NOT be deleted from your device.\n\n" +
                         "You can re-scan your folder at any time to rebuild the library.",
-                onPositive = {
-                    // Pause playback before wiping the list
-                    if (musicService?.isPlaying() == true) musicService?.togglePlayPause()
-                    viewModel.resetLibrary()
-                },
-            )
+            ) {
+                // Pause playback before wiping the list
+                if (musicService?.isPlaying() == true) musicService?.togglePlayPause()
+                viewModel.resetLibrary()
+            }
         }
     }
 
@@ -475,6 +473,7 @@ class MainActivity : AppCompatActivity() {
             } ?: run {
                 android.util.Log.d("MainActivity", "Service still null, retrying after delay")
                 // If service is still null, try again after a delay
+
                 progressHandler.postDelayed({
                     musicService?.setPlaylist(list, idx)
                     viewModel.setPlaying(true)

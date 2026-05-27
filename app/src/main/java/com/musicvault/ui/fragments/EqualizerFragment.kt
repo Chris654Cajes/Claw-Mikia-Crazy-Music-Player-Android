@@ -211,18 +211,25 @@ class EqualizerFragment : BottomSheetDialogFragment() {
         bandSliders.map { (it?.progress ?: 15) - 15 }
 
     private fun commitEqChange(presetName: String = "Custom") {
-        val profileId = viewModel.activeProfile.value?.id ?: return
+        val currentProfile = viewModel.activeProfile.value ?: return
         val bands = getCurrentBands()
         val enabled = eqEnabledSwitch?.isChecked ?: false
         val name = if (bands.all { it == 0 }) "Flat" else presetName
-        viewModel.updateEq(profileId, bands, name, enabled)
-        onApplyCallback?.invoke(viewModel.activeProfile.value ?: return)
+
+        viewModel.updateEq(currentProfile.id, bands, name, enabled)
+
+        // Pass the updated values immediately to avoid stale state from ViewModel async update
+        val updatedProfile = currentProfile.copy(
+            eqBands = bands.joinToString(","),
+            eqPresetName = name,
+            eqEnabled = enabled
+        )
+        onApplyCallback?.invoke(updatedProfile)
     }
 
     private fun commitEffectsChange() {
-        val profileId = viewModel.activeProfile.value?.id ?: return
-        val profile = viewModel.activeProfile.value ?: return
-        val updated = profile.copy(
+        val currentProfile = viewModel.activeProfile.value ?: return
+        val updated = currentProfile.copy(
             bassBoostStrength = bassBoostSlider?.progress ?: 0,
             bassBoostEnabled = bassBoostSwitch?.isChecked ?: false,
             reverbPreset = (reverbSpinner?.selectedItemPosition ?: 0) - 1,
@@ -231,7 +238,7 @@ class EqualizerFragment : BottomSheetDialogFragment() {
             loudnessEnabled = loudnessSwitch?.isChecked ?: false
         )
         viewModel.updateEq(
-            profileId, updated.eqBandList(), updated.eqPresetName, updated.eqEnabled
+            currentProfile.id, updated.eqBandList(), updated.eqPresetName, updated.eqEnabled
         )
         onApplyCallback?.invoke(updated)
     }

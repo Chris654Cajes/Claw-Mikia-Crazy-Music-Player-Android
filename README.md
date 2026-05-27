@@ -1,78 +1,64 @@
-# MusicVault (Claw Mikia) - Android Music Player
+# MusicVault (Claw Mikia)
 
-[![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com/)
-[![Language](https://img.shields.io/badge/Language-Kotlin-blue.svg)](https://kotlinlang.org/)
-[![Min SDK](https://img.shields.io/badge/Min%20SDK-26-orange.svg)](https://developer.android.com/about/versions/oreo/android-8.0.html)
-[![Target SDK](https://img.shields.io/badge/Target%20SDK-35-green.svg)](https://developer.android.com/about/versions/15)
+**MusicVault** is a high-performance Android music player designed for audiophiles and power users.
+Built with Kotlin and modern architecture, it provides advanced audio processing capabilities and a
+sleek, dynamic user interface.
 
-**MusicVault** (Claw Mikia) is a modern, high-performance music player for Android, designed with a
-focus on audio quality and user experience. It features advanced audio controls like pitch shifting,
-playback speed adjustment, and a built-in equalizer.
+## 🎵 Key Features
 
-## 🎵 Features
+### 🎧 Professional Audio Engine
 
-### Core Features
+- **DSP Processor**: Real-time control over Equalizer (10-band), Bass Boost, Reverb, and Loudness
+  Enhancement.
+- **Pitch & Speed Control**: Independent adjustment of playback speed (0.5x - 2.0x) and pitch (-12
+  to +12 semitones).
+- **A-B Repeat**: Easily loop specific sections of a track for practice or study.
+- **Timeline Trim**: Non-destructive start and end point trimming.
 
-- **Local Music Library** - Automatically scans and organizes your music by song, artist, album, and
-  folder.
-- **Dynamic Theming** - UI colors adapt to the currently playing album art using the Palette API.
-- **Advanced Audio Controls** - Pitch shifting (-6 to +6 semitones), speed control (0.5x to 2.0x),
-  and audio trimming.
-- **Lyrics Support** - View and edit lyrics directly within the app.
-- **Playlists & Favorites** - Create custom playlists and quickly mark tracks as favorites.
-- **Smart Metadata** - Fetches missing album art and metadata from MusicBrainz and Cover Art
-  Archive.
+### 📊 Advanced Analysis
 
-### User Experience
+- **BPM & Key Detection**: Automatically analyzes tracks to determine their tempo and musical key.
+- **Waveform Visualization**: Interactive waveform rendering for precise navigation and trimming.
+- **Silence Detection**: Smart analysis to identify and skip silence in tracks.
 
-- **Material Design 3** - A clean, modern interface following the latest Android design guidelines.
-- **Seamless Background Playback** - Reliable playback with foreground services and media session
-  integration.
-- **Notification Controls** - Control your music from the lock screen and notification shade.
-- **Sleep Timer** - Automatically stop music after a set duration.
-- **Profile Management** - Save and switch between different audio profiles and settings.
+### 📱 Smart Interface
 
-## 🚀 Getting Started
+- **Dynamic Theming**: The UI adapts its color palette based on the currently playing album art
+  using the Palette API.
+- **Library Management**: Organized view by Songs, Folders, Playlists, and Favorites.
+- **Lyrics Support**: Synchronized .lrc support with an integrated editor.
+
+## 🚀 Tech Stack
+
+- **Language**: [Kotlin](https://kotlinlang.org/)
+- **Architecture**: MVVM + Repository Pattern
+- **UI**: Material Components, ViewBinding, ConstraintLayout
+- **Database**: [Room](https://developer.android.com/training/data-storage/room) (SQLite)
+- **Audio**: Android MediaSession, AudioEffect API
+- **Concurrency**: Coroutines & Flow
+- **Image Loading**: [Glide](https://github.com/bumptech/glide)
+
+## 🛠️ Getting Started
 
 ### Prerequisites
 
-- Android Studio Ladybug or later
+- Android Studio Ladybug or newer
 - JDK 17
-- Android SDK 35+
+- Android SDK 35 (Target) / 26 (Min)
 
 ### Installation
-
 1. Clone the repository:
    ```bash
    git clone https://github.com/Chris654Cajes/Claw-Mikia-Crazy-Music-Player-Android-.git
    ```
 2. Open the project in Android Studio.
-3. Sync Gradle and run the `app` module.
+3. Sync Gradle and run on your device.
 
-## 🛠️ Tech Stack
+## 🛡️ Quality & Security
 
-- **Language**: [Kotlin](https://kotlinlang.org/)
-- **Architecture**: MVVM with Repository Pattern
-- **UI**: ViewBinding, Material 3, Palette API, ViewPager2
-- **Database**: Room Persistence Library
-- **Asynchrony**: Coroutines & Flow
-- **Network**: OkHttp 4.x
-- **Image Loading**: Glide 4.x
-- **Dependency Injection**: Manual / Simple Singleton Pattern
-
-## 🛡️ Security & Quality
-
-We prioritize security and stability by using only official and well-maintained libraries:
-
-- **AndroidX & Google**: Core app functionality and UI components.
-- **JetBrains**: Kotlin standard library and coroutines.
-- **Square (OkHttp)**: Reliable and secure networking.
-- **Glide**: Efficient and safe image processing.
-
-All dependencies are regularly audited for security vulnerabilities and performance issues.
-
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- **Official Dependencies**: Uses standard AndroidX and Google libraries.
+- **Safe Storage**: Uses Scoped Storage and MediaStore for privacy.
+- **Performance**: Optimized background services for low-latency playback.
 
 ---
-*Music is the soundtrack of your life. Enjoy it with MusicVault.*
+*Created with passion by the MusicVault Team.*
