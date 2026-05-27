@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace 'com.musicvault'
+    namespace 'com.mochimochi.clawmikia'
     compileSdk 35
 
     defaultConfig {
-        applicationId "com.musicvault"
+        applicationId "com.mochimochi.clawmikia"
         minSdk 26
         targetSdk 35
         versionCode 2

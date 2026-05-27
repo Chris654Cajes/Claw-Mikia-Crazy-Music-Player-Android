@@ -1,5 +1,5 @@
--keep class com.musicvault.data.model.** { *; }
--keep class com.musicvault.data.db.** { *; }
+-keep class com.mochimochi.clawmikia.data.model.** { *; }
+-keep class com.mochimochi.clawmikia.data.db.** { *; }
 -keepattributes Signature
 -keepattributes *Annotation*
 -dontwarn kotlin.**
