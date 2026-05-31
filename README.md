@@ -2,7 +2,7 @@
 
 **MusicVault** is a high-performance Android music player designed for audiophiles and power users.
 Built with Kotlin and modern architecture, it provides advanced audio processing capabilities and a
-sleek, dynamic user interface.
+sleek, cyberpunk-inspired dynamic user interface.
 
 ## 🎵 Key Features
 
@@ -10,10 +10,13 @@ sleek, dynamic user interface.
 
 - **DSP Processor**: Real-time control over Equalizer (10-band), Bass Boost, Reverb, and Loudness
   Enhancement.
-- **Pitch & Speed Control**: Independent adjustment of playback speed (0.5x - 2.0x) and pitch (-12
-  to +12 semitones).
-- **A-B Repeat**: Easily loop specific sections of a track for practice or study.
-- **Timeline Trim**: Non-destructive start and end point trimming.
+- **Pitch & Speed Control**: Independent adjustment of playback speed (0.5x - 2.0x) and pitch (-6.0
+  to +6.0 semitones) with high-precision increments and instant reset capabilities.
+- **A-B Repeat**: Easily loop specific sections of a track for practice or study with precision Set
+  A/B markers.
+- **Timeline Trim**: Non-destructive start and end point trimming with ±10s precision adjustments.
+- **Volume Management**: Fine-grained volume control (0-100%) with a dedicated mute and 100% reset
+  shortcut.
 - **Sleep Timer**: Schedule playback to stop automatically with a customizable timer.
 - **Profile Management**: Create and switch between custom audio profiles for different hardware or
   environments.
@@ -27,17 +30,21 @@ sleek, dynamic user interface.
 
 ### 📱 Smart Interface
 
+- **Neon Aesthetic**: A futuristic, high-contrast UI with vibrant neon accents (Cyan, Pink, Green,
+  Orange, Purple).
 - **Dynamic Theming**: The UI adapts its color palette based on the currently playing album art
   using the Palette API.
 - **Library Management**: Organized view by Songs, Folders, Playlists, and Favorites.
-- **Lyrics Support**: Synchronized .lrc support with an integrated editor and save capabilities.
-- **Precision Controls**: High-accuracy adjustment buttons for volume, pitch, speed, and trimming.
+- **Lyrics Support**: Synchronized .lrc support with an integrated editor, "Karaoke Mode," and
+  manual fetch capabilities.
+- **Precision Controls**: High-accuracy adjustment buttons and instant reset toggles for all audio
+  parameters.
 
 ## 🚀 Tech Stack
 
 - **Language**: [Kotlin](https://kotlinlang.org/)
 - **Architecture**: MVVM + Repository Pattern
-- **UI**: Material 3, ViewBinding, ConstraintLayout
+- **UI**: Material 3, ViewBinding, ConstraintLayout, Custom Canvas Drawing
 - **Database**: [Room](https://developer.android.com/training/data-storage/room) (SQLite)
 - **Audio**: Android MediaSession, AudioEffect API
 - **Concurrency**: Coroutines & Flow
