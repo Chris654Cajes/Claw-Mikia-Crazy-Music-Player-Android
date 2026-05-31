@@ -37,6 +37,18 @@
             android:textColor="@color/text_primary"
             android:textSize="18sp" />
 
+        <CheckBox
+            android:id="@+id/cbSelectAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="16dp"
+            android:layout_toEndOf="@id/tvTitle"
+            android:fontFamily="@font/orbitron_regular"
+            android:text="All"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+
         <Button
             android:id="@+id/btnAdd"
             style="@style/Widget.Material3.Button.TextButton"

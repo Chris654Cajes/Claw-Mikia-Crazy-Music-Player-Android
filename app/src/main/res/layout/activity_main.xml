@@ -4,8 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_primary"
-    android:fitsSystemWindows="false">
+    android:background="@color/bg_primary">
 
     <!-- Top app bar pinned, padded for status bar -->
     <com.google.android.material.appbar.AppBarLayout
@@ -49,6 +48,16 @@
                     android:textColor="@color/text_primary"
                     android:paddingStart="10dp" />
 
+                <!-- Export library button -->
+                <ImageButton
+                    android:id="@+id/btnExport"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Export library"
+                    android:src="@drawable/ic_save"
+                    android:tint="@color/neon_green" />
+
                 <!-- Reset library button (trash icon) -->
                 <ImageButton
                     android:id="@+id/btnReset"
@@ -69,6 +78,16 @@
                     android:tint="@color/neon_cyan"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="Add music folder" />
+
+                <!-- Scan / add specific files -->
+                <ImageButton
+                    android:id="@+id/btnScanFiles"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Add music files"
+                    android:src="@drawable/ic_music_note"
+                    android:tint="@color/neon_yellow" />
 
             </LinearLayout>
 
@@ -114,7 +133,7 @@
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="559dp"
+        android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
     <!-- Mini music panel + bottom nav stacked at bottom -->
@@ -123,8 +142,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_gravity="bottom"
-        android:fitsSystemWindows="true">
+        android:layout_gravity="bottom">
 
         <!-- Mini player -->
         <include

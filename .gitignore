@@ -33,6 +33,7 @@ out/
 
 # Local configuration
 local.properties
+secrets.properties
 
 # Keystore
 *.jks
@@ -77,6 +78,7 @@ R.txt
 *.apk
 *.ap_
 *.aab
+*.aar
 
 # Test
 test-results/

@@ -14,29 +14,35 @@ sleek, dynamic user interface.
   to +12 semitones).
 - **A-B Repeat**: Easily loop specific sections of a track for practice or study.
 - **Timeline Trim**: Non-destructive start and end point trimming.
+- **Sleep Timer**: Schedule playback to stop automatically with a customizable timer.
+- **Profile Management**: Create and switch between custom audio profiles for different hardware or
+  environments.
 
 ### 📊 Advanced Analysis
 
 - **BPM & Key Detection**: Automatically analyzes tracks to determine their tempo and musical key.
 - **Waveform Visualization**: Interactive waveform rendering for precise navigation and trimming.
 - **Silence Detection**: Smart analysis to identify and skip silence in tracks.
+- **Song Analysis**: Detailed technical breakdown of your music library.
 
 ### 📱 Smart Interface
 
 - **Dynamic Theming**: The UI adapts its color palette based on the currently playing album art
   using the Palette API.
 - **Library Management**: Organized view by Songs, Folders, Playlists, and Favorites.
-- **Lyrics Support**: Synchronized .lrc support with an integrated editor.
+- **Lyrics Support**: Synchronized .lrc support with an integrated editor and save capabilities.
+- **Precision Controls**: High-accuracy adjustment buttons for volume, pitch, speed, and trimming.
 
 ## 🚀 Tech Stack
 
 - **Language**: [Kotlin](https://kotlinlang.org/)
 - **Architecture**: MVVM + Repository Pattern
-- **UI**: Material Components, ViewBinding, ConstraintLayout
+- **UI**: Material 3, ViewBinding, ConstraintLayout
 - **Database**: [Room](https://developer.android.com/training/data-storage/room) (SQLite)
 - **Audio**: Android MediaSession, AudioEffect API
 - **Concurrency**: Coroutines & Flow
 - **Image Loading**: [Glide](https://github.com/bumptech/glide)
+- **Annotation Processing**: [KSP](https://kotlinlang.org/docs/ksp-overview.html)
 
 ## 🛠️ Getting Started
 

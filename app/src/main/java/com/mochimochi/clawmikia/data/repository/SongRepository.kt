@@ -31,6 +31,19 @@ class SongRepository(private val context: Context) {
         songs.size
     }
 
+    suspend fun scanFiles(uris: List<Uri>): Int = withContext(Dispatchers.IO) {
+        val songs = mutableListOf<Song>()
+        uris.forEach { uri ->
+            val docFile = DocumentFile.fromSingleUri(context, uri) ?: return@forEach
+            if (docFile.isFile && docFile.name?.lowercase()?.endsWith(".mp3") == true) {
+                val song = extractSongMeta(docFile, "Imported", "Imported")
+                if (song != null) songs.add(song)
+            }
+        }
+        songDao.insertAll(songs)
+        songs.size
+    }
+
     private fun scanDocumentFile(
         dir: DocumentFile,
         songs: MutableList<Song>,

@@ -127,6 +127,11 @@ class NowPlayingActivity : AppCompatActivity() {
             registerCallbacks()
             syncNow()
             startProgressUpdates()
+
+            // Sync the playback state switch
+            val isBypassing = it.isBypassingProfiles()
+            binding.switchPlaybackState.isChecked = !isBypassing
+            updateStateLabels(!isBypassing)
         }
         syncVolumeSeekBar()
     }
@@ -275,6 +280,11 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.btnPlayPause.setImageResource(
             if (svc.isPlaying()) R.drawable.ic_pause else R.drawable.ic_play
         )
+
+        val isBypassing = svc.isBypassingProfiles()
+        binding.switchPlaybackState.isChecked = !isBypassing
+        updateStateLabels(!isBypassing)
+
         val cur = svc.getCurrentSong() ?: return
         songId = cur.id
         populate(cur)
@@ -354,6 +364,12 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun setupControls() {
         binding.btnBack.setOnClickListener { finish() }
         binding.btnPlayPause.setOnClickListener { musicService?.togglePlayPause() }
+
+        binding.switchPlaybackState.setOnCheckedChangeListener { _, checked ->
+            musicService?.setBypassProfiles(!checked)
+            viewModel.setOriginalState(!checked)
+            updateStateLabels(checked)
+        }
 
         binding.btnNext.setOnClickListener {
             musicService?.skipNext()
@@ -776,6 +792,16 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun saveAbRepeat() {
         viewModel.activeProfile.value?.let { profile ->
             viewModel.updateAbRepeat(profile.id, pointA, pointB, isAbRepeatEnabled)
+        }
+    }
+
+    private fun updateStateLabels(isUpdated: Boolean) {
+        if (isUpdated) {
+            binding.tvStateUpdated.setTextColor(ContextCompat.getColor(this, R.color.neon_cyan))
+            binding.tvStateOriginal.setTextColor(ContextCompat.getColor(this, R.color.text_hint))
+        } else {
+            binding.tvStateUpdated.setTextColor(ContextCompat.getColor(this, R.color.text_hint))
+            binding.tvStateOriginal.setTextColor(ContextCompat.getColor(this, R.color.neon_pink))
         }
     }
 

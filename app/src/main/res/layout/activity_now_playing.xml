@@ -5,13 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_primary"
-    android:fitsSystemWindows="false">
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="52dp"
         android:paddingBottom="40dp">
 
         <!-- Header row -->
@@ -68,7 +67,7 @@
             android:layout_width="220dp"
             android:layout_height="220dp"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="20dp"
             android:layout_marginBottom="24dp">
 
             <View
@@ -1222,6 +1221,66 @@
                         android:textSize="10sp" />
 
                 </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Playback State Toggle (Original vs Updated) -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="14dp"
+            app:cardBackgroundColor="@color/bg_card"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:letterSpacing="0.14"
+                    android:text="PLAYBACK STATE"
+                    android:textColor="@color/text_primary"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/tvStateOriginal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:text="ORIGINAL"
+                    android:textColor="@color/text_hint"
+                    android:textSize="9sp" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchPlaybackState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:scaleX="0.8"
+                    android:scaleY="0.8" />
+
+                <TextView
+                    android:id="@+id/tvStateUpdated"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:text="UPDATED"
+                    android:textColor="@color/neon_cyan"
+                    android:textSize="9sp" />
 
             </LinearLayout>
 

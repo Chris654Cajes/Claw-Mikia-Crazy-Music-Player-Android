@@ -67,6 +67,7 @@ class MusicService : Service() {
     private var repeatMode = REPEAT_NONE
     private var shuffleEnabled = false
     private var shuffledIndices: List<Int> = emptyList()
+    private var bypassProfiles = false
 
     private var mediaSession: MediaSessionCompat? = null
     private var currentSongJob: Job? = null
@@ -279,19 +280,29 @@ class MusicService : Service() {
 
                     dspProcessor?.release()
                     dspProcessor =
-                        runCatching { DSPProcessor(mp.audioSessionId).also { it.applyProfile(profile) } }.getOrNull()
+                        runCatching {
+                            DSPProcessor(mp.audioSessionId).also {
+                                if (!bypassProfiles) it.applyProfile(profile)
+                                else it.disableAll()
+                            }
+                        }.getOrNull()
 
-                    applyPlaybackParams(profile.pitchSemitones, profile.playbackSpeed)
-                    applyVolumeInternal(profile)
+                    if (!bypassProfiles) {
+                        applyPlaybackParams(profile.pitchSemitones, profile.playbackSpeed)
+                        applyVolumeInternal(profile)
+                    } else {
+                        applyPlaybackParams(0f, 1f)
+                        mp.setVolume(1f, 1f)
+                    }
 
-                    val startPos = profile.trimStart.toInt()
+                    val startPos = if (bypassProfiles) 0 else profile.trimStart.toInt()
                     if (startPos > 0) mp.seekTo(startPos)
 
                     if (isPlayingRequested) {
                         if (requestAudioFocus()) {
                             mp.start()
                             notifyPlayState(true)
-                            startWatchdogs(profile)
+                            if (!bypassProfiles) startWatchdogs(profile)
                         } else {
                             isPlayingRequested = false; notifyPlayState(false)
                         }
@@ -308,18 +319,7 @@ class MusicService : Service() {
                             true
                         )
                     }
-                    when (repeatMode) {
-                        REPEAT_ONE -> playCurrent(forceReload = true)
-                        REPEAT_ALL -> {
-                            advanceIndex()
-                            playCurrent(forceReload = true)
-                        }
-
-                        else -> { // REPEAT_NONE: definitely stop and nothing else
-                            isPlayingRequested = false
-                            notifyPlayState(false)
-                        }
-                    }
+                    advanceOrStop()
                 }
                 setOnErrorListener { _, _, _ ->
                     isPrepared = false; isPlayingRequested = false; notifyPlayState(false)
@@ -503,18 +503,43 @@ class MusicService : Service() {
         abRepeatWatchdog?.let { mainHandler.removeCallbacks(it) }; abRepeatWatchdog = null
     }
 
+    private fun isAtEndOfPlaylist(): Boolean {
+        if (playlist.isEmpty()) return true
+        return if (shuffleEnabled && shuffledIndices.isNotEmpty()) {
+            shuffledIndices.indexOf(currentIndex) == shuffledIndices.size - 1
+        } else {
+            currentIndex >= playlist.size - 1
+        }
+    }
+
     private fun advanceOrStop() {
         when (repeatMode) {
             REPEAT_ONE -> playCurrent(forceReload = true)
             REPEAT_ALL -> {
-                if (currentIndex >= playlist.size - 1) currentIndex = 0
-                else advanceIndex()
+                advanceIndex()
                 playCurrent(forceReload = true)
             }
 
-            else -> { // REPEAT_NONE: definitely stop
-                pause()
+            else -> { // REPEAT_NONE: play through and stop at end
+                if (isAtEndOfPlaylist()) {
+                    isPlayingRequested = false
+                    notifyPlayState(false)
+                } else {
+                    advanceIndex()
+                    playCurrent(forceReload = true)
+                }
             }
+        }
+    }
+
+    fun updatePlaylistOnly(newSongs: List<Song>) {
+        if (newSongs.isEmpty()) return
+        val current = currentSong ?: return
+        val newIdx = newSongs.indexOfFirst { it.id == current.id }
+        if (newIdx != -1) {
+            playlist = newSongs
+            currentIndex = newIdx
+            if (shuffleEnabled) rebuildShuffleIndices()
         }
     }
 
@@ -800,4 +825,27 @@ class MusicService : Service() {
         sleepTimerRunnable?.let { sleepTimerHandler.removeCallbacks(it) }; sleepTimerRunnable =
             null; sleepTimerEndMs = -1L
     }
+
+    fun setBypassProfiles(bypass: Boolean) {
+        bypassProfiles = bypass
+        currentSong ?: return
+        val profile = activeProfile ?: return
+
+        if (bypass) {
+            dspProcessor?.disableAll()
+            applyPlaybackParams(0f, 1f)
+            mediaPlayer?.setVolume(1f, 1f)
+            cancelWatchdogs()
+        } else {
+            dspProcessor?.applyProfile(profile)
+            applyPlaybackParams(profile.pitchSemitones, profile.playbackSpeed)
+            applyVolumeInternal(profile)
+            if (isPlayingRequested) startWatchdogs(profile)
+        }
+
+        updateNotification()
+        notifyPlayState(isPlayingRequested)
+    }
+
+    fun isBypassingProfiles(): Boolean = bypassProfiles
 }

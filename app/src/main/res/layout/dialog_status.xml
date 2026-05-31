@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/bg_surface"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="28dp">
+
+    <ImageView
+        android:id="@+id/ivStatusIcon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="20dp"
+        android:contentDescription="Status Icon"
+        android:src="@drawable/ic_check"
+        app:tint="@color/neon_green" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/orbitron_bold"
+        android:gravity="center"
+        android:letterSpacing="0.1"
+        android:text="SUCCESS"
+        android:textColor="@color/text_primary"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/tvMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="28dp"
+        android:fontFamily="@font/orbitron_regular"
+        android:gravity="center"
+        android:text="The operation completed successfully."
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnOk"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_button_outline_neutral"
+        android:fontFamily="@font/orbitron_bold"
+        android:minWidth="120dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:stateListAnimator="@null"
+        android:text="GREAT"
+        android:textAllCaps="true"
+        android:textColor="@color/text_primary"
+        android:textSize="12sp" />
+
+</LinearLayout>

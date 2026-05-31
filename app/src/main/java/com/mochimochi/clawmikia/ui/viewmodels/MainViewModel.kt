@@ -65,6 +65,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun scanFiles(uris: List<Uri>) {
+        viewModelScope.launch {
+            _scanStatus.value = ScanStatus.Scanning
+            val count = repository.scanFiles(uris)
+            _scanStatus.value = if (count > 0) ScanStatus.Success(count) else ScanStatus.Empty
+            if (count > 0) {
+                MetadataFetcher.fetchMissingMetadata(getApplication())
+            }
+        }
+    }
+
     /** Call this on app resume to pick up any songs that missed metadata last time. */
     fun fetchMetadataIfOnline() {
         viewModelScope.launch {
@@ -86,6 +97,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun addSongToPlaylist(playlistId: Long, songId: Long) {
         viewModelScope.launch { playlistRepo.addSongToPlaylist(playlistId, songId) }
+    }
+
+    fun addSongsToPlaylist(playlistId: Long, songIds: List<Long>) {
+        viewModelScope.launch {
+            songIds.forEach { playlistRepo.addSongToPlaylist(playlistId, it) }
+        }
     }
 
     fun incrementPlayCount(id: Long) {

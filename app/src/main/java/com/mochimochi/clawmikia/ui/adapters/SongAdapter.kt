@@ -54,6 +54,13 @@ class SongAdapter(
 
     fun getSelectedSongIds(): List<Long> = selectedSongs.toList()
 
+    fun selectAll() {
+        if (!selectionMode) setSelectionMode(true)
+        currentList.forEach { selectedSongs.add(it.id) }
+        notifyDataSetChanged()
+        onSelectionChanged?.invoke(selectionMode, selectedSongs.size)
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SongViewHolder {
         val binding = ItemSongBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return SongViewHolder(binding)

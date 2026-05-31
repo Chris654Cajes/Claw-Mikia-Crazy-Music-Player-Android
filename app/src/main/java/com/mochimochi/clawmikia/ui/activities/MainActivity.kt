@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.mochimochi.clawmikia.MusicVaultApp
 import com.mochimochi.clawmikia.R
 import com.mochimochi.clawmikia.data.model.Song
@@ -32,6 +34,10 @@ import com.mochimochi.clawmikia.ui.fragments.LibraryFragment
 import com.mochimochi.clawmikia.ui.fragments.PlaylistsFragment
 import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
 import com.mochimochi.clawmikia.utils.formatDuration
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
@@ -85,6 +91,93 @@ class MainActivity : AppCompatActivity() {
                 putString(MusicVaultApp.KEY_FOLDER_URI, it.toString())
             }
             viewModel.scanFolder(it)
+        }
+    }
+
+    private val filePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments(),
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            uris.forEach { uri ->
+                try {
+                    contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (e: Exception) {
+                    // Fallback for non-persistentable URIs if needed
+                }
+            }
+            viewModel.scanFiles(uris)
+        }
+    }
+
+    private var exportOnlyUpdated = false
+    private val exportLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip"),
+    ) { uri ->
+        uri?.let {
+            lifecycleScope.launch {
+                val songs = withContext(Dispatchers.IO) {
+                    com.mochimochi.clawmikia.data.db.MusicDatabase.getDatabase(this@MainActivity)
+                        .songDao().getAllSongsSync()
+                }
+
+                if (songs.isEmpty()) {
+                    showAestheticStatusDialog(
+                        success = false,
+                        title = "EMPTY LIBRARY",
+                        message = "No songs found in your library to export."
+                    )
+                    return@launch
+                }
+
+                binding.scanProgress.visibility = View.VISIBLE
+                val tempFile = File(cacheDir, "export_temp.zip")
+                val exportCount = com.mochimochi.clawmikia.utils.Exporter.exportToZip(
+                    this@MainActivity,
+                    songs,
+                    tempFile,
+                    exportOnlyUpdated
+                )
+
+                if (exportCount > 0 && tempFile.exists()) {
+                    try {
+                        contentResolver.openOutputStream(it)?.use { output ->
+                            tempFile.inputStream().use { input ->
+                                input.copyTo(output)
+                            }
+                        }
+                        showAestheticStatusDialog(
+                            success = true,
+                            title = "EXPORT SUCCESS",
+                            message = "Successfully exported $exportCount songs to ZIP."
+                        )
+                    } catch (e: Exception) {
+                        showAestheticStatusDialog(
+                            success = false,
+                            title = "SAVE FAILED",
+                            message = "Could not write to the selected location."
+                        )
+                    }
+                } else if (exportCount == 0) {
+                    showAestheticStatusDialog(
+                        success = false,
+                        title = "NO MATCHES",
+                        message = if (exportOnlyUpdated)
+                            "No updated songs found (excluding those currently playing)."
+                        else "No songs found in library to export."
+                    )
+                } else {
+                    showAestheticStatusDialog(
+                        success = false,
+                        title = "EXPORT FAILED",
+                        message = "An error occurred while creating the archive."
+                    )
+                }
+                tempFile.delete()
+                binding.scanProgress.visibility = View.GONE
+            }
         }
     }
 
@@ -354,6 +447,20 @@ class MainActivity : AppCompatActivity() {
             },
         )
         binding.btnScan.setOnClickListener { folderPickerLauncher.launch(null) }
+        binding.btnScanFiles.setOnClickListener { filePickerLauncher.launch(arrayOf("audio/mpeg")) }
+        binding.btnExport.setOnClickListener { showExportDialog() }
+    }
+
+    private fun showExportDialog() {
+        val options = arrayOf("All Songs", "Only Updated Songs")
+        AlertDialog.Builder(this)
+            .setTitle("Export Library to ZIP")
+            .setItems(options) { _, which ->
+                exportOnlyUpdated = (which == 1)
+                exportLauncher.launch("MusicVault_Export.zip")
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     // ─── Notifications ───────────────────────────────────────────────────────────
@@ -416,12 +523,20 @@ class MainActivity : AppCompatActivity() {
 
                 is MainViewModel.ScanStatus.Success -> {
                     binding.scanProgress.visibility = View.GONE
-                    showSnackbar("Found ${status.count} songs")
+                    showAestheticStatusDialog(
+                        success = true,
+                        title = "SCAN COMPLETE",
+                        message = "Found ${status.count} songs and added them to your library."
+                    )
                 }
 
                 is MainViewModel.ScanStatus.Empty -> {
                     binding.scanProgress.visibility = View.GONE
-                    showSnackbar("No MP3 files found")
+                    showAestheticStatusDialog(
+                        success = false,
+                        title = "NO SONGS FOUND",
+                        message = "No MP3 files were found in the selected location."
+                    )
                 }
 
                 is MainViewModel.ScanStatus.Reset -> {
@@ -429,7 +544,11 @@ class MainActivity : AppCompatActivity() {
                     // Hide the mini player — no song is loaded any more
                     binding.musicPanel.root.visibility = View.GONE
                     stopProgressUpdates()
-                    showSnackbar("Library cleared. Tap the folder icon to re-scan.")
+                    showAestheticStatusDialog(
+                        success = true,
+                        title = "LIBRARY RESET",
+                        message = "Library cleared. Tap the folder icon to re-scan."
+                    )
                 }
 
                 else -> binding.scanProgress.visibility = View.GONE
@@ -483,6 +602,16 @@ class MainActivity : AppCompatActivity() {
                     viewModel.setPlaying(true)
                 }, 500)
             }
+        }
+    }
+
+    /**
+     * Updates the current playlist in the service without starting playback.
+     * Used to keep the "Now Playing" context in sync with the current layout.
+     */
+    fun updateCurrentPlaylist(playlist: List<Song>) {
+        if (serviceBound) {
+            musicService?.updatePlaylistOnly(playlist)
         }
     }
 
@@ -633,9 +762,77 @@ class MainActivity : AppCompatActivity() {
             .setItems(names) { _, which ->
                 val playlist = playlists[which]
                 viewModel.addSongToPlaylist(playlist.id, song.id)
-                showSnackbar("Added to ${playlist.name}")
+                showAestheticStatusDialog(
+                    success = true,
+                    title = "SONG ADDED",
+                    message = "Added \"${song.title}\" to ${playlist.name}"
+                )
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    fun showAddToPlaylistDialogMultiple(songIds: List<Long>) {
+        val playlists = viewModel.allPlaylists.value ?: emptyList()
+        if (playlists.isEmpty()) {
+            showAestheticStatusDialog(
+                success = false,
+                title = "NO PLAYLISTS",
+                message = "Create a playlist first before adding songs."
+            )
+            return
+        }
+
+        val names = playlists.map { it.name }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle("Add ${songIds.size} songs to Playlist")
+            .setItems(names) { _, which ->
+                val playlist = playlists[which]
+                viewModel.addSongsToPlaylist(playlist.id, songIds)
+                showAestheticStatusDialog(
+                    success = true,
+                    title = "SONGS ADDED",
+                    message = "Successfully added ${songIds.size} songs to ${playlist.name}"
+                )
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    fun showAestheticStatusDialog(
+        success: Boolean,
+        title: String,
+        message: String
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_status, null)
+        val ivIcon = dialogView.findViewById<android.widget.ImageView>(R.id.ivStatusIcon)
+        val tvTitle = dialogView.findViewById<android.widget.TextView>(R.id.tvTitle)
+        val tvMessage = dialogView.findViewById<android.widget.TextView>(R.id.tvMessage)
+        val btnOk = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnOk)
+
+        tvTitle.text = title
+        tvMessage.text = message
+
+        if (success) {
+            ivIcon.setImageResource(R.drawable.ic_check)
+            ivIcon.setColorFilter(ContextCompat.getColor(this, R.color.neon_green))
+            btnOk.text = "GREAT"
+            btnOk.setTextColor(ContextCompat.getColor(this, R.color.neon_green))
+            btnOk.setBackgroundResource(R.drawable.bg_button_outline_green)
+        } else {
+            ivIcon.setImageResource(R.drawable.ic_close)
+            ivIcon.setColorFilter(ContextCompat.getColor(this, R.color.neon_red))
+            tvTitle.setTextColor(ContextCompat.getColor(this, R.color.neon_red))
+            btnOk.text = "BUMMER"
+            btnOk.setTextColor(ContextCompat.getColor(this, R.color.neon_red))
+            btnOk.setBackgroundResource(R.drawable.bg_button_outline_red)
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        btnOk.setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 }

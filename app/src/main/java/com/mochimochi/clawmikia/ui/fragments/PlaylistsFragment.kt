@@ -202,7 +202,14 @@ class PlaylistsFragment : Fragment() {
             hint = "Playlist name",
             positiveText = "Create"
         ) { name ->
-            scope.launch { repo.createPlaylist(name) }
+            scope.launch {
+                repo.createPlaylist(name)
+                (activity as? MainActivity)?.showAestheticStatusDialog(
+                    success = true,
+                    title = "PLAYLIST CREATED",
+                    message = "Playlist \"$name\" is ready."
+                )
+            }
         }
     }
 
@@ -220,7 +227,14 @@ class PlaylistsFragment : Fragment() {
             message = "Delete \"${playlist.name}\"? Songs will NOT be deleted.",
             positiveText = "Delete"
         ) {
-            scope.launch(Dispatchers.IO) { repo.deletePlaylist(playlist) }
+            scope.launch {
+                withContext(Dispatchers.IO) { repo.deletePlaylist(playlist) }
+                (activity as? MainActivity)?.showAestheticStatusDialog(
+                    success = true,
+                    title = "PLAYLIST DELETED",
+                    message = "Successfully removed \"${playlist.name}\"."
+                )
+            }
         }
     }
 
@@ -241,6 +255,11 @@ class PlaylistsFragment : Fragment() {
             onPositive = { newName ->
                 scope.launch {
                     repo.updatePlaylist(playlist.copy(name = newName))
+                    (activity as? MainActivity)?.showAestheticStatusDialog(
+                        success = true,
+                        title = "PLAYLIST RENAMED",
+                        message = "Updated name to \"$newName\"."
+                    )
                 }
             }
         )
@@ -409,6 +428,11 @@ class PlaylistDetailFragment : Fragment() {
                     repo.removeSongsFromPlaylist(playlistId, selectedIds)
                     adapter.setSelectionMode(false)
                     btnDeleteSelected.visibility = View.GONE
+                    (activity as? MainActivity)?.showAestheticStatusDialog(
+                        success = true,
+                        title = "SONGS REMOVED",
+                        message = "Removed ${selectedIds.size} songs from the playlist."
+                    )
                 }
             }
         }
@@ -426,6 +450,11 @@ class PlaylistDetailFragment : Fragment() {
             onRemoveClick = { song ->
                 lifecycleScope.launch {
                     repo.removeSongFromPlaylist(playlistId, song.id)
+                    (activity as? MainActivity)?.showAestheticStatusDialog(
+                        success = true,
+                        title = "SONG REMOVED",
+                        message = "Removed \"${song.title}\" from the playlist."
+                    )
                 }
             }
         ).apply {
@@ -442,6 +471,8 @@ class PlaylistDetailFragment : Fragment() {
                     (requireActivity() as? MainActivity)?.playSong(songs[0], songs)
                 }
             }
+            // Sync the service playlist if we are in this layout
+            (activity as? MainActivity)?.updateCurrentPlaylist(songs)
         }
     }
 
@@ -490,7 +521,13 @@ class SongSelectionFragment : androidx.fragment.app.DialogFragment() {
             if (selectedSongIds.isNotEmpty()) {
                 lifecycleScope.launch {
                     playlistRepo.addSongsToPlaylist(playlistId, selectedSongIds.toList())
+                    val count = selectedSongIds.size
                     dismiss()
+                    (activity as? MainActivity)?.showAestheticStatusDialog(
+                        success = true,
+                        title = "SONGS ADDED",
+                        message = "Successfully added $count songs."
+                    )
                 }
             }
         }
@@ -499,6 +536,17 @@ class SongSelectionFragment : androidx.fragment.app.DialogFragment() {
         rv.layoutManager = LinearLayoutManager(requireContext())
 
         repo.allSongs.observe(viewLifecycleOwner) { allSongs ->
+            val cbSelectAll = view.findViewById<android.widget.CheckBox>(R.id.cbSelectAll)
+            cbSelectAll?.setOnCheckedChangeListener { _, checked ->
+                if (checked) {
+                    allSongs.forEach { selectedSongIds.add(it.id) }
+                } else {
+                    selectedSongIds.clear()
+                }
+                rv.adapter?.notifyDataSetChanged()
+                btnAdd.isEnabled = selectedSongIds.isNotEmpty()
+            }
+
             rv.adapter = object : RecyclerView.Adapter<SongSelectionViewHolder>() {
                 override fun onCreateViewHolder(p: ViewGroup, t: Int) = SongSelectionViewHolder(
                     LayoutInflater.from(p.context).inflate(R.layout.item_song_selection, p, false)

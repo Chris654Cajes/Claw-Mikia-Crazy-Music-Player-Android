@@ -38,19 +38,41 @@ class LibraryFragment : Fragment() {
             },
             onFavoriteClick = { song -> viewModel.toggleFavorite(song) }
         ).apply {
-            onLongClick = { song ->
-                (activity as? MainActivity)?.showAddToPlaylistDialog(song)
+            onLongClick = { _ ->
+                setSelectionMode(true)
+            }
+            onSelectionChanged = { mode, count ->
+                binding.btnSelectAll.visibility = if (mode) View.VISIBLE else View.GONE
+                binding.btnAddToPlaylist.visibility =
+                    if (mode && count > 0) View.VISIBLE else View.GONE
+                binding.tvSongCount.text =
+                    if (mode) "$count selected" else "${latestSongs.size} songs"
             }
         }
 
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
         binding.recyclerView.adapter = adapter
 
+        binding.btnSelectAll.setOnClickListener {
+            adapter.selectAll()
+        }
+
+        binding.btnAddToPlaylist.setOnClickListener {
+            val selectedIds = adapter.getSelectedSongIds()
+            if (selectedIds.isNotEmpty()) {
+                (activity as? MainActivity)?.showAddToPlaylistDialogMultiple(selectedIds)
+                adapter.setSelectionMode(false)
+            }
+        }
+
         viewModel.filteredSongs.observe(viewLifecycleOwner) { songs ->
             latestSongs = songs
             adapter.submitList(songs)
             binding.tvEmpty.visibility = if (songs.isEmpty()) View.VISIBLE else View.GONE
             binding.tvSongCount.text = "${songs.size} songs"
+
+            // Sync the service playlist if we are in this layout
+            (activity as? MainActivity)?.updateCurrentPlaylist(songs)
         }
 
         viewModel.currentSong.observe(viewLifecycleOwner) { song ->

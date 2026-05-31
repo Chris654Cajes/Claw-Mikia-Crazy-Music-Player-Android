@@ -63,6 +63,9 @@ class FolderSongsFragment : Fragment() {
             adapter.submitList(songs)
             binding.tvEmpty.visibility = if (songs.isEmpty()) View.VISIBLE else View.GONE
             binding.tvSongCount.text = "$folderName — ${songs.size} songs"
+
+            // Sync the service playlist if we are in this layout
+            (activity as? MainActivity)?.updateCurrentPlaylist(songs)
         }
 
         viewModel.currentSong.observe(viewLifecycleOwner) { song ->

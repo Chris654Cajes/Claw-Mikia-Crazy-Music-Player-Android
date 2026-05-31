@@ -82,6 +82,9 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
     private val _showEq = MutableLiveData(false)
     val showEq: LiveData<Boolean> = _showEq
 
+    private val _isOriginalState = MutableLiveData(false)
+    val isOriginalState: LiveData<Boolean> = _isOriginalState
+
     private val _sleepTimerRemaining = MutableStateFlow(-1L)
     val sleepTimerRemaining: StateFlow<Long> = _sleepTimerRemaining
 
@@ -266,6 +269,10 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
 
     fun toggleEqPanel() {
         _showEq.value = !(_showEq.value ?: false)
+    }
+
+    fun setOriginalState(isOriginal: Boolean) {
+        _isOriginalState.value = isOriginal
     }
 
     fun updateSleepTimerRemaining(ms: Long) {
