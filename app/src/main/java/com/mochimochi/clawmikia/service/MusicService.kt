@@ -292,7 +292,7 @@ class MusicService : Service() {
                         applyVolumeInternal(profile)
                     } else {
                         applyPlaybackParams(0f, 1f)
-                        mp.setVolume(1f, 1f)
+                        runCatching { mp.setVolume(1f, 1f) }
                     }
 
                     val startPos = if (bypassProfiles) 0 else profile.trimStart.toInt()
@@ -545,6 +545,7 @@ class MusicService : Service() {
 
     private fun applyVolumeInternal(profile: PlaybackProfile) {
         val mp = mediaPlayer ?: return
+        if (!isPrepared) return
         val baseVol = profile.volume
         val finalVol = if (profile.replayGainEnabled) {
             (10.0.pow(profile.replayGainDb.toDouble() / 20.0).toFloat()
@@ -552,7 +553,7 @@ class MusicService : Service() {
         } else {
             baseVol
         }
-        mp.setVolume(finalVol, finalVol)
+        runCatching { mp.setVolume(finalVol, finalVol) }
     }
 
     private fun applyPlaybackParams(pitchSemitones: Float, speed: Float) {
@@ -598,7 +599,9 @@ class MusicService : Service() {
                 when (change) {
                     AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> pause()
                     AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                        mediaPlayer?.let { if (isPrepared) it.setVolume(0.2f, 0.2f) }
+                        mediaPlayer?.let { mp ->
+                            if (isPrepared) runCatching { mp.setVolume(0.2f, 0.2f) }
+                        }
                     }
 
                     AudioManager.AUDIOFOCUS_GAIN -> {
@@ -834,7 +837,7 @@ class MusicService : Service() {
         if (bypass) {
             dspProcessor?.disableAll()
             applyPlaybackParams(0f, 1f)
-            mediaPlayer?.setVolume(1f, 1f)
+            runCatching { mediaPlayer?.setVolume(1f, 1f) }
             cancelWatchdogs()
         } else {
             dspProcessor?.applyProfile(profile)

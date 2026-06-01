@@ -15,14 +15,13 @@ import com.mochimochi.clawmikia.data.model.*
         SkipRegion::class,
         LyricLine::class,
         LyricsMeta::class,
-        EqPreset::class,
         WaveformCache::class,
         PlaybackHistory::class,
         SongAnalysis::class,
         Playlist::class,
         PlaylistSong::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 abstract class MusicDatabase : RoomDatabase() {
@@ -30,7 +29,6 @@ abstract class MusicDatabase : RoomDatabase() {
     abstract fun playbackProfileDao(): PlaybackProfileDao
     abstract fun skipRegionDao(): SkipRegionDao
     abstract fun lyricsDao(): LyricsDao
-    abstract fun eqPresetDao(): EqPresetDao
     abstract fun waveformCacheDao(): WaveformCacheDao
     abstract fun playbackHistoryDao(): PlaybackHistoryDao
     abstract fun songAnalysisDao(): SongAnalysisDao
@@ -62,7 +60,7 @@ abstract class MusicDatabase : RoomDatabase() {
         private val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
-                    """CREATE TABLE IF NOT EXISTS playback_profiles (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, songId INTEGER NOT NULL, name TEXT NOT NULL, isActive INTEGER NOT NULL DEFAULT 0, pitchSemitones REAL NOT NULL DEFAULT 0.0, playbackSpeed REAL NOT NULL DEFAULT 1.0, trimStart INTEGER NOT NULL DEFAULT 0, trimEnd INTEGER NOT NULL DEFAULT -1, loopStart INTEGER NOT NULL DEFAULT -1, loopEnd INTEGER NOT NULL DEFAULT -1, loopEnabled INTEGER NOT NULL DEFAULT 0, abRepeatA INTEGER NOT NULL DEFAULT -1, abRepeatB INTEGER NOT NULL DEFAULT -1, abRepeatEnabled INTEGER NOT NULL DEFAULT 0, eqBands TEXT NOT NULL DEFAULT '0,0,0,0,0,0,0,0,0,0', eqEnabled INTEGER NOT NULL DEFAULT 0, eqPresetName TEXT NOT NULL DEFAULT 'Flat', bassBoostStrength INTEGER NOT NULL DEFAULT 0, bassBoostEnabled INTEGER NOT NULL DEFAULT 0, reverbPreset INTEGER NOT NULL DEFAULT -1, reverbEnabled INTEGER NOT NULL DEFAULT 0, loudnessGain INTEGER NOT NULL DEFAULT 0, loudnessEnabled INTEGER NOT NULL DEFAULT 0, compressorEnabled INTEGER NOT NULL DEFAULT 0, compressorThreshold REAL NOT NULL DEFAULT -18.0, compressorRatio REAL NOT NULL DEFAULT 4.0, compressorAttack REAL NOT NULL DEFAULT 10.0, compressorRelease REAL NOT NULL DEFAULT 100.0, replayGainDb REAL NOT NULL DEFAULT 0.0, replayGainEnabled INTEGER NOT NULL DEFAULT 0, crossfadeDuration INTEGER NOT NULL DEFAULT 0, createdAt INTEGER NOT NULL, updatedAt INTEGER NOT NULL, FOREIGN KEY(songId) REFERENCES songs(id) ON DELETE CASCADE)"""
+                    """CREATE TABLE IF NOT EXISTS playback_profiles (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, songId INTEGER NOT NULL, name TEXT NOT NULL, isActive INTEGER NOT NULL DEFAULT 0, pitchSemitones REAL NOT NULL DEFAULT 0.0, playbackSpeed REAL NOT NULL DEFAULT 1.0, trimStart INTEGER NOT NULL DEFAULT 0, trimEnd INTEGER NOT NULL DEFAULT -1, loopStart INTEGER NOT NULL DEFAULT -1, loopEnd INTEGER NOT NULL DEFAULT -1, loopEnabled INTEGER NOT NULL DEFAULT 0, abRepeatA INTEGER NOT NULL DEFAULT -1, abRepeatB INTEGER NOT NULL DEFAULT -1, abRepeatEnabled INTEGER NOT NULL DEFAULT 0, bassBoostStrength INTEGER NOT NULL DEFAULT 0, bassBoostEnabled INTEGER NOT NULL DEFAULT 0, reverbPreset INTEGER NOT NULL DEFAULT -1, reverbEnabled INTEGER NOT NULL DEFAULT 0, loudnessGain INTEGER NOT NULL DEFAULT 0, loudnessEnabled INTEGER NOT NULL DEFAULT 0, compressorEnabled INTEGER NOT NULL DEFAULT 0, compressorThreshold REAL NOT NULL DEFAULT -18.0, compressorRatio REAL NOT NULL DEFAULT 4.0, compressorAttack REAL NOT NULL DEFAULT 10.0, compressorRelease REAL NOT NULL DEFAULT 100.0, replayGainDb REAL NOT NULL DEFAULT 0.0, replayGainEnabled INTEGER NOT NULL DEFAULT 0, crossfadeDuration INTEGER NOT NULL DEFAULT 0, createdAt INTEGER NOT NULL, updatedAt INTEGER NOT NULL, FOREIGN KEY(songId) REFERENCES songs(id) ON DELETE CASCADE)"""
                 )
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_profile_songId ON playback_profiles(songId)")
                 db.execSQL("""CREATE TABLE IF NOT EXISTS skip_regions (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, songId INTEGER NOT NULL, label TEXT NOT NULL DEFAULT '', startMs INTEGER NOT NULL, endMs INTEGER NOT NULL, isEnabled INTEGER NOT NULL DEFAULT 1, createdAt INTEGER NOT NULL, FOREIGN KEY(songId) REFERENCES songs(id) ON DELETE CASCADE)""")

@@ -50,15 +50,6 @@ interface PlaybackProfileDao {
     @Query("DELETE FROM playback_profiles WHERE songId = :songId")
     suspend fun deleteAllForSong(songId: Long)
 
-    @Query("UPDATE playback_profiles SET eqBands = :bands, eqPresetName = :name, eqEnabled = :enabled, updatedAt = :now WHERE id = :id")
-    suspend fun updateEq(
-        id: Long,
-        bands: String,
-        name: String,
-        enabled: Boolean,
-        now: Long = System.currentTimeMillis()
-    )
-
     @Query("UPDATE playback_profiles SET pitchSemitones = :pitch, playbackSpeed = :speed, updatedAt = :now WHERE id = :id")
     suspend fun updatePitchSpeed(
         id: Long,
@@ -156,32 +147,6 @@ interface LyricsDao {
 
     @Query("SELECT songId FROM lyrics_meta WHERE songId IN (:ids)")
     suspend fun getSongIdsWithLyrics(ids: List<Long>): List<Long>
-}
-
-// ─── EQ Preset DAO ───────────────────────────────────────────────────────────
-@Dao
-interface EqPresetDao {
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(preset: EqPreset): Long
-
-    @Update
-    suspend fun update(preset: EqPreset)
-
-    @Delete
-    suspend fun delete(preset: EqPreset)
-
-    @Query("SELECT * FROM eq_presets ORDER BY isBuiltIn DESC, name")
-    fun getAllPresets(): LiveData<List<EqPreset>>
-
-    @Query("SELECT * FROM eq_presets ORDER BY isBuiltIn DESC, name")
-    suspend fun getAllPresetsSync(): List<EqPreset>
-
-    @Query("SELECT * FROM eq_presets WHERE name = :name LIMIT 1")
-    suspend fun getByName(name: String): EqPreset?
-
-    @Query("SELECT COUNT(*) FROM eq_presets WHERE isBuiltIn = 1")
-    suspend fun countBuiltIn(): Int
 }
 
 // ─── Waveform Cache DAO ───────────────────────────────────────────────────────

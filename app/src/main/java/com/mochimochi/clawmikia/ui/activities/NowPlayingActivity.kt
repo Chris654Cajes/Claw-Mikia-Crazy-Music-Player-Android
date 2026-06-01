@@ -97,7 +97,7 @@ class NowPlayingActivity : AppCompatActivity() {
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
         maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
 
-        // Initialize shared ViewModel so Equalizer / Lyrics / Profiles fragments work
+        // Initialize shared ViewModel so Lyrics / Profiles fragments work
         viewModel = ViewModelProvider(this)[NowPlayingViewModel::class.java]
 
         observeViewModel()
@@ -258,7 +258,7 @@ class NowPlayingActivity : AppCompatActivity() {
         val pct = ((current.toFloat() / maxVolume) * 100).toInt()
         binding.tvVolumeValue.text = pct.toString()
         binding.btnVolumeMute.setImageResource(
-            if (current == 0) R.drawable.ic_volume_off else R.drawable.ic_volume
+            if (current == 0) R.drawable.ic_volume_off else R.drawable.ic_speaker
         )
     }
 
@@ -503,7 +503,7 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.btnPitchDown.setOnClickListener {
             val current = binding.seekPitch.progress
             if (current > 0) {
-                val newProgress = current - 1
+                val newProgress = (current - 10).coerceAtLeast(0)
                 binding.seekPitch.progress = newProgress
                 val semitones = (newProgress - 60) / 10.0f
                 binding.tvPitchValue.text = pitchLabel(semitones)
@@ -515,7 +515,7 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.btnPitchUp.setOnClickListener {
             val current = binding.seekPitch.progress
             if (current < 120) {
-                val newProgress = current + 1
+                val newProgress = (current + 10).coerceAtMost(120)
                 binding.seekPitch.progress = newProgress
                 val semitones = (newProgress - 60) / 10.0f
                 binding.tvPitchValue.text = pitchLabel(semitones)

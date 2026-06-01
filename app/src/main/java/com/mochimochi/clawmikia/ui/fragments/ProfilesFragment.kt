@@ -109,7 +109,6 @@ class ProfilesFragment : BottomSheetDialogFragment() {
             val p = profile.pitchSemitones
             appendLine("Pitch: ${if (p >= 0) "+%.1f".format(p) else "%.1f".format(p)} semitones")
             appendLine("Speed: ${"%.2f".format(profile.playbackSpeed)}x")
-            appendLine("EQ: ${if (profile.eqEnabled) profile.eqPresetName else "Off"}")
             appendLine("Bass Boost: ${if (profile.bassBoostEnabled) profile.bassBoostStrength else "Off"}")
             appendLine("Reverb: ${if (profile.reverbEnabled) "Preset ${profile.reverbPreset}" else "Off"}")
             if (profile.loopEnabled) appendLine("Loop: ${profile.loopStart}ms → ${profile.loopEnd}ms")

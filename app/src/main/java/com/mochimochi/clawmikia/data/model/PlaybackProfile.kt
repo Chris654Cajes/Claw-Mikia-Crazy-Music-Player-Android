@@ -47,12 +47,6 @@ data class PlaybackProfile(
     val abRepeatB: Long = -1L,
     val abRepeatEnabled: Boolean = false,
 
-    // EQ — 10 bands stored as comma-separated dB values (-15 to +15)
-    // Bands: 31Hz,62Hz,125Hz,250Hz,500Hz,1kHz,2kHz,4kHz,8kHz,16kHz
-    val eqBands: String = "0,0,0,0,0,0,0,0,0,0",
-    val eqEnabled: Boolean = false,
-    val eqPresetName: String = "Flat",
-
     // Effects
     val bassBoostStrength: Int = 0,          // 0–1000 (Android BassBoost range)
     val bassBoostEnabled: Boolean = false,
@@ -75,8 +69,4 @@ data class PlaybackProfile(
 
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
-) {
-    fun eqBandList(): List<Int> =
-        eqBands.split(",").mapNotNull { it.trim().toIntOrNull() }
-            .let { if (it.size == 10) it else List(10) { 0 } }
-}
+)

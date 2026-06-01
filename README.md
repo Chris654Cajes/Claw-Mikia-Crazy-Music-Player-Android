@@ -8,7 +8,7 @@ sleek, cyberpunk-inspired dynamic user interface.
 
 ### 🎧 Professional Audio Engine
 
-- **DSP Processor**: Real-time control over Equalizer (10-band), Bass Boost, Reverb, and Loudness
+- **DSP Processor**: Real-time control over Bass Boost, Reverb, and Loudness
   Enhancement.
 - **Pitch & Speed Control**: Independent adjustment of playback speed (0.5x - 3.0x) and pitch (-6.0
   to +6.0 semitones) with high-precision increments and instant reset capabilities.

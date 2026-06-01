@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.mochimochi.clawmikia.data.db.MusicDatabase
-import com.mochimochi.clawmikia.data.model.EqPreset
 import com.mochimochi.clawmikia.data.model.LyricLine
 import com.mochimochi.clawmikia.data.model.LyricsMeta
 import com.mochimochi.clawmikia.data.model.PlaybackProfile
@@ -62,11 +61,6 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
     private val _waveformAmplitudes = MutableLiveData<FloatArray?>(null)
     val waveformAmplitudes: LiveData<FloatArray?> = _waveformAmplitudes
 
-    // ─── EQ ───────────────────────────────────────────────────────────────────
-    private val _eqPresets = MutableLiveData<List<EqPreset>>(emptyList())
-    val eqPresets: LiveData<List<EqPreset>> = _eqPresets
-
-    // ─── Lyrics ───────────────────────────────────────────────────────────────
     private val _lyrics = MutableLiveData<List<LyricLine>>(emptyList())
     val lyrics: LiveData<List<LyricLine>> = _lyrics
 
@@ -82,9 +76,6 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
     // ─── UI Flags ─────────────────────────────────────────────────────────────
     private val _showLyrics = MutableLiveData(false)
     val showLyrics: LiveData<Boolean> = _showLyrics
-
-    private val _showEq = MutableLiveData(false)
-    val showEq: LiveData<Boolean> = _showEq
 
     private val _isOriginalState = MutableLiveData(false)
     val isOriginalState: LiveData<Boolean> = _isOriginalState
@@ -128,12 +119,6 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
                 db.waveformCacheDao().getForSong(songId)
             }
             _waveformAmplitudes.value = waveCache?.amplitudeList()
-
-            // Load EQ presets
-            val presets = withContext(Dispatchers.IO) {
-                playlistRepository.getAllEqPresetsSync()
-            }
-            _eqPresets.value = presets
 
             // Load lyrics
             val lines = withContext(Dispatchers.IO) { db.lyricsDao().getLinesSync(songId) }
@@ -192,12 +177,6 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    fun updateEq(profileId: Long, bands: List<Int>, presetName: String, enabled: Boolean) {
-        viewModelScope.launch {
-            profileRepository.updateEq(profileId, bands, presetName, enabled)
-        }
-    }
-
     fun updateLoop(profileId: Long, start: Long, end: Long, enabled: Boolean) {
         viewModelScope.launch {
             profileRepository.updateLoop(profileId, start, end, enabled)
@@ -241,24 +220,10 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    // ─── EQ Presets ───────────────────────────────────────────────────────────
-
-    fun saveCustomEqPreset(name: String, bands: List<Int>) {
-        viewModelScope.launch {
-            playlistRepository.saveCustomEqPreset(name, bands)
-            val presets = withContext(Dispatchers.IO) { playlistRepository.getAllEqPresetsSync() }
-            _eqPresets.value = presets
-        }
-    }
-
     // ─── UI Toggles ──────────────────────────────────────────────────────────
 
     fun toggleLyricsPanel() {
         _showLyrics.value = !(_showLyrics.value ?: false)
-    }
-
-    fun toggleEqPanel() {
-        _showEq.value = !(_showEq.value ?: false)
     }
 
     fun setOriginalState(isOriginal: Boolean) {

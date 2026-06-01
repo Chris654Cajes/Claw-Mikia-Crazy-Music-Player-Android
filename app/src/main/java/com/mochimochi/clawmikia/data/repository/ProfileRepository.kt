@@ -90,11 +90,6 @@ class ProfileRepository(private val context: Context) {
             profileDao.insert(copy)
         }
 
-    suspend fun updateEq(profileId: Long, bands: List<Int>, presetName: String, enabled: Boolean) =
-        withContext(Dispatchers.IO) {
-            profileDao.updateEq(profileId, bands.joinToString(","), presetName, enabled)
-        }
-
     suspend fun updatePitchSpeed(profileId: Long, pitch: Float, speed: Float) =
         withContext(Dispatchers.IO) {
             profileDao.updatePitchSpeed(profileId, pitch, speed)

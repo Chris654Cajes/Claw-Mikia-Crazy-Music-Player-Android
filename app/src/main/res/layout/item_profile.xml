@@ -59,13 +59,6 @@
                     android:layout_marginEnd="10dp"
                     android:textColor="@color/neon_orange"
                     android:textSize="11sp" />
-
-                <TextView
-                    android:id="@+id/tvProfileEq"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/neon_green"
-                    android:textSize="11sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -73,15 +66,15 @@
             android:id="@+id/btnActivateProfile"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_media_play"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_play"
             android:tint="@color/neon_green" />
 
         <ImageButton
             android:id="@+id/btnRenameProfile"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@android:drawable/ic_menu_edit"
             android:tint="@color/text_secondary" />
 
@@ -89,7 +82,7 @@
             android:id="@+id/btnDeleteProfile"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_delete"
             android:tint="@color/text_secondary" />
     </LinearLayout>

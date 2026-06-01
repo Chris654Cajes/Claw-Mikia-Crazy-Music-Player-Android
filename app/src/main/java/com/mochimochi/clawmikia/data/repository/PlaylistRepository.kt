@@ -11,7 +11,6 @@ class PlaylistRepository(private val context: Context) {
 
     private val db = MusicDatabase.getDatabase(context)
     private val playlistDao = db.playlistDao()
-    private val eqPresetDao = db.eqPresetDao()
     private val historyDao = db.playbackHistoryDao()
 
     // ─── Playlists ────────────────────────────────────────────────────────────
@@ -71,29 +70,6 @@ class PlaylistRepository(private val context: Context) {
         withContext(Dispatchers.IO) {
             playlistDao.getSongsInPlaylistSync(playlistId)
         }
-
-    // ─── EQ Presets ──────────────────────────────────────────────────────────
-
-    val allEqPresets: LiveData<List<EqPreset>> = eqPresetDao.getAllPresets()
-
-    suspend fun getAllEqPresetsSync(): List<EqPreset> = withContext(Dispatchers.IO) {
-        eqPresetDao.getAllPresetsSync()
-    }
-
-    suspend fun saveCustomEqPreset(name: String, bands: List<Int>): Long =
-        withContext(Dispatchers.IO) {
-            eqPresetDao.insert(
-                EqPreset(
-                    name = name,
-                    bands = bands.joinToString(","),
-                    isBuiltIn = false
-                )
-            )
-        }
-
-    suspend fun deleteCustomEqPreset(preset: EqPreset) = withContext(Dispatchers.IO) {
-        if (!preset.isBuiltIn) eqPresetDao.delete(preset)
-    }
 
     // ─── Playback History ─────────────────────────────────────────────────────
 

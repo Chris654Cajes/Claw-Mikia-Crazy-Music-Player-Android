@@ -5,21 +5,6 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-// ─── EQ Preset ────────────────────────────────────────────────────────────────
-/** Global EQ presets that can be applied to any song/profile. */
-@Entity(tableName = "eq_presets")
-data class EqPreset(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val name: String,                         // "Rock", "Pop", "Bass Boost", "Custom"
-    val bands: String,                        // 10 comma-separated dB integers
-    val isBuiltIn: Boolean = false,           // factory presets are protected
-    val createdAt: Long = System.currentTimeMillis()
-) {
-    fun bandList(): List<Int> =
-        bands.split(",").mapNotNull { it.trim().toIntOrNull() }
-            .let { if (it.size == 10) it else List(10) { 0 } }
-}
-
 // ─── Waveform Cache ────────────────────────────────────────────────────────────
 /** Cached waveform amplitude data so we don't re-analyze every time. */
 @Entity(

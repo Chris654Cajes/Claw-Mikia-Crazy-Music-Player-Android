@@ -30,7 +30,6 @@ class ProfilesAdapter(
         val tvName: TextView = itemView.findViewById(R.id.tvProfileName)
         val tvPitch: TextView = itemView.findViewById(R.id.tvProfilePitch)
         val tvSpeed: TextView = itemView.findViewById(R.id.tvProfileSpeed)
-        val tvEq: TextView = itemView.findViewById(R.id.tvProfileEq)
         val btnActivate: ImageButton = itemView.findViewById(R.id.btnActivateProfile)
         val btnRename: ImageButton = itemView.findViewById(R.id.btnRenameProfile)
         val btnDelete: ImageButton = itemView.findViewById(R.id.btnDeleteProfile)
@@ -55,11 +54,9 @@ class ProfilesAdapter(
 
         holder.tvSpeed.text = "%.2fx".format(profile.playbackSpeed)
 
-        holder.tvEq.text = if (profile.eqEnabled) "EQ: ${profile.eqPresetName}" else "EQ off"
-
         holder.btnActivate.setImageResource(
-            if (profile.isActive) android.R.drawable.checkbox_on_background
-            else android.R.drawable.ic_media_play
+            if (profile.isActive) R.drawable.ic_check
+            else R.drawable.ic_play
         )
 
         holder.btnActivate.setOnClickListener { onActivate(profile) }

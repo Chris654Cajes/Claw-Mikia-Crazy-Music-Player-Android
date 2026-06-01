@@ -13,53 +13,12 @@ class DSPProcessor(private val audioSessionId: Int) {
 
     private val TAG = "DSPProcessor"
 
-    private var equalizer: Equalizer? = null
     private var bassBoost: BassBoost? = null
     private var environmentalReverb: EnvironmentalReverb? = null
     private var loudnessEnhancer: LoudnessEnhancer? = null
     private var presetReverb: PresetReverb? = null
 
     private val lock = Any()
-
-    // ─── Equalizer ────────────────────────────────────────────────────────────
-
-    fun applyEq(bandValues: List<Int>, enabled: Boolean) = synchronized(lock) {
-        if (!enabled) {
-            equalizer?.enabled = false
-            return@synchronized
-        }
-        try {
-            val eq = equalizer ?: Equalizer(0, audioSessionId).also { equalizer = it }
-            val numBands = eq.numberOfBands.toInt()
-            eq.enabled = true
-
-            val targetBandCount = minOf(bandValues.size, numBands)
-            for (i in 0 until targetBandCount) {
-                val milliBel = (bandValues[i] * 100).toShort() // dB → mB
-                eq.setBandLevel(i.toShort(), milliBel)
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "EQ apply failed: ${e.message}")
-        }
-    }
-
-    fun getEqBandCount(): Int = synchronized(lock) {
-        return@synchronized try {
-            val eq = equalizer ?: Equalizer(0, audioSessionId).also { equalizer = it }
-            eq.numberOfBands.toInt()
-        } catch (e: Exception) {
-            10
-        }
-    }
-
-    fun getEqBandFrequencies(): List<Int> = synchronized(lock) {
-        return@synchronized try {
-            val eq = equalizer ?: Equalizer(0, audioSessionId).also { equalizer = it }
-            (0 until eq.numberOfBands).map { eq.getCenterFreq(it.toShort()) / 1000 } // mHz → Hz
-        } catch (e: Exception) {
-            listOf(31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000)
-        }
-    }
 
     // ─── Bass Boost ───────────────────────────────────────────────────────────
 
@@ -124,14 +83,12 @@ class DSPProcessor(private val audioSessionId: Int) {
     // ─── Apply Full Profile ───────────────────────────────────────────────────
 
     fun applyProfile(profile: PlaybackProfile) {
-        applyEq(profile.eqBandList(), profile.eqEnabled)
         applyBassBoost(profile.bassBoostStrength, profile.bassBoostEnabled)
         applyReverb(profile.reverbPreset, profile.reverbEnabled)
         applyLoudnessEnhancer(profile.loudnessGain, profile.loudnessEnabled)
     }
 
     fun disableAll() = synchronized(lock) {
-        equalizer?.enabled = false
         bassBoost?.enabled = false
         presetReverb?.enabled = false
         environmentalReverb?.enabled = false
@@ -139,12 +96,10 @@ class DSPProcessor(private val audioSessionId: Int) {
     }
 
     fun release() = synchronized(lock) {
-        runCatching { equalizer?.release() }
         runCatching { bassBoost?.release() }
         runCatching { presetReverb?.release() }
         runCatching { environmentalReverb?.release() }
         runCatching { loudnessEnhancer?.release() }
-        equalizer = null
         bassBoost = null
         presetReverb = null
         environmentalReverb = null

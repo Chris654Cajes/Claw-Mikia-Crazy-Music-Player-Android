@@ -47,12 +47,12 @@
         android:paddingStart="12dp"
         android:paddingEnd="4dp">
 
-        <!-- Animated equalizer icon -->
+        <!-- Playing indicator icon -->
         <ImageView
             android:id="@+id/ivPlayingIndicator"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:src="@drawable/ic_equalizer"
+            android:src="@drawable/ic_music_note"
             android:tint="@color/neon_pink"
             android:scaleType="centerInside" />
 
