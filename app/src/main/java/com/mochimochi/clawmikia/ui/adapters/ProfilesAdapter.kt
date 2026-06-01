@@ -13,6 +13,7 @@ import com.mochimochi.clawmikia.data.model.PlaybackProfile
 
 class ProfilesAdapter(
     private val onActivate: (PlaybackProfile) -> Unit,
+    private val onRename: (PlaybackProfile) -> Unit,
     private val onDelete: (PlaybackProfile) -> Unit,
     private val onClick: (PlaybackProfile) -> Unit
 ) : ListAdapter<PlaybackProfile, ProfilesAdapter.ViewHolder>(DIFF) {
@@ -31,6 +32,7 @@ class ProfilesAdapter(
         val tvSpeed: TextView = itemView.findViewById(R.id.tvProfileSpeed)
         val tvEq: TextView = itemView.findViewById(R.id.tvProfileEq)
         val btnActivate: ImageButton = itemView.findViewById(R.id.btnActivateProfile)
+        val btnRename: ImageButton = itemView.findViewById(R.id.btnRenameProfile)
         val btnDelete: ImageButton = itemView.findViewById(R.id.btnDeleteProfile)
     }
 
@@ -61,6 +63,7 @@ class ProfilesAdapter(
         )
 
         holder.btnActivate.setOnClickListener { onActivate(profile) }
+        holder.btnRename.setOnClickListener { onRename(profile) }
         holder.btnDelete.setOnClickListener { onDelete(profile) }
         holder.itemView.setOnClickListener { onClick(profile) }
 

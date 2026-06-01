@@ -52,6 +52,15 @@
                 android:tint="@color/text_hint" />
 
             <ImageButton
+                android:id="@+id/btnProfiles"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Profiles"
+                android:src="@drawable/ic_layers"
+                android:tint="@color/text_secondary" />
+
+            <ImageButton
                 android:id="@+id/btnFavorite"
                 android:layout_width="48dp"
                 android:layout_height="48dp"

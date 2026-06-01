@@ -23,6 +23,9 @@ class ProfileRepository(private val context: Context) {
         profileDao.getProfilesForSongSync(songId)
     }
 
+    fun getActiveProfileLiveData(songId: Long): LiveData<PlaybackProfile?> =
+        profileDao.getActiveProfileLiveData(songId)
+
     /**
      * Returns the active profile for a song, or auto-creates a default one
      * seeded with the song's current per-song settings.
@@ -69,6 +72,10 @@ class ProfileRepository(private val context: Context) {
 
     suspend fun activateProfile(profileId: Long, songId: Long) = withContext(Dispatchers.IO) {
         profileDao.activateProfile(profileId, songId)
+    }
+
+    suspend fun renameProfile(profileId: Long, newName: String) = withContext(Dispatchers.IO) {
+        profileDao.updateName(profileId, newName)
     }
 
     suspend fun duplicateProfile(original: PlaybackProfile, newName: String): Long =

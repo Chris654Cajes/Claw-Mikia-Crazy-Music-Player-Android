@@ -10,21 +10,28 @@ sleek, cyberpunk-inspired dynamic user interface.
 
 - **DSP Processor**: Real-time control over Equalizer (10-band), Bass Boost, Reverb, and Loudness
   Enhancement.
-- **Pitch & Speed Control**: Independent adjustment of playback speed (0.5x - 2.0x) and pitch (-6.0
+- **Pitch & Speed Control**: Independent adjustment of playback speed (0.5x - 3.0x) and pitch (-6.0
   to +6.0 semitones) with high-precision increments and instant reset capabilities.
 - **A-B Repeat**: Easily loop specific sections of a track for practice or study with precision Set
-  A/B markers.
-- **Timeline Trim**: Non-destructive start and end point trimming with ±10s precision adjustments.
+  A/B markers and dedicated loop mode.
+- **Timeline Trim**: Non-destructive start and end point trimming with ±10s precision adjustments
+  via
+  dedicated control buttons.
+- **Playback Comparison**: Instant "Original vs Updated" toggle to compare your audio adjustments
+  with the raw track.
 - **Volume Management**: Fine-grained volume control (0-100%) with a dedicated mute and 100% reset
   shortcut.
 - **Sleep Timer**: Schedule playback to stop automatically with a customizable timer.
 - **Profile Management**: Create and switch between custom audio profiles for different hardware or
-  environments.
+  environments, automatically syncing pitch, speed, trim, and DSP settings.
 
 ### 📊 Advanced Analysis
 
 - **BPM & Key Detection**: Automatically analyzes tracks to determine their tempo and musical key.
 - **Waveform Visualization**: Interactive waveform rendering for precise navigation and trimming.
+- **Smart Skip Regions**: Define and automatically skip specific sections of a track (intros,
+  outros,
+  ads) without modifying the original file.
 - **Silence Detection**: Smart analysis to identify and skip silence in tracks.
 - **Song Analysis**: Detailed technical breakdown of your music library.
 
@@ -36,7 +43,7 @@ sleek, cyberpunk-inspired dynamic user interface.
   using the Palette API.
 - **Library Management**: Organized view by Songs, Folders, Playlists, and Favorites.
 - **Lyrics Support**: Synchronized .lrc support with an integrated editor, "Karaoke Mode," and
-  manual fetch capabilities.
+  automatic fetch capabilities powered by [LRCLIB](https://lrclib.net/).
 - **Precision Controls**: High-accuracy adjustment buttons and instant reset toggles for all audio
   parameters.
 

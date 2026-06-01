@@ -36,6 +36,7 @@ class ProfilesFragment : BottomSheetDialogFragment() {
                 onProfileActivated?.invoke()
                 dismiss()
             },
+            onRename = { profile -> showRenameProfileDialog(profile) },
             onDelete = { profile -> confirmDelete(profile) },
             onClick = { profile -> showProfileDetails(profile) },
         )
@@ -52,6 +53,10 @@ class ProfilesFragment : BottomSheetDialogFragment() {
         viewModel.profiles.observe(viewLifecycleOwner) { profiles ->
             adapter.submitList(profiles)
         }
+
+        viewModel.currentSong.observe(viewLifecycleOwner) {
+            // Ensure currentSong is active for fab click
+        }
     }
 
     private fun showCreateProfileDialog() {
@@ -62,6 +67,24 @@ class ProfilesFragment : BottomSheetDialogFragment() {
         ) { name ->
             val profileName = name.ifBlank { "Profile ${System.currentTimeMillis() % 1000}" }
             viewModel.createProfile(songId, profileName)
+        }
+    }
+
+    private fun showRenameProfileDialog(profile: PlaybackProfile) {
+        if (profile.name == "Default") {
+            showAestheticConfirmDialog(
+                title = "Cannot Rename",
+                message = "The Default profile name is protected."
+            ) { }
+            return
+        }
+        showAestheticInputDialog(
+            title = "Rename Profile",
+            hint = "New name"
+        ) { name ->
+            if (name.isNotBlank()) {
+                viewModel.renameProfile(profile, name)
+            }
         }
     }
 

@@ -23,12 +23,15 @@ import com.mochimochi.clawmikia.data.model.Song
 import com.mochimochi.clawmikia.data.repository.SongRepository
 import com.mochimochi.clawmikia.databinding.ActivityNowPlayingBinding
 import com.mochimochi.clawmikia.service.MusicService
+import com.mochimochi.clawmikia.ui.fragments.ProfilesFragment
 import com.mochimochi.clawmikia.ui.viewmodel.NowPlayingViewModel
 import com.mochimochi.clawmikia.utils.formatDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+
+import kotlin.math.roundToInt
 
 class NowPlayingActivity : AppCompatActivity() {
 
@@ -152,6 +155,10 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     private fun observeViewModel() {
+        viewModel.currentSong.observe(this) {
+            // Keep currentSong active so fragments can access .value
+        }
+
         viewModel.songAnalysis.observe(this) { analysis ->
             if (analysis != null) {
                 binding.tvBpm.text = "${analysis.bpm.toInt()} BPM"
@@ -166,6 +173,10 @@ class NowPlayingActivity : AppCompatActivity() {
 
         viewModel.activeProfile.observe(this) { profile ->
             if (profile != null) {
+                // Tell service to apply the new profile settings
+                musicService?.applyProfile(profile)
+
+                // Sync A-B Repeat
                 pointA = profile.abRepeatA
                 pointB = profile.abRepeatB
                 isAbRepeatEnabled = profile.abRepeatEnabled
@@ -175,13 +186,38 @@ class NowPlayingActivity : AppCompatActivity() {
                 binding.tvPointB.text =
                     if (pointB >= 0) "B: ${formatDuration(pointB)}" else "B: --:--"
 
-                // Use a flag or check if it actually changed to avoid infinite loop from setOnCheckedChangeListener
                 if (binding.switchAbRepeat.isChecked != isAbRepeatEnabled) {
                     binding.switchAbRepeat.isChecked = isAbRepeatEnabled
                 }
                 if (binding.switchLoop.isChecked != profile.loopEnabled) {
                     binding.switchLoop.isChecked = profile.loopEnabled
                 }
+
+                // Sync Pitch UI
+                binding.tvPitchValue.text = pitchLabel(profile.pitchSemitones)
+                binding.seekPitch.progress =
+                    ((profile.pitchSemitones + 6) * 10).roundToInt().coerceIn(0, 120)
+
+                // Sync Speed UI
+                val speedProgress =
+                    ((profile.playbackSpeed.coerceIn(0.5f, 3.0f) - 0.5f) / 0.05f).roundToInt()
+                binding.seekSpeed.progress = speedProgress
+                binding.tvSpeedValue.text = speedLabel(profile.playbackSpeed)
+
+                // Sync Trim UI
+                val songDur = song?.duration ?: 0L
+                val trimStart = profile.trimStart
+                val trimEnd = if (profile.trimEnd > 0) profile.trimEnd else songDur
+                binding.seekTrimStart.progress = trimStart.toInt()
+                binding.seekTrimEnd.progress = trimEnd.toInt()
+                updateTrimLabels(trimStart, trimEnd)
+
+                // Sync main playback duration label
+                val effectiveDur = (trimEnd - trimStart).coerceAtLeast(0L)
+                binding.tvTotalTime.text = formatDuration(effectiveDur)
+
+                // Sync Volume UI
+                syncVolumeSeekBar()
             }
         }
     }
@@ -419,6 +455,14 @@ class NowPlayingActivity : AppCompatActivity() {
             updateShuffleButton()
         }
 
+        binding.btnProfiles.setOnClickListener {
+            ProfilesFragment().show(supportFragmentManager, "profiles")
+        }
+
+        binding.btnProfiles.setOnClickListener {
+            ProfilesFragment().show(supportFragmentManager, "profiles")
+        }
+
         // ── Rewind / Forward ────────────────────────────────────────────────────
         binding.btnRewind.setOnClickListener {
             val svc = musicService ?: return@setOnClickListener
@@ -481,7 +525,7 @@ class NowPlayingActivity : AppCompatActivity() {
         }
 
         // ── Speed seekbar ───────────────────────────────────────────────────────
-        binding.seekSpeed.max = 30
+        binding.seekSpeed.max = 50
         binding.seekSpeed.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
                 val speed = progressToSpeed(progress)
@@ -517,7 +561,7 @@ class NowPlayingActivity : AppCompatActivity() {
 
         binding.btnSpeedUp.setOnClickListener {
             val current = binding.seekSpeed.progress
-            if (current < 30) {
+            if (current < 50) {
                 val newProgress = current + 1
                 binding.seekSpeed.progress = newProgress
                 val speed = progressToSpeed(newProgress)
@@ -813,7 +857,7 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun pitchLabel(s: Float) = if (s > 0) "+%.1f".format(s) else "%.1f".format(s)
 
     private fun progressToSpeed(progress: Int): Float =
-        (0.5f + progress * 0.05f).coerceIn(0.5f, 2.0f)
+        (0.5f + progress * 0.05f).coerceIn(0.5f, 3.0f)
 
     private fun speedLabel(speed: Float): String =
         "%.2f".format(speed).trimEnd('0').trimEnd('.')

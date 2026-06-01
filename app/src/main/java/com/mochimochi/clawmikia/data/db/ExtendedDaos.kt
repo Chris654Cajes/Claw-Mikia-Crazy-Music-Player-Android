@@ -26,6 +26,9 @@ interface PlaybackProfileDao {
     @Query("SELECT * FROM playback_profiles WHERE songId = :songId AND isActive = 1 LIMIT 1")
     suspend fun getActiveProfile(songId: Long): PlaybackProfile?
 
+    @Query("SELECT * FROM playback_profiles WHERE songId = :songId AND isActive = 1 LIMIT 1")
+    fun getActiveProfileLiveData(songId: Long): LiveData<PlaybackProfile?>
+
     @Query("UPDATE playback_profiles SET isActive = 0 WHERE songId = :songId")
     suspend fun deactivateAll(songId: Long)
 
@@ -37,6 +40,9 @@ interface PlaybackProfileDao {
         deactivateAll(songId)
         setActive(profileId)
     }
+
+    @Query("UPDATE playback_profiles SET name = :name, updatedAt = :now WHERE id = :id")
+    suspend fun updateName(id: Long, name: String, now: Long = System.currentTimeMillis())
 
     @Query("SELECT COUNT(*) FROM playback_profiles WHERE songId = :songId")
     suspend fun countForSong(songId: Long): Int

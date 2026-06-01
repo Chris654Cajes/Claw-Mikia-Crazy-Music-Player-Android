@@ -41,11 +41,15 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
     val isPlaying: LiveData<Boolean> = _isPlaying
 
     // ─── Profile State ────────────────────────────────────────────────────────
-    private val _activeProfile = MutableLiveData<PlaybackProfile?>()
-    val activeProfile: LiveData<PlaybackProfile?> = _activeProfile
+    val activeProfile: LiveData<PlaybackProfile?> = _currentSongId.switchMap { id ->
+        if (id == null) MutableLiveData(null)
+        else profileRepository.getActiveProfileLiveData(id)
+    }
 
-    private val _profiles = MutableLiveData<List<PlaybackProfile>>(emptyList())
-    val profiles: LiveData<List<PlaybackProfile>> = _profiles
+    val profiles: LiveData<List<PlaybackProfile>> = _currentSongId.switchMap { id ->
+        if (id == null) MutableLiveData(emptyList())
+        else profileRepository.getProfilesForSong(id)
+    }
 
     // ─── Skip Regions ─────────────────────────────────────────────────────────
     private val _skipRegions = MutableLiveData<List<SkipRegion>>(emptyList())
@@ -102,12 +106,10 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun loadSongData(songId: Long, filePath: String) {
         viewModelScope.launch {
-            // Load profiles
-            val profs = withContext(Dispatchers.IO) {
-                profileRepository.getProfilesSync(songId)
+            // Ensure at least one profile exists and is active
+            withContext(Dispatchers.IO) {
+                profileRepository.getOrCreateActiveProfile(songId)
             }
-            _profiles.value = profs
-            _activeProfile.value = profs.firstOrNull { it.isActive } ?: profs.firstOrNull()
 
             // Load skip regions
             val regions = withContext(Dispatchers.IO) {
@@ -154,7 +156,7 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
 
     fun createProfile(songId: Long, name: String) {
         viewModelScope.launch {
-            val base = _activeProfile.value
+            val base = activeProfile.value
             val newProfile = PlaybackProfile(
                 songId = songId, name = name,
                 pitchSemitones = base?.pitchSemitones ?: 0f,
@@ -163,40 +165,36 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
                 trimEnd = base?.trimEnd ?: -1L
             )
             profileRepository.createProfile(newProfile)
-            reloadProfiles(songId)
         }
     }
 
     fun activateProfile(profile: PlaybackProfile) {
         viewModelScope.launch {
             profileRepository.activateProfile(profile.id, profile.songId)
-            _activeProfile.value = profile
-            reloadProfiles(profile.songId)
+        }
+    }
+
+    fun renameProfile(profile: PlaybackProfile, newName: String) {
+        viewModelScope.launch {
+            profileRepository.renameProfile(profile.id, newName)
         }
     }
 
     fun deleteProfile(profile: PlaybackProfile) {
         viewModelScope.launch {
             profileRepository.deleteProfile(profile)
-            reloadProfiles(profile.songId)
         }
     }
 
     fun updatePitchSpeed(profileId: Long, pitch: Float, speed: Float) {
         viewModelScope.launch {
             profileRepository.updatePitchSpeed(profileId, pitch, speed)
-            val updated = _activeProfile.value?.copy(pitchSemitones = pitch, playbackSpeed = speed)
-            _activeProfile.value = updated
         }
     }
 
     fun updateEq(profileId: Long, bands: List<Int>, presetName: String, enabled: Boolean) {
         viewModelScope.launch {
             profileRepository.updateEq(profileId, bands, presetName, enabled)
-            val updated = _activeProfile.value?.copy(
-                eqBands = bands.joinToString(","), eqPresetName = presetName, eqEnabled = enabled
-            )
-            _activeProfile.value = updated
         }
     }
 
@@ -215,14 +213,6 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
     fun updateTrim(profileId: Long, start: Long, end: Long) {
         viewModelScope.launch {
             profileRepository.updateTrim(profileId, start, end)
-        }
-    }
-
-    private suspend fun reloadProfiles(songId: Long) {
-        val profs = withContext(Dispatchers.IO) { profileRepository.getProfilesSync(songId) }
-        _profiles.value = profs
-        if (_activeProfile.value == null || profs.none { it.id == _activeProfile.value?.id }) {
-            _activeProfile.value = profs.firstOrNull { it.isActive } ?: profs.firstOrNull()
         }
     }
 
