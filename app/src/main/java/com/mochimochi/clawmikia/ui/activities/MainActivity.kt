@@ -1,8 +1,13 @@
 package com.mochimochi.clawmikia.ui.activities
 
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -53,6 +58,17 @@ class MainActivity : AppCompatActivity() {
     // The panel's root stays visible as long as a song is loaded; only the
     // inner content is collapsed when the user taps the toggle button.
     private var miniPlayerExpanded = true
+
+    private lateinit var connectivityManager: ConnectivityManager
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            super.onAvailable(network)
+            runOnUiThread {
+                android.util.Log.d("MainActivity", "Network online, triggering metadata fetch")
+                viewModel.fetchMetadataIfOnline()
+            }
+        }
+    }
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -197,6 +213,7 @@ class MainActivity : AppCompatActivity() {
         bindToService()
         observeViewModel()
         requestNotificationPermission()
+        setupNetworkListener()
         showFragment(LibraryFragment())
 
         onBackPressedDispatcher.addCallback(this) {
@@ -476,6 +493,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupNetworkListener() {
+        connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+        val request = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        connectivityManager.registerNetworkCallback(request, networkCallback)
+    }
+
     // ─── Service ─────────────────────────────────────────────────────────────────
 
     private fun bindToService() {
@@ -521,8 +546,20 @@ class MainActivity : AppCompatActivity() {
                     binding.scanProgress.visibility = View.VISIBLE
                 }
 
+                is MainViewModel.ScanStatus.FetchingMetadata -> {
+                    binding.scanProgress.visibility = View.VISIBLE
+                    binding.scanProgress.indeterminateTintList =
+                        android.content.res.ColorStateList.valueOf(
+                            ContextCompat.getColor(this, R.color.neon_cyan)
+                        )
+                }
+
                 is MainViewModel.ScanStatus.Success -> {
                     binding.scanProgress.visibility = View.GONE
+                    binding.scanProgress.indeterminateTintList =
+                        android.content.res.ColorStateList.valueOf(
+                            ContextCompat.getColor(this, R.color.neon_pink)
+                        )
                     showAestheticStatusDialog(
                         success = true,
                         title = "SCAN COMPLETE",
@@ -710,6 +747,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        if (::connectivityManager.isInitialized) {
+            connectivityManager.unregisterNetworkCallback(networkCallback)
+        }
         if (serviceBound) {
             musicService?.let { service ->
                 service.removeSongChangedCallback(songChangedCallback)

@@ -46,6 +46,13 @@ object MetadataFetcher {
         if (!isOnline(context)) return@withContext
         val dao = MusicDatabase.getDatabase(context).songDao()
         val songs = dao.getSongsWithoutMetadata()
+        processSongs(dao, songs)
+    }
+
+    private suspend fun processSongs(
+        dao: com.mochimochi.clawmikia.data.db.SongDao,
+        songs: List<Song>
+    ) {
         for (song in songs) {
             try {
                 fetchForSong(song)?.let { meta ->
@@ -60,8 +67,7 @@ object MetadataFetcher {
                 // MusicBrainz rate limit: max 1 request/second
                 delay(1100)
             } catch (_: Exception) {
-                // Network error or no match — silently skip, metadataFetched stays false
-                // so it will be retried next time the user is online
+                // Network error or no match — silently skip
             }
         }
     }

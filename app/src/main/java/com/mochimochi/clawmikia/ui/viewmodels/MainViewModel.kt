@@ -58,9 +58,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _scanStatus.value = ScanStatus.Scanning
             val count = repository.scanFolder(uri)
-            _scanStatus.value = if (count > 0) ScanStatus.Success(count) else ScanStatus.Empty
             if (count > 0) {
-                MetadataFetcher.fetchMissingMetadata(getApplication())
+                _scanStatus.value = ScanStatus.FetchingMetadata
+                MetadataFetcher.fetchMissingMetadata(getApplication<Application>())
+                _scanStatus.value = ScanStatus.Success(count)
+            } else {
+                _scanStatus.value = ScanStatus.Empty
             }
         }
     }
@@ -69,9 +72,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _scanStatus.value = ScanStatus.Scanning
             val count = repository.scanFiles(uris)
-            _scanStatus.value = if (count > 0) ScanStatus.Success(count) else ScanStatus.Empty
             if (count > 0) {
-                MetadataFetcher.fetchMissingMetadata(getApplication())
+                _scanStatus.value = ScanStatus.FetchingMetadata
+                MetadataFetcher.fetchMissingMetadata(getApplication<Application>())
+                _scanStatus.value = ScanStatus.Success(count)
+            } else {
+                _scanStatus.value = ScanStatus.Empty
             }
         }
     }
@@ -79,7 +85,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /** Call this on app resume to pick up any songs that missed metadata last time. */
     fun fetchMetadataIfOnline() {
         viewModelScope.launch {
-            MetadataFetcher.fetchMissingMetadata(getApplication())
+            _scanStatus.value = ScanStatus.FetchingMetadata
+            MetadataFetcher.fetchMissingMetadata(getApplication<Application>())
+            _scanStatus.value = ScanStatus.Idle
         }
     }
 
@@ -126,7 +134,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     sealed class ScanStatus {
+        object Idle : ScanStatus()
         object Scanning : ScanStatus()
+        object FetchingMetadata : ScanStatus()
         data class Success(val count: Int) : ScanStatus()
         object Empty : ScanStatus()
         data class Error(val msg: String) : ScanStatus()
