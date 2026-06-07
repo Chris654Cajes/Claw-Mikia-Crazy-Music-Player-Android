@@ -824,6 +824,11 @@ class MusicService : Service() {
         if (isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
     }
 
+    fun applySkipRegions(regions: List<SkipRegion>) {
+        skipRegions = regions
+        if (isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
+    }
+
     fun cancelSleepTimer() {
         sleepTimerRunnable?.let { sleepTimerHandler.removeCallbacks(it) }; sleepTimerRunnable =
             null; sleepTimerEndMs = -1L

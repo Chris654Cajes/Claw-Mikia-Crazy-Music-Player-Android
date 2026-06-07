@@ -51,8 +51,10 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     // ─── Skip Regions ─────────────────────────────────────────────────────────
-    private val _skipRegions = MutableLiveData<List<SkipRegion>>(emptyList())
-    val skipRegions: LiveData<List<SkipRegion>> = _skipRegions
+    val skipRegions: LiveData<List<SkipRegion>> = _currentSongId.switchMap { id ->
+        if (id == null) MutableLiveData(emptyList())
+        else profileRepository.getSkipRegions(id)
+    }
 
     // ─── Analysis ─────────────────────────────────────────────────────────────
     private val _songAnalysis = MutableLiveData<SongAnalysis?>()
@@ -101,12 +103,6 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
             withContext(Dispatchers.IO) {
                 profileRepository.getOrCreateActiveProfile(songId)
             }
-
-            // Load skip regions
-            val regions = withContext(Dispatchers.IO) {
-                profileRepository.getEnabledSkipRegions(songId)
-            }
-            _skipRegions.value = regions
 
             // Load analysis
             val analysis = withContext(Dispatchers.IO) {
@@ -207,16 +203,12 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
                     endMs = endMs
                 )
             )
-            val updated =
-                withContext(Dispatchers.IO) { profileRepository.getEnabledSkipRegions(songId) }
-            _skipRegions.value = updated
         }
     }
 
     fun deleteSkipRegion(region: SkipRegion) {
         viewModelScope.launch {
             profileRepository.deleteSkipRegion(region)
-            _skipRegions.value = _skipRegions.value?.filter { it.id != region.id }
         }
     }
 

@@ -130,6 +130,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:fontFamily="@font/orbitron_bold"
+                android:gravity="center"
                 android:maxLines="2"
                 android:text="Song Title"
                 android:textColor="@color/text_primary"
@@ -208,13 +209,26 @@
             android:paddingEnd="20dp"
             android:layout_marginTop="24dp">
 
-            <SeekBar
-                android:id="@+id/seekPlayback"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:thumb="@drawable/seekbar_thumb"
-                android:progressTint="@color/neon_pink"
-                android:progressBackgroundTint="@color/seekbar_bg" />
+                android:layout_height="wrap_content">
+
+                <com.mochimochi.clawmikia.ui.views.SkipRegionsOverlayView
+                    android:id="@+id/skipRegionsOverlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="14dp" />
+
+                <SeekBar
+                    android:id="@+id/seekPlayback"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:progressBackgroundTint="@color/seekbar_bg"
+                    android:progressTint="@color/neon_pink"
+                    android:thumb="@drawable/seekbar_thumb" />
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -1270,6 +1284,84 @@
 
         </androidx.cardview.widget.CardView>
 
+        <!-- ═══════════════════ SKIP SECTIONS CARD ═══════════════════ -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginEnd="16dp"
+            app:cardBackgroundColor="@color/bg_card"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_close"
+                        android:tint="@color/neon_yellow" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:letterSpacing="0.14"
+                        android:paddingStart="8dp"
+                        android:text="SKIP / CUT"
+                        android:textColor="@color/text_primary"
+                        android:textSize="11sp" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnAddSkipSection"
+                        android:layout_width="wrap_content"
+                        android:layout_height="30dp"
+                        android:background="@drawable/bg_button_outline_cyan"
+                        android:backgroundTint="@color/neon_yellow"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:minWidth="0dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="+ ADD"
+                        android:textColor="@color/neon_yellow"
+                        android:textSize="10sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutSkipSections"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:id="@+id/tvNoSkipSections"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:gravity="center"
+                    android:padding="8dp"
+                    android:text="No skip sections added"
+                    android:textColor="@color/text_hint"
+                    android:textSize="10sp" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
         <!-- Playback State Toggle (Original vs Updated) -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
@@ -1329,6 +1421,34 @@
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
+
+        <!-- RESET ALL STATES BUTTON -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="16dp"
+            android:orientation="vertical">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnResetAllStates"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:backgroundTint="@color/neon_red_20"
+                android:fontFamily="@font/orbitron_bold"
+                android:text="DESTROY ALL STATES / RESET"
+                android:textColor="@color/neon_red"
+                android:textSize="12sp"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_skull"
+                app:iconGravity="textStart"
+                app:iconSize="24dp"
+                app:iconTint="@color/neon_red"
+                app:strokeColor="@color/neon_red"
+                app:strokeWidth="1dp" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

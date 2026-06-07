@@ -43,6 +43,7 @@ class SettingsFragment : Fragment() {
         setupPitchStep()
         setupSpeedStep()
         setupTrimStep()
+        setupSkipStep()
         setupResetButton()
         observeSettings()
     }
@@ -218,6 +219,38 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    // ── Skip Step ──────────────────────────────────────────────────────────────
+
+    private fun setupSkipStep() {
+        val et = binding.etSkipStep
+        et.inputType = InputType.TYPE_CLASS_NUMBER
+
+        et.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (suppressWatcher) return
+                val raw = s.toString().trim()
+                if (raw.isEmpty()) return
+                val value = raw.toIntOrNull() ?: return
+                settingsRepo.setSkipStep(value)
+            }
+        })
+
+        et.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val raw = et.text.toString().trim()
+                val value = raw.toIntOrNull() ?: SettingsRepository.DEFAULT_SKIP_STEP
+                val clamped = value.coerceIn(1, 60)
+                suppressWatcher = true
+                et.setText(clamped.toString())
+                et.setSelection(et.text.length)
+                suppressWatcher = false
+                settingsRepo.setSkipStep(clamped)
+            }
+        }
+    }
+
     // ── Observe LiveData ────────────────────────────────────────────────────────
 
     private fun setupResetButton() {
@@ -233,6 +266,7 @@ class SettingsFragment : Fragment() {
                     binding.etPitchStep.setText(formatDecimal1(SettingsRepository.DEFAULT_PITCH_STEP))
                     binding.etSpeedStep.setText(SettingsRepository.DEFAULT_SPEED_STEP.toString())
                     binding.etTrimStep.setText(formatDecimal1(SettingsRepository.DEFAULT_TRIM_STEP))
+                    binding.etSkipStep.setText(SettingsRepository.DEFAULT_SKIP_STEP.toString())
                     suppressWatcher = false
                     Toast.makeText(
                         requireContext(),
@@ -270,6 +304,11 @@ class SettingsFragment : Fragment() {
         val trim = settingsRepo.getTrimStep()
         if (binding.etTrimStep.text.isNullOrEmpty()) {
             binding.etTrimStep.setText(formatDecimal1(trim))
+        }
+
+        val skip = settingsRepo.getSkipStep()
+        if (binding.etSkipStep.text.isNullOrEmpty()) {
+            binding.etSkipStep.setText(skip.toString())
         }
     }
 

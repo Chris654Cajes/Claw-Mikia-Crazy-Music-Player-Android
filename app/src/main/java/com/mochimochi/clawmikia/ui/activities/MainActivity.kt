@@ -216,6 +216,22 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Handle bottom system nav bar insets on bottomArea so the
+        // BottomNavigationView doesn't add its own automatic bottom padding.
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.bottomArea) { view, insets ->
+            val navBars =
+                insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(0, 0, 0, navBars.bottom)
+            // Consume navigation bar insets so children don't re-apply them
+            androidx.core.view.WindowInsetsCompat.Builder(insets)
+                .setInsets(
+                    androidx.core.view.WindowInsetsCompat.Type.navigationBars(),
+                    androidx.core.graphics.Insets.of(0, 0, 0, 0)
+                )
+                .build()
+        }
+
         setupNavigation()
         setupMusicPanel()
         setupSearchBar()
@@ -265,26 +281,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun showFragment(fragment: Fragment) {
         val appBar = binding.appBarLayout
-        val container = binding.fragmentContainer
+        val contentArea = binding.contentArea
         val layoutParams =
-            container.layoutParams as? androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams
-
-        // Force the container to always occupy full screen height
-        layoutParams?.height =
-            androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams.MATCH_PARENT
+            contentArea.layoutParams as? androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams
 
         if (fragment is PlaylistsFragment || fragment is SettingsFragment) {
             // 1. Hide the activity header and remove scrolling behavior
             appBar.visibility = View.GONE
             layoutParams?.behavior = null
-            container.layoutParams = layoutParams
+            contentArea.layoutParams = layoutParams
 
-            // 2. Safe padding injection for BOTH top status bar and bottom system navigation
-            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
+            // 2. Safe padding injection for top status bar (bottom nav handled by bottomArea)
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(contentArea) { view, insets ->
                 val systemBars =
                     insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
-                // Protects the top from the status bar and the bottom from overlapping the system navigation
-                view.setPadding(0, systemBars.top, 0, systemBars.bottom)
+                view.setPadding(0, systemBars.top, 0, 0)
                 insets
             }
         } else {
@@ -292,15 +303,10 @@ class MainActivity : AppCompatActivity() {
             appBar.visibility = View.VISIBLE
             layoutParams?.behavior =
                 com.google.android.material.appbar.AppBarLayout.ScrollingViewBehavior()
-            container.layoutParams = layoutParams
+            contentArea.layoutParams = layoutParams
 
-            // 2. Only preserve bottom padding for the system navigation bar
-            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
-                val systemBars =
-                    insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
-                view.setPadding(0, 0, 0, systemBars.bottom)
-                insets
-            }
+            // 2. Remove extra padding — layout handles spacing naturally
+            contentArea.setPadding(0, 0, 0, 0)
         }
 
         // Execute the fragment transaction

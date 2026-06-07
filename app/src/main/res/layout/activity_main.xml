@@ -160,38 +160,47 @@
         app:layout_anchor="@id/appBarLayout"
         app:layout_anchorGravity="bottom" />
 
-    <!-- Fragment container -->
-    <FrameLayout
-        android:id="@+id/fragmentContainer"
+    <!-- Content area: fragment + bottom stack, no overlap -->
+    <LinearLayout
+        android:id="@+id/contentArea"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
-    <!-- Mini music panel + bottom nav stacked at bottom -->
-    <LinearLayout
-        android:id="@+id/bottomArea"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_gravity="bottom">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Mini player -->
-        <include
-            android:id="@+id/musicPanel"
-            layout="@layout/layout_mini_player"
+        <!-- Fragment container fills remaining space -->
+        <FrameLayout
+            android:id="@+id/fragmentContainer"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-        <!-- Bottom navigation -->
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottomNav"
+        <!-- Mini music panel + bottom nav stacked at bottom -->
+        <LinearLayout
+            android:id="@+id/bottomArea"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/bg_surface"
-            app:itemIconTint="@color/nav_item_color"
-            app:itemTextColor="@color/nav_item_color"
-            app:menu="@menu/bottom_nav_menu"
-            app:labelVisibilityMode="labeled" />
+            android:orientation="vertical">
+
+            <!-- Mini player -->
+            <include
+                android:id="@+id/musicPanel"
+                layout="@layout/layout_mini_player"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <!-- Bottom navigation -->
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/bottomNav"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_surface"
+                app:itemIconTint="@color/nav_item_color"
+                app:itemTextColor="@color/nav_item_color"
+                app:labelVisibilityMode="labeled"
+                app:menu="@menu/bottom_nav_menu" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

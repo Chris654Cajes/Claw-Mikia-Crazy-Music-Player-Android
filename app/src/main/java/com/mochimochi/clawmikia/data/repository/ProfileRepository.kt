@@ -138,4 +138,8 @@ class ProfileRepository(private val context: Context) {
     suspend fun toggleSkipRegion(region: SkipRegion) = withContext(Dispatchers.IO) {
         skipRegionDao.setEnabled(region.id, !region.isEnabled)
     }
+
+    suspend fun deleteAllSkipRegions(songId: Long) = withContext(Dispatchers.IO) {
+        skipRegionDao.deleteAllForSong(songId)
+    }
 }

@@ -26,7 +26,9 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.mochimochi.clawmikia.R
 import com.mochimochi.clawmikia.data.model.Song
+import com.mochimochi.clawmikia.data.model.SkipRegion
 import com.mochimochi.clawmikia.data.repository.SettingsRepository
+import com.mochimochi.clawmikia.data.repository.ProfileRepository
 import com.mochimochi.clawmikia.data.repository.SongRepository
 import com.mochimochi.clawmikia.databinding.ActivityNowPlayingBinding
 import com.mochimochi.clawmikia.databinding.DialogEditSongBinding
@@ -47,6 +49,7 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityNowPlayingBinding
     private val activityScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private lateinit var repository: SongRepository
+    private lateinit var profileRepo: ProfileRepository
     private lateinit var settingsRepo: SettingsRepository
     private lateinit var viewModel: NowPlayingViewModel
 
@@ -119,6 +122,7 @@ class NowPlayingActivity : AppCompatActivity() {
         setupSystemBars()
 
         repository = SongRepository(applicationContext)
+        profileRepo = ProfileRepository(applicationContext)
         settingsRepo = SettingsRepository(applicationContext)
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
         maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
@@ -259,6 +263,14 @@ class NowPlayingActivity : AppCompatActivity() {
 
                 // Sync Volume UI
                 syncVolumeSeekBar()
+            }
+        }
+
+        viewModel.skipRegions.observe(this) { regions ->
+            updateSkipRegionsUI(regions)
+            musicService?.applySkipRegions(regions.filter { it.isEnabled })
+            song?.let { s ->
+                binding.skipRegionsOverlay.setRegions(regions, s.duration)
             }
         }
     }
@@ -524,12 +536,14 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.btnRewind.setOnClickListener {
             val svc = musicService ?: return@setOnClickListener
             val tStart = song?.trimStart?.toInt() ?: 0
-            svc.seekTo((svc.getPosition() - 5000).coerceAtLeast(tStart))
+            val skipMs = settingsRepo.getSkipStep() * 1000
+            svc.seekTo((svc.getPosition() - skipMs).coerceAtLeast(tStart))
         }
         binding.btnForward.setOnClickListener {
             val svc = musicService ?: return@setOnClickListener
             val tEnd = if ((song?.trimEnd ?: 0L) > 0L) song!!.trimEnd.toInt() else svc.getDuration()
-            svc.seekTo((svc.getPosition() + 5000).coerceAtMost(tEnd))
+            val skipMs = settingsRepo.getSkipStep() * 1000
+            svc.seekTo((svc.getPosition() + skipMs).coerceAtMost(tEnd))
         }
 
         // ── Pitch seekbar ───────────────────────────────────────────────────────
@@ -845,6 +859,191 @@ class NowPlayingActivity : AppCompatActivity() {
                 musicService?.applyAbRepeatToCurrentSong(-1, -1, false)
             }
             saveAbRepeat()
+        }
+
+        // ── Skip Sections ─────────────────────────────────────────────────────
+        binding.btnAddSkipSection.setOnClickListener {
+            showAddSkipSectionDialog()
+        }
+
+        // ── Reset All States ──────────────────────────────────────────────────
+        binding.btnResetAllStates.setOnClickListener {
+            showResetAllStatesConfirm()
+        }
+    }
+
+    private fun updateSkipRegionsUI(regions: List<SkipRegion>) {
+        binding.layoutSkipSections.removeAllViews()
+        binding.tvNoSkipSections.visibility =
+            if (regions.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+
+        regions.forEach { region ->
+            val itemView = layoutInflater.inflate(
+                R.layout.item_selection_dialog,
+                binding.layoutSkipSections,
+                false
+            )
+            val tv = itemView.findViewById<android.widget.TextView>(R.id.tvItemName)
+            val iv = itemView.findViewById<ImageView>(R.id.ivItemIcon)
+
+            tv.text = "${formatDuration(region.startMs)} ➔ ${formatDuration(region.endMs)}"
+            tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 12f)
+            tv.setTextColor(ContextCompat.getColor(this, R.color.neon_yellow))
+
+            iv.setImageResource(R.drawable.ic_close)
+            iv.setColorFilter(ContextCompat.getColor(this, R.color.neon_red))
+            iv.setOnClickListener {
+                viewModel.deleteSkipRegion(region)
+            }
+
+            itemView.setOnClickListener {
+                activityScope.launch { profileRepo.toggleSkipRegion(region) }
+            }
+            itemView.alpha = if (region.isEnabled) 1.0f else 0.5f
+
+            binding.layoutSkipSections.addView(itemView)
+        }
+    }
+
+    private fun showAddSkipSectionDialog() {
+        val s = song ?: return
+        val pos = musicService?.getPosition()?.toLong() ?: 0L
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle("ADD SKIP SECTION")
+            .setMessage("Create a 30-second skip section starting at ${formatDuration(pos)}?")
+            .setPositiveButton("ADD") { _, _ ->
+                viewModel.addSkipRegion(s.id, "", pos, (pos + 30000).coerceAtMost(s.duration))
+            }
+            .setNeutralButton("CUSTOM") { _, _ ->
+                showCustomSkipDialog()
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
+    }
+
+    private fun showCustomSkipDialog() {
+        val s = song ?: return
+        val dialogView = layoutInflater.inflate(R.layout.dialog_custom_skip, null)
+
+        val etStartMin = dialogView.findViewById<EditText>(R.id.etStartMin)
+        val etStartSec = dialogView.findViewById<EditText>(R.id.etStartSec)
+        val etEndMin = dialogView.findViewById<EditText>(R.id.etEndMin)
+        val etEndSec = dialogView.findViewById<EditText>(R.id.etEndSec)
+        val btnSave = dialogView.findViewById<android.view.View>(R.id.btnSave)
+        val btnCancel = dialogView.findViewById<android.view.View>(R.id.btnCancel)
+
+        // Pre-fill with current position as start
+        val curPos = musicService?.getPosition()?.toLong() ?: 0L
+        val curMin = (curPos / 1000) / 60
+        val curSec = (curPos / 1000) % 60
+        etStartMin.setText(curMin.toString())
+        etStartSec.setText(curSec.toString())
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnCancel.setOnClickListener { dialog.dismiss() }
+        btnSave.setOnClickListener {
+            val sMin = etStartMin.text.toString().toLongOrNull() ?: 0L
+            val sSec = etStartSec.text.toString().toLongOrNull() ?: 0L
+            val eMin = etEndMin.text.toString().toLongOrNull() ?: 0L
+            val eSec = etEndSec.text.toString().toLongOrNull() ?: 0L
+
+            val startMs = (sMin * 60 + sSec) * 1000
+            val endMs = (eMin * 60 + eSec) * 1000
+
+            if (endMs <= startMs) {
+                Toast.makeText(this, "End time must be after start time", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (startMs >= s.duration) {
+                Toast.makeText(this, "Start time is beyond song duration", Toast.LENGTH_SHORT)
+                    .show()
+                return@setOnClickListener
+            }
+
+            viewModel.addSkipRegion(s.id, "", startMs, endMs.coerceAtMost(s.duration))
+            dialog.dismiss()
+        }
+        dialog.show()
+        val width = (resources.displayMetrics.widthPixels * 0.85).toInt()
+        dialog.window?.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
+    private fun showResetAllStatesConfirm() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("RESET ALL STATES")
+            .setIcon(R.drawable.ic_skull)
+            .setMessage("This will reset Pitch, Speed, Trim, Volume, Loops, A-B Repeat, and DELETE all Skip Sections for this song.\n\nAre you sure?")
+            .setPositiveButton("RESET EVERYTHING") { _, _ ->
+                resetAllStates()
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
+    }
+
+    private fun resetAllStates() {
+        val s = song ?: return
+        val id = s.id
+
+        activityScope.launch {
+            // 1. Reset Song entity fields
+            repository.updatePitchAndSyncProfile(id, 0f)
+            repository.updateSpeedAndSyncProfile(id, 1.0f)
+            repository.updateTrimAndSyncProfile(id, 0L, -1L)
+            repository.updateRepeatModeAndSyncProfile(id, 0)
+
+            // 2. Reset Profile fields
+            viewModel.activeProfile.value?.let { profile ->
+                val resetProfile = profile.copy(
+                    pitchSemitones = 0f,
+                    playbackSpeed = 1.0f,
+                    volume = 1.0f,
+                    trimStart = 0L,
+                    trimEnd = -1L,
+                    loopEnabled = false,
+                    abRepeatEnabled = false,
+                    bassBoostEnabled = false,
+                    reverbEnabled = false,
+                    loudnessEnabled = false,
+                    compressorEnabled = false
+                )
+                profileRepo.updateProfile(resetProfile)
+            }
+
+            // 3. Delete all skip regions
+            profileRepo.deleteAllSkipRegions(id)
+
+            runOnUiThread {
+                // Refresh UI
+                populate(
+                    s.copy(
+                        pitchSemitones = 0f,
+                        playbackSpeed = 1.0f,
+                        trimStart = 0L,
+                        trimEnd = -1L,
+                        repeatMode = 0
+                    )
+                )
+
+                // Refresh Service
+                musicService?.applyPitchToCurrentSong(0f)
+                musicService?.applySpeedToCurrentSong(1.0f)
+                musicService?.applyTrimToCurrentSong(0L, -1L)
+                musicService?.applyLoopToCurrentSong(0L, -1L, false)
+                musicService?.applyAbRepeatToCurrentSong(-1, -1, false)
+                musicService?.setBypassProfiles(false)
+
+                Toast.makeText(
+                    this@NowPlayingActivity,
+                    "All states reset to original",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
     }
 

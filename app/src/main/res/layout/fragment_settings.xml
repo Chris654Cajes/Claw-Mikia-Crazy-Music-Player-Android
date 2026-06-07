@@ -211,6 +211,29 @@
             android:hint="e.g. 10.0"
             android:textColorHint="@color/text_hint"
             android:textColor="@color/neon_orange"
+            android:layout_marginBottom="24dp"
+            android:autofillHints="none"
+            android:background="@drawable/bg_search_field"
+            android:padding="12dp" />
+
+        <!-- FF / RW Step -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/orbitron_bold"
+            android:text="FF / RW STEP (SECONDS)"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/etSkipStep"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="e.g. 5"
+            android:inputType="number"
+            android:textColor="@color/neon_yellow"
+            android:textColorHint="@color/text_hint"
             android:background="@drawable/bg_search_field"
             android:padding="12dp"
             android:layout_marginBottom="24dp"

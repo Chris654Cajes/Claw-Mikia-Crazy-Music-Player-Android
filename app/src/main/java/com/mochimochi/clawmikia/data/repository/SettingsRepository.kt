@@ -17,13 +17,15 @@ class SettingsRepository(context: Context) {
         private const val KEY_PITCH_STEP = "pitch_step"
         private const val KEY_SPEED_STEP = "speed_step"
         private const val KEY_TRIM_STEP = "trim_step_seconds"
+        private const val KEY_SKIP_STEP = "skip_step_seconds"
 
         // Default values
         const val DEFAULT_FAVORITE_ICON = "heart"
         const val DEFAULT_VOLUME_STEP = 5f       // 5%
-        const val DEFAULT_PITCH_STEP = 0.1f      // 0.1 semitones
+        const val DEFAULT_PITCH_STEP = 1.0f      // 1.0 semitones
         const val DEFAULT_SPEED_STEP = 1         // 1 unit
         const val DEFAULT_TRIM_STEP = 10.0f      // 10.0 seconds
+        const val DEFAULT_SKIP_STEP = 5          // 5 seconds
     }
 
     private val prefs: SharedPreferences =
@@ -41,6 +43,8 @@ class SettingsRepository(context: Context) {
         SharedPrefLiveDataInt(prefs, KEY_SPEED_STEP, DEFAULT_SPEED_STEP)
     val trimStepLive: LiveData<Float> =
         SharedPrefLiveDataFloat(prefs, KEY_TRIM_STEP, DEFAULT_TRIM_STEP)
+    val skipStepLive: LiveData<Int> =
+        SharedPrefLiveDataInt(prefs, KEY_SKIP_STEP, DEFAULT_SKIP_STEP)
 
     // ── Direct getters ────────────────────────────────────────────────────────
 
@@ -51,6 +55,7 @@ class SettingsRepository(context: Context) {
     fun getPitchStep(): Float = prefs.getFloat(KEY_PITCH_STEP, DEFAULT_PITCH_STEP)
     fun getSpeedStep(): Int = prefs.getInt(KEY_SPEED_STEP, DEFAULT_SPEED_STEP)
     fun getTrimStep(): Float = prefs.getFloat(KEY_TRIM_STEP, DEFAULT_TRIM_STEP)
+    fun getSkipStep(): Int = prefs.getInt(KEY_SKIP_STEP, DEFAULT_SKIP_STEP)
 
     // ── Setters ────────────────────────────────────────────────────────────────
 
@@ -74,6 +79,10 @@ class SettingsRepository(context: Context) {
         prefs.edit().putFloat(KEY_TRIM_STEP, step).apply()
     }
 
+    fun setSkipStep(step: Int) {
+        prefs.edit().putInt(KEY_SKIP_STEP, step).apply()
+    }
+
     // ── Reset all to defaults ──────────────────────────────────────────────────
 
     fun resetAll() {
@@ -83,6 +92,7 @@ class SettingsRepository(context: Context) {
             .putFloat(KEY_PITCH_STEP, DEFAULT_PITCH_STEP)
             .putInt(KEY_SPEED_STEP, DEFAULT_SPEED_STEP)
             .putFloat(KEY_TRIM_STEP, DEFAULT_TRIM_STEP)
+            .putInt(KEY_SKIP_STEP, DEFAULT_SKIP_STEP)
             .apply()
     }
 
