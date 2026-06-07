@@ -10,6 +10,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
@@ -22,6 +23,8 @@ import com.mochimochi.clawmikia.data.repository.PlaylistRepository
 import com.mochimochi.clawmikia.data.repository.SongRepository
 import com.mochimochi.clawmikia.ui.activities.MainActivity
 import com.mochimochi.clawmikia.ui.adapters.SongAdapter
+import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikia.utils.SwipeToDeleteCallback
 import kotlinx.coroutines.*
 
 // ─── Filter modes ─────────────────────────────────────────────────────────────
@@ -458,11 +461,23 @@ class PlaylistDetailFragment : Fragment() {
                 }
             }
         ).apply {
+            onLongClick = { song ->
+                (activity as? MainActivity)?.showSongOptionsDialog(song)
+            }
             onSelectionChanged = { mode, count ->
                 btnDeleteSelected.visibility = if (mode && count > 0) View.VISIBLE else View.GONE
             }
         }
         rv.adapter = adapter
+
+        val swipeHandler = object : SwipeToDeleteCallback(requireContext()) {
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val song = adapter.currentList[viewHolder.bindingAdapterPosition]
+                (activity as? MainActivity)?.showDeleteConfirmDialog(song)
+                adapter.notifyItemChanged(viewHolder.bindingAdapterPosition)
+            }
+        }
+        ItemTouchHelper(swipeHandler).attachToRecyclerView(rv)
 
         repo.getSongsInPlaylist(playlistId).observe(viewLifecycleOwner) { songs ->
             adapter.submitList(songs)

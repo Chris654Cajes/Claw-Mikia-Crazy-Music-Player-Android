@@ -42,11 +42,42 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Music Library"
-                    android:textSize="18sp"
+                    android:textSize="15sp"
                     android:letterSpacing="0.12"
                     android:fontFamily="@font/orbitron_bold"
                     android:textColor="@color/text_primary"
                     android:paddingStart="10dp" />
+
+                <!-- Online metadata update button -->
+                <FrameLayout
+                    android:layout_width="40dp"
+                    android:layout_height="40dp">
+
+                    <ImageButton
+                        android:id="@+id/btnUpdateOnline"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Update metadata online"
+                        android:src="@drawable/ic_loop"
+                        android:tint="@color/neon_purple" />
+
+                    <TextView
+                        android:id="@+id/tvManualCount"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginEnd="4dp"
+                        android:background="@drawable/bg_pitch_badge"
+                        android:backgroundTint="@color/neon_green"
+                        android:fontFamily="@font/orbitron_bold"
+                        android:gravity="center"
+                        android:text="0"
+                        android:textColor="@android:color/black"
+                        android:textSize="8sp"
+                        android:visibility="gone" />
+                </FrameLayout>
 
                 <!-- Export library button -->
                 <ImageButton

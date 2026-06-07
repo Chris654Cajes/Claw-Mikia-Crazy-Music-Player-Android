@@ -30,5 +30,8 @@ data class Song(
     // Online metadata (fetched from MusicBrainz/Cover Art Archive, never overwrites file)
     var albumName: String = "",
     var albumArtUrl: String = "",
-    var metadataFetched: Boolean = false
+    var metadataFetched: Boolean = false,
+
+    // Manual edits indicator
+    var isManuallyEdited: Boolean = false
 )

@@ -73,8 +73,32 @@ interface SongDao {
         artUrl: String
     )
 
-    @Query("SELECT * FROM songs WHERE metadataFetched = 0 ORDER BY dateAdded DESC")
+    @Query("UPDATE songs SET folderName = :newName WHERE folderPath = :path")
+    suspend fun renameFolder(path: String, newName: String)
+
+    @Query("UPDATE songs SET folderPath = :newPath, folderName = :newFolderName, filePath = :newFilePath WHERE id = :songId")
+    suspend fun moveSong(songId: Long, newPath: String, newFolderName: String, newFilePath: String)
+
+    @Query("UPDATE songs SET title = :title, artist = :artist, albumName = :album, albumArtUrl = :artUrl, isManuallyEdited = 1, metadataFetched = 1 WHERE id = :id")
+    suspend fun updateSongDetailsManual(
+        id: Long,
+        title: String,
+        artist: String,
+        album: String,
+        artUrl: String
+    )
+
+    @Query("SELECT * FROM songs WHERE metadataFetched = 0 AND isManuallyEdited = 0 ORDER BY dateAdded DESC")
     suspend fun getSongsWithoutMetadata(): List<Song>
+
+    @Query("SELECT * FROM songs WHERE isManuallyEdited = 0 ORDER BY dateAdded DESC")
+    suspend fun getSongsEligibleForOnlineUpdate(): List<Song>
+
+    @Query("SELECT * FROM songs WHERE isManuallyEdited = 1")
+    fun getManuallyEditedSongs(): LiveData<List<Song>>
+
+    @Query("SELECT COUNT(*) FROM songs WHERE isManuallyEdited = 1")
+    fun getManuallyEditedCount(): LiveData<Int>
 
     @Query("SELECT * FROM songs WHERE isFavorite = 1 ORDER BY title")
     fun getFavorites(): LiveData<List<Song>>

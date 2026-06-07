@@ -6,12 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mochimochi.clawmikia.data.model.Song
 import com.mochimochi.clawmikia.databinding.FragmentLibraryBinding
 import com.mochimochi.clawmikia.ui.activities.MainActivity
 import com.mochimochi.clawmikia.ui.adapters.SongAdapter
 import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikia.utils.SwipeToDeleteCallback
 
 class LibraryFragment : Fragment() {
 
@@ -38,8 +40,8 @@ class LibraryFragment : Fragment() {
             },
             onFavoriteClick = { song -> viewModel.toggleFavorite(song) }
         ).apply {
-            onLongClick = { _ ->
-                setSelectionMode(true)
+            onLongClick = { song ->
+                (activity as? MainActivity)?.showSongOptionsDialog(song)
             }
             onSelectionChanged = { mode, count ->
                 binding.btnSelectAll.visibility = if (mode) View.VISIBLE else View.GONE
@@ -52,6 +54,18 @@ class LibraryFragment : Fragment() {
 
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
         binding.recyclerView.adapter = adapter
+
+        val swipeHandler = object : SwipeToDeleteCallback(requireContext()) {
+            override fun onSwiped(
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                direction: Int
+            ) {
+                val song = adapter.currentList[viewHolder.bindingAdapterPosition]
+                (activity as? MainActivity)?.showDeleteConfirmDialog(song)
+                adapter.notifyItemChanged(viewHolder.bindingAdapterPosition) // Reset the swipe
+            }
+        }
+        ItemTouchHelper(swipeHandler).attachToRecyclerView(binding.recyclerView)
 
         binding.btnSelectAll.setOnClickListener {
             adapter.selectAll()

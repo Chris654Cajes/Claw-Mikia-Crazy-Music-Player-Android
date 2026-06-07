@@ -9,7 +9,8 @@ import com.mochimochi.clawmikia.data.db.FolderInfo
 import com.mochimochi.clawmikia.databinding.ItemFolderBinding
 
 class FolderAdapter(
-    private val onClick: (FolderInfo) -> Unit
+    private val onClick: (FolderInfo) -> Unit,
+    private val onLongClick: (FolderInfo) -> Unit
 ) : ListAdapter<FolderInfo, FolderAdapter.FolderViewHolder>(FolderDiff()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FolderViewHolder {
@@ -27,6 +28,10 @@ class FolderAdapter(
             binding.tvFolderName.text = info.folderName
             binding.tvFolderPath.text = info.folderPath
             binding.root.setOnClickListener { onClick(info) }
+            binding.root.setOnLongClickListener {
+                onLongClick(info)
+                true
+            }
         }
     }
 

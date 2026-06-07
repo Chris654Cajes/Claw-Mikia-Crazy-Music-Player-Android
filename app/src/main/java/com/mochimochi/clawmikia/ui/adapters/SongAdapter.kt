@@ -115,6 +115,8 @@ class SongAdapter(
                 if (song.trimStart > 0 || (song.trimEnd > 0 && song.trimEnd < song.duration)) View.VISIBLE else View.GONE
             binding.ivSpeedBadge.visibility =
                 if (song.playbackSpeed != 1.0f) View.VISIBLE else View.GONE
+            binding.ivManualBadge.visibility =
+                if (song.isManuallyEdited) View.VISIBLE else View.GONE
 
             // Favorite vs Remove
             if (onRemoveClick != null && !selectionMode) {

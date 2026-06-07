@@ -15,8 +15,10 @@ import android.os.IBinder
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
@@ -28,9 +30,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.mochimochi.clawmikia.MusicVaultApp
 import com.mochimochi.clawmikia.R
+import androidx.lifecycle.Observer
+import com.mochimochi.clawmikia.data.model.Playlist
 import com.mochimochi.clawmikia.data.model.Song
+import com.mochimochi.clawmikia.data.db.FolderInfo
 import com.mochimochi.clawmikia.databinding.ActivityMainBinding
 import com.mochimochi.clawmikia.service.MusicService
 import com.mochimochi.clawmikia.ui.fragments.FavoritesFragment
@@ -64,8 +71,8 @@ class MainActivity : AppCompatActivity() {
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
             runOnUiThread {
-                android.util.Log.d("MainActivity", "Network online, triggering metadata fetch")
-                viewModel.fetchMetadataIfOnline()
+                android.util.Log.d("MainActivity", "Network online")
+                // Auto-fetch removed as per user request
             }
         }
     }
@@ -210,6 +217,7 @@ class MainActivity : AppCompatActivity() {
         setupMusicPanel()
         setupSearchBar()
         setupResetButton()
+        setupUpdateOnlineButton()
         bindToService()
         observeViewModel()
         requestNotificationPermission()
@@ -468,6 +476,36 @@ class MainActivity : AppCompatActivity() {
         binding.btnExport.setOnClickListener { showExportDialog() }
     }
 
+    private fun setupUpdateOnlineButton() {
+        binding.btnUpdateOnline.setOnClickListener {
+            if (!com.mochimochi.clawmikia.utils.MetadataFetcher.isOnline(this)) {
+                showAestheticStatusDialog(
+                    success = false,
+                    title = "OFFLINE",
+                    message = "Please connect to the internet to update metadata from MusicBrainz."
+                )
+                return@setOnClickListener
+            }
+
+            val msg = "Do you want to fetch missing metadata for your library?\n\n" +
+                    "This will look for album art and song details online.\n\n" +
+                    "NOTE: Manually edited songs will be skipped to preserve your changes."
+
+            AlertDialog.Builder(this)
+                .setTitle("ONLINE METADATA UPDATE")
+                .setMessage(msg)
+                .setPositiveButton("PROCEED") { _, _ ->
+                    viewModel.fetchMetadataManual(overwriteManual = false)
+                }
+                .setNeutralButton("OVERWRITE ALL") { _, _ ->
+                    // Optional: allow user to overwrite even manual edits if they really want to
+                    viewModel.fetchMetadataManual(overwriteManual = true)
+                }
+                .setNegativeButton("CANCEL", null)
+                .show()
+        }
+    }
+
     private fun showExportDialog() {
         val options = arrayOf("All Songs", "Only Updated Songs")
         AlertDialog.Builder(this)
@@ -540,6 +578,15 @@ class MainActivity : AppCompatActivity() {
     // ─── ViewModel observations ──────────────────────────────────────────────────
 
     private fun observeViewModel() {
+        // Keep these "warm" so .value is available for dialogs
+        viewModel.allPlaylists.observe(this) { }
+        viewModel.folders.observe(this) { }
+
+        viewModel.manuallyEditedCount.observe(this) { count ->
+            binding.tvManualCount.text = count.toString()
+            binding.tvManualCount.visibility = if (count > 0) View.VISIBLE else View.GONE
+        }
+
         viewModel.scanStatus.observe(this) { status ->
             when (status) {
                 is MainViewModel.ScanStatus.Scanning -> {
@@ -725,7 +772,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.fetchMetadataIfOnline()
+        // viewModel.fetchMetadataIfOnline() // Removed as per request
         if (serviceBound) {
             // Re-register callbacks every resume — NowPlayingActivity nulls them on destroy
             registerServiceCallbacks()
@@ -770,12 +817,14 @@ class MainActivity : AppCompatActivity() {
     ) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_confirm, null)
 
-        dialogView.findViewById<android.widget.TextView>(R.id.tvTitle).text = title
-        dialogView.findViewById<android.widget.TextView>(R.id.tvMessage).text = message
+        dialogView.findViewById<TextView>(R.id.tvTitle).text = title
+        dialogView.findViewById<TextView>(R.id.tvMessage).text = message
 
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         dialogView.findViewById<android.widget.ImageButton>(R.id.btnCancel).setOnClickListener {
             dialog.dismiss()
@@ -787,56 +836,181 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialog.show()
+        val width = (resources.displayMetrics.widthPixels * 0.80).toInt()
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     fun showAddToPlaylistDialog(song: Song) {
-        val playlists = viewModel.allPlaylists.value ?: emptyList()
-        if (playlists.isEmpty()) {
-            showSnackbar("No playlists found. Create one first.")
-            return
-        }
-
-        val names = playlists.map { it.name }.toTypedArray()
-        AlertDialog.Builder(this)
-            .setTitle("Add to Playlist")
-            .setItems(names) { _, which ->
-                val playlist = playlists[which]
-                viewModel.addSongToPlaylist(playlist.id, song.id)
-                showAestheticStatusDialog(
-                    success = true,
-                    title = "SONG ADDED",
-                    message = "Added \"${song.title}\" to ${playlist.name}"
-                )
+        val liveData = viewModel.allPlaylists
+        val observer = object : Observer<List<Playlist>> {
+            override fun onChanged(value: List<Playlist>) {
+                liveData.removeObserver(this)
+                if (value.isEmpty()) {
+                    showSnackbar("No playlists found. Create one first.")
+                } else {
+                    showAestheticSelectionDialog(
+                        title = "ADD TO PLAYLIST",
+                        items = value,
+                        itemLabel = { it.name },
+                        itemIcon = { R.drawable.ic_playlist },
+                        onItemSelected = { playlist ->
+                            viewModel.addSongToPlaylist(playlist.id, song.id)
+                            showAestheticStatusDialog(
+                                success = true,
+                                title = "SONG ADDED",
+                                message = "Added \"${song.title}\" to ${playlist.name}"
+                            )
+                        }
+                    )
+                }
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+        }
+        liveData.observe(this, observer)
     }
 
     fun showAddToPlaylistDialogMultiple(songIds: List<Long>) {
-        val playlists = viewModel.allPlaylists.value ?: emptyList()
-        if (playlists.isEmpty()) {
-            showAestheticStatusDialog(
-                success = false,
-                title = "NO PLAYLISTS",
-                message = "Create a playlist first before adding songs."
-            )
-            return
+        val liveData = viewModel.allPlaylists
+        val observer = object : Observer<List<Playlist>> {
+            override fun onChanged(value: List<Playlist>) {
+                liveData.removeObserver(this)
+                if (value.isEmpty()) {
+                    showAestheticStatusDialog(
+                        success = false,
+                        title = "NO PLAYLISTS",
+                        message = "Create a playlist first before adding songs."
+                    )
+                } else {
+                    showAestheticSelectionDialog(
+                        title = "ADD SONGS TO PLAYLIST",
+                        items = value,
+                        itemLabel = { it.name },
+                        itemIcon = { R.drawable.ic_playlist },
+                        onItemSelected = { playlist ->
+                            viewModel.addSongsToPlaylist(playlist.id, songIds)
+                            showAestheticStatusDialog(
+                                success = true,
+                                title = "SONGS ADDED",
+                                message = "Successfully added ${songIds.size} songs to ${playlist.name}"
+                            )
+                        }
+                    )
+                }
+            }
+        }
+        liveData.observe(this, observer)
+    }
+
+    fun showSongOptionsDialog(song: Song) {
+        val options = listOf(
+            "Add to Playlist" to R.drawable.ic_playlist,
+            "Move to Folder" to R.drawable.ic_folder,
+            "Delete Song" to R.drawable.ic_delete
+        )
+        showAestheticSelectionDialog(
+            title = song.title.uppercase(),
+            items = options,
+            itemLabel = { it.first },
+            itemIcon = { it.second },
+            onItemSelected = { option ->
+                when (option.first) {
+                    "Add to Playlist" -> showAddToPlaylistDialog(song)
+                    "Move to Folder" -> showMoveSongDialog(song)
+                    "Delete Song" -> showDeleteConfirmDialog(song)
+                }
+            }
+        )
+    }
+
+    private fun showMoveSongDialog(song: Song) {
+        val liveData = viewModel.folders
+        val observer = object : Observer<List<FolderInfo>> {
+            override fun onChanged(value: List<FolderInfo>) {
+                liveData.removeObserver(this)
+                if (value.isEmpty()) {
+                    showSnackbar("No folders found.")
+                } else {
+                    showAestheticSelectionDialog(
+                        title = "MOVE TO FOLDER",
+                        items = value,
+                        itemLabel = { it.folderName },
+                        itemIcon = { R.drawable.ic_folder },
+                        onItemSelected = { target ->
+                            viewModel.moveSong(
+                                song.id,
+                                target.folderPath,
+                                target.folderName,
+                                song.filePath
+                            )
+                            showAestheticStatusDialog(
+                                success = true,
+                                title = "SONG MOVED",
+                                message = "Moved \"${song.title}\" to ${target.folderName}"
+                            )
+                        }
+                    )
+                }
+            }
+        }
+        liveData.observe(this, observer)
+    }
+
+    fun showDeleteConfirmDialog(song: Song) {
+        showAestheticConfirmDialog(
+            title = "DELETE SONG",
+            message = "Are you sure you want to delete \"${song.title}\" from your library?\n\nThis only removes it from the app database."
+        ) {
+            viewModel.deleteSong(song)
+            showSnackbar("Song deleted")
+        }
+    }
+
+    private fun <T> showAestheticSelectionDialog(
+        title: String,
+        items: List<T>,
+        itemLabel: (T) -> String,
+        itemIcon: (T) -> Int,
+        onItemSelected: (T) -> Unit
+    ) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_selection, null)
+        val rv = dialogView.findViewById<RecyclerView>(R.id.rvSelection)
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvDialogTitle)
+        tvTitle.text = title
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<View>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+
+        rv.layoutManager = LinearLayoutManager(this)
+        rv.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+            override fun onCreateViewHolder(
+                parent: ViewGroup,
+                viewType: Int
+            ): RecyclerView.ViewHolder {
+                val v = layoutInflater.inflate(R.layout.item_selection_dialog, parent, false)
+                return object : RecyclerView.ViewHolder(v) {}
+            }
+
+            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+                val item = items[position]
+                holder.itemView.findViewById<TextView>(R.id.tvItemName).text = itemLabel(item)
+                holder.itemView.findViewById<ImageView>(R.id.ivItemIcon)
+                    .setImageResource(itemIcon(item))
+                holder.itemView.setOnClickListener {
+                    onItemSelected(item)
+                    dialog.dismiss()
+                }
+            }
+
+            override fun getItemCount() = items.size
         }
 
-        val names = playlists.map { it.name }.toTypedArray()
-        AlertDialog.Builder(this)
-            .setTitle("Add ${songIds.size} songs to Playlist")
-            .setItems(names) { _, which ->
-                val playlist = playlists[which]
-                viewModel.addSongsToPlaylist(playlist.id, songIds)
-                showAestheticStatusDialog(
-                    success = true,
-                    title = "SONGS ADDED",
-                    message = "Successfully added ${songIds.size} songs to ${playlist.name}"
-                )
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+        dialog.show()
+        val width = (resources.displayMetrics.widthPixels * 0.80).toInt()
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     fun showAestheticStatusDialog(
@@ -845,9 +1019,9 @@ class MainActivity : AppCompatActivity() {
         message: String
     ) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_status, null)
-        val ivIcon = dialogView.findViewById<android.widget.ImageView>(R.id.ivStatusIcon)
-        val tvTitle = dialogView.findViewById<android.widget.TextView>(R.id.tvTitle)
-        val tvMessage = dialogView.findViewById<android.widget.TextView>(R.id.tvMessage)
+        val ivIcon = dialogView.findViewById<ImageView>(R.id.ivStatusIcon)
+        val tvTitle = dialogView.findViewById<TextView>(R.id.tvTitle)
+        val tvMessage = dialogView.findViewById<TextView>(R.id.tvMessage)
         val btnOk = dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnOk)
 
         tvTitle.text = title
@@ -872,7 +1046,11 @@ class MainActivity : AppCompatActivity() {
             .setView(dialogView)
             .create()
 
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
         btnOk.setOnClickListener { dialog.dismiss() }
         dialog.show()
+        val width = (resources.displayMetrics.widthPixels * 0.80).toInt()
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 }

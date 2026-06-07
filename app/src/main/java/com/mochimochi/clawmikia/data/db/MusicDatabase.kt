@@ -21,7 +21,7 @@ import com.mochimochi.clawmikia.data.model.*
         Playlist::class,
         PlaylistSong::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class MusicDatabase : RoomDatabase() {
@@ -123,6 +123,12 @@ abstract class MusicDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE songs ADD COLUMN isManuallyEdited INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getDatabase(context: Context): MusicDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -135,7 +141,8 @@ abstract class MusicDatabase : RoomDatabase() {
                         MIGRATION_2_3,
                         MIGRATION_3_4,
                         MIGRATION_4_5,
-                        MIGRATION_5_6
+                        MIGRATION_5_6,
+                        MIGRATION_8_9
                     )
                     .fallbackToDestructiveMigration()
                     .build()

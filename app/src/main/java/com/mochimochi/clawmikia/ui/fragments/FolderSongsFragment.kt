@@ -6,11 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mochimochi.clawmikia.databinding.FragmentLibraryBinding
 import com.mochimochi.clawmikia.ui.activities.MainActivity
 import com.mochimochi.clawmikia.ui.adapters.SongAdapter
 import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikia.utils.SwipeToDeleteCallback
 
 class FolderSongsFragment : Fragment() {
 
@@ -50,7 +52,7 @@ class FolderSongsFragment : Fragment() {
             onFavoriteClick = { song -> viewModel.toggleFavorite(song) }
         ).apply {
             onLongClick = { song ->
-                (activity as? MainActivity)?.showAddToPlaylistDialog(song)
+                (activity as? MainActivity)?.showSongOptionsDialog(song)
             }
         }
 
@@ -58,6 +60,18 @@ class FolderSongsFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
             this.adapter = adapter
         }
+
+        val swipeHandler = object : SwipeToDeleteCallback(requireContext()) {
+            override fun onSwiped(
+                viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                direction: Int
+            ) {
+                val song = adapter.currentList[viewHolder.bindingAdapterPosition]
+                (activity as? MainActivity)?.showDeleteConfirmDialog(song)
+                adapter.notifyItemChanged(viewHolder.bindingAdapterPosition)
+            }
+        }
+        ItemTouchHelper(swipeHandler).attachToRecyclerView(binding.recyclerView)
 
         viewModel.getSongsByFolder(folderPath).observe(viewLifecycleOwner) { songs ->
             adapter.submitList(songs)

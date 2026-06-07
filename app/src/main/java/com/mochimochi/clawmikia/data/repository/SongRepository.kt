@@ -157,6 +157,35 @@ class SongRepository(private val context: Context) {
         }
     }
 
+    suspend fun renameFolder(path: String, newName: String) = withContext(Dispatchers.IO) {
+        songDao.renameFolder(path, newName)
+    }
+
+    suspend fun moveSong(
+        songId: Long,
+        newPath: String,
+        newFolderName: String,
+        newFilePath: String
+    ) = withContext(Dispatchers.IO) {
+        songDao.moveSong(songId, newPath, newFolderName, newFilePath)
+    }
+
+    suspend fun updateSongDetailsManual(
+        id: Long,
+        title: String,
+        artist: String,
+        album: String,
+        artUrl: String
+    ) = withContext(Dispatchers.IO) {
+        songDao.updateSongDetailsManual(id, title, artist, album, artUrl)
+    }
+
+    suspend fun deleteSong(song: Song) = withContext(Dispatchers.IO) {
+        songDao.deleteSong(song)
+    }
+
+    val manuallyEditedCount: LiveData<Int> = songDao.getManuallyEditedCount()
+
     suspend fun toggleFavorite(song: Song) = withContext(Dispatchers.IO) {
         songDao.updateFavorite(song.id, !song.isFavorite)
     }

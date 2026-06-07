@@ -5,13 +5,19 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.media.AudioManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -22,6 +28,7 @@ import com.mochimochi.clawmikia.R
 import com.mochimochi.clawmikia.data.model.Song
 import com.mochimochi.clawmikia.data.repository.SongRepository
 import com.mochimochi.clawmikia.databinding.ActivityNowPlayingBinding
+import com.mochimochi.clawmikia.databinding.DialogEditSongBinding
 import com.mochimochi.clawmikia.service.MusicService
 import com.mochimochi.clawmikia.ui.fragments.ProfilesFragment
 import com.mochimochi.clawmikia.ui.viewmodel.NowPlayingViewModel
@@ -55,6 +62,19 @@ class NowPlayingActivity : AppCompatActivity() {
 
     // Guard: prevents saveTrim() firing when we programmatically clamp seekTrimStart
     private var isTrimDragging = false
+
+    private var selectedArtUri: Uri? = null
+    private val pickArtLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                selectedArtUri = it
+                // Update the preview in the dialog if it's open
+                editDialogBinding?.let { dlgBinding ->
+                    Glide.with(this).load(it).into(dlgBinding.ivEditAlbumArt)
+                }
+            }
+        }
+    private var editDialogBinding: DialogEditSongBinding? = null
 
     private val progressHandler = Handler(Looper.getMainLooper())
     private var progressRunnable: Runnable? = null
@@ -347,6 +367,9 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.tvArtist.text = s.artist
         binding.tvFolder.text = s.albumName.ifBlank { s.folderName }
 
+        binding.ivManualIndicator.visibility =
+            if (s.isManuallyEdited) android.view.View.VISIBLE else android.view.View.GONE
+
         // Favorite button
         binding.btnFavorite.setImageResource(
             if (s.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
@@ -453,6 +476,14 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.btnShuffle.setOnClickListener {
             musicService?.toggleShuffle()
             updateShuffleButton()
+        }
+
+        binding.btnEdit.setOnClickListener {
+            showEditDialog()
+        }
+
+        binding.btnDelete.setOnClickListener {
+            showDeleteConfirmDialog()
         }
 
         binding.btnProfiles.setOnClickListener {
@@ -809,6 +840,83 @@ class NowPlayingActivity : AppCompatActivity() {
             binding.btnShuffle.setImageResource(R.drawable.ic_shuffle)
             binding.btnShuffle.setColorFilter(ContextCompat.getColor(this, R.color.text_hint))
         }
+    }
+
+    private fun showDeleteConfirmDialog() {
+        val s = song ?: return
+        MaterialAlertDialogBuilder(this)
+            .setTitle("DELETE SONG")
+            .setMessage("Are you sure you want to delete \"${s.title}\" from your library?\n\nThis only removes it from the app database.")
+            .setPositiveButton("DELETE") { _, _ ->
+                activityScope.launch {
+                    repository.deleteSong(s)
+                    runOnUiThread {
+                        Toast.makeText(this@NowPlayingActivity, "Song deleted", Toast.LENGTH_SHORT)
+                            .show()
+                        musicService?.skipNext() // Skip to next song since current is deleted
+                        finish()
+                    }
+                }
+            }
+            .setNegativeButton("CANCEL", null)
+            .show()
+    }
+
+    private fun showEditDialog() {
+        val s = song ?: return
+        val dlgBinding = DialogEditSongBinding.inflate(layoutInflater)
+        editDialogBinding = dlgBinding
+
+        dlgBinding.etTitle.setText(s.title)
+        dlgBinding.etArtist.setText(s.artist)
+        dlgBinding.etAlbum.setText(s.albumName)
+
+        selectedArtUri =
+            if (s.albumArtUrl.startsWith("content://") || s.albumArtUrl.startsWith("file://")) {
+                Uri.parse(s.albumArtUrl)
+            } else null
+
+        if (s.albumArtUrl.isNotBlank()) {
+            Glide.with(this).load(s.albumArtUrl)
+                .placeholder(R.drawable.ic_music_note)
+                .into(dlgBinding.ivEditAlbumArt)
+        }
+
+        dlgBinding.btnChangeArt.setOnClickListener {
+            pickArtLauncher.launch("image/*")
+        }
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setView(dlgBinding.root)
+            .create()
+
+        dlgBinding.btnCancel.setOnClickListener { dialog.dismiss() }
+        dlgBinding.btnSave.setOnClickListener {
+            val newTitle = dlgBinding.etTitle.text.toString().trim()
+            val newArtist = dlgBinding.etArtist.text.toString().trim()
+            val newAlbum = dlgBinding.etAlbum.text.toString().trim()
+            val artUrl = selectedArtUri?.toString() ?: s.albumArtUrl
+
+            if (newTitle.isBlank()) {
+                Toast.makeText(this, "Title cannot be empty", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            activityScope.launch {
+                repository.updateSongDetailsManual(s.id, newTitle, newArtist, newAlbum, artUrl)
+                runOnUiThread {
+                    Toast.makeText(
+                        this@NowPlayingActivity,
+                        "Song details updated",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    dialog.dismiss()
+                }
+            }
+        }
+
+        dialog.show()
+        dialog.setOnDismissListener { editDialogBinding = null }
     }
 
     // ─── Trim persistence ────────────────────────────────────────────────────────

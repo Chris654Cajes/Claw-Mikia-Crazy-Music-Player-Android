@@ -18,6 +18,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val favorites: LiveData<List<Song>> = repository.favorites
     val folders = repository.folders
     val allPlaylists = playlistRepo.allPlaylists
+    val manuallyEditedCount: LiveData<Int> = repository.manuallyEditedCount
 
     private val _searchQuery = MutableLiveData("")
     val searchQuery: LiveData<String> = _searchQuery
@@ -59,8 +60,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _scanStatus.value = ScanStatus.Scanning
             val count = repository.scanFolder(uri)
             if (count > 0) {
-                _scanStatus.value = ScanStatus.FetchingMetadata
-                MetadataFetcher.fetchMissingMetadata(getApplication<Application>())
                 _scanStatus.value = ScanStatus.Success(count)
             } else {
                 _scanStatus.value = ScanStatus.Empty
@@ -73,8 +72,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _scanStatus.value = ScanStatus.Scanning
             val count = repository.scanFiles(uris)
             if (count > 0) {
-                _scanStatus.value = ScanStatus.FetchingMetadata
-                MetadataFetcher.fetchMissingMetadata(getApplication<Application>())
                 _scanStatus.value = ScanStatus.Success(count)
             } else {
                 _scanStatus.value = ScanStatus.Empty
@@ -84,9 +81,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Call this on app resume to pick up any songs that missed metadata last time. */
     fun fetchMetadataIfOnline() {
+        // No longer auto-fetching on resume as per user request
+    }
+
+    fun fetchMetadataManual(overwriteManual: Boolean) {
         viewModelScope.launch {
             _scanStatus.value = ScanStatus.FetchingMetadata
-            MetadataFetcher.fetchMissingMetadata(getApplication<Application>())
+            MetadataFetcher.fetchMissingMetadata(getApplication<Application>(), overwriteManual)
             _scanStatus.value = ScanStatus.Idle
         }
     }
@@ -111,6 +112,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             songIds.forEach { playlistRepo.addSongToPlaylist(playlistId, it) }
         }
+    }
+
+    fun renameFolder(path: String, newName: String) {
+        viewModelScope.launch { repository.renameFolder(path, newName) }
+    }
+
+    fun moveSong(songId: Long, newPath: String, newFolderName: String, newFilePath: String) {
+        viewModelScope.launch { repository.moveSong(songId, newPath, newFolderName, newFilePath) }
+    }
+
+    fun deleteSong(song: Song) {
+        viewModelScope.launch { repository.deleteSong(song) }
     }
 
     fun incrementPlayCount(id: Long) {

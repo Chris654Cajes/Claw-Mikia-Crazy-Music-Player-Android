@@ -42,10 +42,15 @@ object MetadataFetcher {
      * Original files are never touched.
      * Rate-limited to 1 req/sec to respect MusicBrainz ToS.
      */
-    suspend fun fetchMissingMetadata(context: Context) = withContext(Dispatchers.IO) {
+    suspend fun fetchMissingMetadata(context: Context, overwriteManual: Boolean = false) =
+        withContext(Dispatchers.IO) {
         if (!isOnline(context)) return@withContext
         val dao = MusicDatabase.getDatabase(context).songDao()
-        val songs = dao.getSongsWithoutMetadata()
+            val songs = if (overwriteManual) {
+                dao.getAllSongsSync()
+            } else {
+                dao.getSongsWithoutMetadata()
+            }
         processSongs(dao, songs)
     }
 
