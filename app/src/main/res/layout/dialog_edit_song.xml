@@ -122,7 +122,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:background="@drawable/bg_play_button"
+                android:background="@drawable/bg_update_song_button"
                 android:fontFamily="@font/orbitron_bold"
                 android:text="Save"
                 android:textAllCaps="false"

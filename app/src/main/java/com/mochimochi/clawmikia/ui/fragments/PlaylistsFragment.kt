@@ -410,6 +410,8 @@ class PlaylistDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         repo = PlaylistRepository(requireContext())
+        val settingsRepo =
+            com.mochimochi.clawmikia.data.repository.SettingsRepository(requireContext())
 
         view.findViewById<TextView>(R.id.tvPlaylistName).text = playlistName
         view.findViewById<View>(R.id.btnBack).setOnClickListener {
@@ -488,6 +490,11 @@ class PlaylistDetailFragment : Fragment() {
             }
             // Sync the service playlist if we are in this layout
             (activity as? MainActivity)?.updateCurrentPlaylist(songs)
+        }
+
+        // Observe favorite icon type setting and refresh adapter
+        settingsRepo.favoriteIconLive.observe(viewLifecycleOwner) { iconType ->
+            adapter.favoriteIconType = iconType
         }
     }
 

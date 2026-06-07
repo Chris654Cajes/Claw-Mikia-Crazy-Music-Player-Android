@@ -9,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mochimochi.clawmikia.databinding.FragmentLibraryBinding
+import com.mochimochi.clawmikia.data.repository.SettingsRepository
 import com.mochimochi.clawmikia.ui.activities.MainActivity
 import com.mochimochi.clawmikia.ui.adapters.SongAdapter
 import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
@@ -29,6 +30,7 @@ class FavoritesFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val settingsRepo = SettingsRepository(requireContext())
         val adapter = SongAdapter(
             onSongClick = { song, list ->
                 (activity as? MainActivity)?.playSong(song, list)
@@ -68,6 +70,11 @@ class FavoritesFragment : Fragment() {
 
         viewModel.currentSong.observe(viewLifecycleOwner) { song ->
             adapter.setCurrentSong(song?.id)
+        }
+
+        // Observe favorite icon type setting and refresh adapter
+        settingsRepo.favoriteIconLive.observe(viewLifecycleOwner) { iconType ->
+            adapter.favoriteIconType = iconType
         }
     }
 

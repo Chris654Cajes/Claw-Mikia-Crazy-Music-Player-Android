@@ -9,6 +9,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mochimochi.clawmikia.databinding.FragmentLibraryBinding
+import com.mochimochi.clawmikia.data.repository.SettingsRepository
 import com.mochimochi.clawmikia.ui.activities.MainActivity
 import com.mochimochi.clawmikia.ui.adapters.SongAdapter
 import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
@@ -42,6 +43,7 @@ class FolderSongsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val folderPath = arguments?.getString(ARG_PATH) ?: return
         val folderName = arguments?.getString(ARG_NAME) ?: "Folder"
+        val settingsRepo = SettingsRepository(requireContext())
 
         binding.tvSongCount.text = folderName
 
@@ -84,6 +86,11 @@ class FolderSongsFragment : Fragment() {
 
         viewModel.currentSong.observe(viewLifecycleOwner) { song ->
             adapter.setCurrentSong(song?.id)
+        }
+
+        // Observe favorite icon type setting and refresh adapter
+        settingsRepo.favoriteIconLive.observe(viewLifecycleOwner) { iconType ->
+            adapter.favoriteIconType = iconType
         }
     }
 

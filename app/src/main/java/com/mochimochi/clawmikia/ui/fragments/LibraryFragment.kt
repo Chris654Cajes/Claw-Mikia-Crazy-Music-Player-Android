@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mochimochi.clawmikia.data.model.Song
 import com.mochimochi.clawmikia.databinding.FragmentLibraryBinding
+import com.mochimochi.clawmikia.data.repository.SettingsRepository
 import com.mochimochi.clawmikia.ui.activities.MainActivity
 import com.mochimochi.clawmikia.ui.adapters.SongAdapter
 import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
@@ -33,6 +34,7 @@ class LibraryFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val settingsRepo = SettingsRepository(requireContext())
         adapter = SongAdapter(
             onSongClick = { song, _ ->
                 // Pass the full current list so the service has the complete playlist
@@ -91,6 +93,11 @@ class LibraryFragment : Fragment() {
 
         viewModel.currentSong.observe(viewLifecycleOwner) { song ->
             adapter.setCurrentSong(song?.id)
+        }
+
+        // Observe favorite icon type setting and refresh adapter
+        settingsRepo.favoriteIconLive.observe(viewLifecycleOwner) { iconType ->
+            adapter.favoriteIconType = iconType
         }
     }
 

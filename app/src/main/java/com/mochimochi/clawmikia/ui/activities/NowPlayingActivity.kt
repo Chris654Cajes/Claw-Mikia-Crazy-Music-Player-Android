@@ -26,12 +26,14 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.mochimochi.clawmikia.R
 import com.mochimochi.clawmikia.data.model.Song
+import com.mochimochi.clawmikia.data.repository.SettingsRepository
 import com.mochimochi.clawmikia.data.repository.SongRepository
 import com.mochimochi.clawmikia.databinding.ActivityNowPlayingBinding
 import com.mochimochi.clawmikia.databinding.DialogEditSongBinding
 import com.mochimochi.clawmikia.service.MusicService
 import com.mochimochi.clawmikia.ui.fragments.ProfilesFragment
 import com.mochimochi.clawmikia.ui.viewmodel.NowPlayingViewModel
+import com.mochimochi.clawmikia.utils.FavoriteIconHelper
 import com.mochimochi.clawmikia.utils.formatDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +47,10 @@ class NowPlayingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityNowPlayingBinding
     private val activityScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private lateinit var repository: SongRepository
+    private lateinit var settingsRepo: SettingsRepository
     private lateinit var viewModel: NowPlayingViewModel
+
+    private var favoriteIconType: String = FavoriteIconHelper.ALL_TYPES[0]
 
     private var musicService: MusicService? = null
     private var song: Song? = null
@@ -114,12 +119,28 @@ class NowPlayingActivity : AppCompatActivity() {
         setupSystemBars()
 
         repository = SongRepository(applicationContext)
+        settingsRepo = SettingsRepository(applicationContext)
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
         maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
 
-        // Initialize shared ViewModel so Lyrics / Profiles fragments work
+        // Initialize shared ViewModel so Lyrics/Profiles fragments work
         viewModel = ViewModelProvider(this)[NowPlayingViewModel::class.java]
 
+        // Observe favorite icon setting
+        settingsRepo.favoriteIconLive.observe(this) { iconType ->
+            favoriteIconType = iconType
+            // Refresh favorite button if a song is loaded
+            song?.let { s ->
+                binding.btnFavorite.setImageResource(
+                    if (s.isFavorite) FavoriteIconHelper.filledRes(iconType)
+                    else FavoriteIconHelper.outlineRes(iconType)
+                )
+                binding.btnFavorite.setColorFilter(
+                    ContextCompat.getColor(this, FavoriteIconHelper.colorRes(iconType))
+                )
+            }
+        }
+        
         observeViewModel()
 
         songId = intent.getLongExtra(EXTRA_SONG_ID, -1)
@@ -372,7 +393,12 @@ class NowPlayingActivity : AppCompatActivity() {
 
         // Favorite button
         binding.btnFavorite.setImageResource(
-            if (s.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+            if (s.isFavorite) FavoriteIconHelper.filledRes(favoriteIconType) else FavoriteIconHelper.outlineRes(
+                favoriteIconType
+            )
+        )
+        binding.btnFavorite.setColorFilter(
+            ContextCompat.getColor(this, FavoriteIconHelper.colorRes(favoriteIconType))
         )
 
         // Album art
@@ -533,8 +559,9 @@ class NowPlayingActivity : AppCompatActivity() {
 
         binding.btnPitchDown.setOnClickListener {
             val current = binding.seekPitch.progress
+            val pitchStepUnits = (settingsRepo.getPitchStep() * 10).toInt().coerceAtLeast(1)
             if (current > 0) {
-                val newProgress = (current - 10).coerceAtLeast(0)
+                val newProgress = (current - pitchStepUnits).coerceAtLeast(0)
                 binding.seekPitch.progress = newProgress
                 val semitones = (newProgress - 60) / 10.0f
                 binding.tvPitchValue.text = pitchLabel(semitones)
@@ -545,8 +572,9 @@ class NowPlayingActivity : AppCompatActivity() {
 
         binding.btnPitchUp.setOnClickListener {
             val current = binding.seekPitch.progress
+            val pitchStepUnits = (settingsRepo.getPitchStep() * 10).toInt().coerceAtLeast(1)
             if (current < 120) {
-                val newProgress = (current + 10).coerceAtMost(120)
+                val newProgress = (current + pitchStepUnits).coerceAtMost(120)
                 binding.seekPitch.progress = newProgress
                 val semitones = (newProgress - 60) / 10.0f
                 binding.tvPitchValue.text = pitchLabel(semitones)
@@ -580,8 +608,9 @@ class NowPlayingActivity : AppCompatActivity() {
 
         binding.btnSpeedDown.setOnClickListener {
             val current = binding.seekSpeed.progress
+            val speedStepUnits = settingsRepo.getSpeedStep().coerceAtLeast(1)
             if (current > 0) {
-                val newProgress = current - 1
+                val newProgress = (current - speedStepUnits).coerceAtLeast(0)
                 binding.seekSpeed.progress = newProgress
                 val speed = progressToSpeed(newProgress)
                 binding.tvSpeedValue.text = speedLabel(speed)
@@ -592,8 +621,9 @@ class NowPlayingActivity : AppCompatActivity() {
 
         binding.btnSpeedUp.setOnClickListener {
             val current = binding.seekSpeed.progress
+            val speedStepUnits = settingsRepo.getSpeedStep().coerceAtLeast(1)
             if (current < 50) {
-                val newProgress = current + 1
+                val newProgress = (current + speedStepUnits).coerceAtMost(50)
                 binding.seekSpeed.progress = newProgress
                 val speed = progressToSpeed(newProgress)
                 binding.tvSpeedValue.text = speedLabel(speed)
@@ -681,7 +711,15 @@ class NowPlayingActivity : AppCompatActivity() {
                     song = fresh
                     runOnUiThread {
                         binding.btnFavorite.setImageResource(
-                            if (fresh.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+                            if (fresh.isFavorite) FavoriteIconHelper.filledRes(favoriteIconType) else FavoriteIconHelper.outlineRes(
+                                favoriteIconType
+                            )
+                        )
+                        binding.btnFavorite.setColorFilter(
+                            ContextCompat.getColor(
+                                this@NowPlayingActivity,
+                                FavoriteIconHelper.colorRes(favoriteIconType)
+                            )
                         )
                     }
                 }
@@ -691,7 +729,8 @@ class NowPlayingActivity : AppCompatActivity() {
         // ── Volume buttons ───────────────────────────────────────────────────────
         binding.btnVolumeUp.setOnClickListener {
             val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-            val step = maxOf(1, maxVolume / 10)
+            val volStepPercent = settingsRepo.getVolumeStep()
+            val step = maxOf(1, (maxVolume * volStepPercent / 100f).toInt())
             val newVolume = (current + step).coerceAtMost(maxVolume)
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
             syncVolumeSeekBar()
@@ -699,7 +738,8 @@ class NowPlayingActivity : AppCompatActivity() {
 
         binding.btnVolumeDown.setOnClickListener {
             val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-            val step = maxOf(1, maxVolume / 10)
+            val volStepPercent = settingsRepo.getVolumeStep()
+            val step = maxOf(1, (maxVolume * volStepPercent / 100f).toInt())
             val newVolume = (current - step).coerceAtLeast(0)
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
             syncVolumeSeekBar()
@@ -726,7 +766,8 @@ class NowPlayingActivity : AppCompatActivity() {
         // ── Trim buttons ───────────────────────────────────────────────────────
         binding.btnTrimStartMinus.setOnClickListener {
             val current = binding.seekTrimStart.progress
-            val newVal = (current - 10000).coerceAtLeast(0)
+            val trimStepMs = (settingsRepo.getTrimStep() * 1000).toInt().coerceAtLeast(100)
+            val newVal = (current - trimStepMs).coerceAtLeast(0)
             binding.seekTrimStart.progress = newVal
             updateTrimLabels(newVal.toLong(), binding.seekTrimEnd.progress.toLong())
             saveTrim()
@@ -735,7 +776,8 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.btnTrimStartPlus.setOnClickListener {
             val current = binding.seekTrimStart.progress
             val endVal = binding.seekTrimEnd.progress
-            val newVal = (current + 10000).coerceAtMost((endVal - 1000).coerceAtLeast(0))
+            val trimStepMs = (settingsRepo.getTrimStep() * 1000).toInt().coerceAtLeast(100)
+            val newVal = (current + trimStepMs).coerceAtMost((endVal - 1000).coerceAtLeast(0))
             binding.seekTrimStart.progress = newVal
             updateTrimLabels(newVal.toLong(), endVal.toLong())
             saveTrim()
@@ -744,7 +786,8 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.btnTrimEndMinus.setOnClickListener {
             val current = binding.seekTrimEnd.progress
             val startVal = binding.seekTrimStart.progress
-            val newVal = (current - 10000).coerceAtLeast(startVal + 1000)
+            val trimStepMs = (settingsRepo.getTrimStep() * 1000).toInt().coerceAtLeast(100)
+            val newVal = (current - trimStepMs).coerceAtLeast(startVal + 1000)
             binding.seekTrimEnd.progress = newVal
             updateTrimLabels(startVal.toLong(), newVal.toLong())
             saveTrim()
@@ -753,7 +796,8 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.btnTrimEndPlus.setOnClickListener {
             val current = binding.seekTrimEnd.progress
             val maxEnd = binding.seekTrimEnd.max
-            val newVal = (current + 10000).coerceAtMost(maxEnd)
+            val trimStepMs = (settingsRepo.getTrimStep() * 1000).toInt().coerceAtLeast(100)
+            val newVal = (current + trimStepMs).coerceAtMost(maxEnd)
             binding.seekTrimEnd.progress = newVal
             updateTrimLabels(binding.seekTrimStart.progress.toLong(), newVal.toLong())
             saveTrim()

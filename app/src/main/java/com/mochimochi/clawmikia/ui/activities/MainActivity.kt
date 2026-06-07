@@ -44,7 +44,10 @@ import com.mochimochi.clawmikia.ui.fragments.FavoritesFragment
 import com.mochimochi.clawmikia.ui.fragments.FoldersFragment
 import com.mochimochi.clawmikia.ui.fragments.LibraryFragment
 import com.mochimochi.clawmikia.ui.fragments.PlaylistsFragment
+import com.mochimochi.clawmikia.ui.fragments.SettingsFragment
 import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikia.data.repository.SettingsRepository
+import com.mochimochi.clawmikia.utils.FavoriteIconHelper
 import com.mochimochi.clawmikia.utils.formatDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -223,13 +226,19 @@ class MainActivity : AppCompatActivity() {
         requestNotificationPermission()
         setupNetworkListener()
         showFragment(LibraryFragment())
+        observeFavoriteIconSetting()
 
         onBackPressedDispatcher.addCallback(this) {
-            // Allow music to continue playing when user presses back button
-            // If we have custom logic for back, put it here.
-            // Otherwise, default behavior is fine.
-            isEnabled = false
-            onBackPressedDispatcher.onBackPressed()
+            val currentFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+            if (currentFragment !is LibraryFragment) {
+                // Navigate back to Library tab
+                binding.bottomNav.selectedItemId = R.id.nav_library
+                showFragment(LibraryFragment())
+            } else {
+                // Default behavior (exit app)
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+            }
         }
 
         viewModel.isPlaying.observe(this) { isPlaying ->
@@ -248,6 +257,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_folders -> showFragment(FoldersFragment())
                 R.id.nav_favorites -> showFragment(FavoritesFragment())
                 R.id.nav_playlists -> showFragment(PlaylistsFragment())
+                R.id.nav_settings -> showFragment(SettingsFragment())
             }
             true
         }
@@ -263,7 +273,7 @@ class MainActivity : AppCompatActivity() {
         layoutParams?.height =
             androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams.MATCH_PARENT
 
-        if (fragment is PlaylistsFragment) {
+        if (fragment is PlaylistsFragment || fragment is SettingsFragment) {
             // 1. Hide the activity header and remove scrolling behavior
             appBar.visibility = View.GONE
             layoutParams?.behavior = null
@@ -297,6 +307,18 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, fragment)
             .commit()
+    }
+
+    /** Observe the favorite icon type setting and update the bottom nav icon. */
+    private fun observeFavoriteIconSetting() {
+        val settingsRepo = SettingsRepository(this)
+        settingsRepo.favoriteIconLive.observe(this) { iconType ->
+            val iconRes = FavoriteIconHelper.outlineRes(iconType)
+            val iconColor = ContextCompat.getColor(this, FavoriteIconHelper.colorRes(iconType))
+            val menuItem = binding.bottomNav.menu.findItem(R.id.nav_favorites)
+            menuItem?.setIcon(iconRes)
+            menuItem?.iconTintList = android.content.res.ColorStateList.valueOf(iconColor)
+        }
     }
 
     // ─── Mini player ─────────────────────────────────────────────────────────────

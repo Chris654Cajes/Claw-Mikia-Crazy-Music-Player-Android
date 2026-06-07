@@ -11,6 +11,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.mochimochi.clawmikia.R
 import com.mochimochi.clawmikia.data.model.Song
 import com.mochimochi.clawmikia.databinding.ItemSongBinding
+import com.mochimochi.clawmikia.utils.FavoriteIconHelper
 import com.mochimochi.clawmikia.utils.formatDuration
 
 class SongAdapter(
@@ -24,6 +25,15 @@ class SongAdapter(
     private var currentSongId: Long? = null
     private val selectedSongs = mutableSetOf<Long>()
     private var selectionMode = false
+
+    /** The current favorite icon type (e.g. "heart", "star", etc.) */
+    var favoriteIconType: String = "heart"
+        set(value) {
+            if (field != value) {
+                field = value
+                notifyDataSetChanged()
+            }
+        }
 
     fun setCurrentSong(id: Long?) {
         val old = currentSongId
@@ -125,9 +135,16 @@ class SongAdapter(
                 binding.btnFavorite.setOnClickListener { onRemoveClick.invoke(song) }
             } else {
                 binding.btnFavorite.setImageResource(
-                    if (song.isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+                    if (song.isFavorite) FavoriteIconHelper.filledRes(favoriteIconType) else FavoriteIconHelper.outlineRes(
+                        favoriteIconType
+                    )
                 )
-                binding.btnFavorite.clearColorFilter()
+                binding.btnFavorite.setColorFilter(
+                    androidx.core.content.ContextCompat.getColor(
+                        binding.root.context,
+                        FavoriteIconHelper.colorRes(favoriteIconType)
+                    )
+                )
                 binding.btnFavorite.setOnClickListener { onFavoriteClick(song) }
             }
 
