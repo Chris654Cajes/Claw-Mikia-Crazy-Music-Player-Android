@@ -504,6 +504,7 @@ class NowPlayingActivity : AppCompatActivity() {
             currentRepeatMode = when (currentRepeatMode) {
                 MusicService.REPEAT_NONE -> MusicService.REPEAT_ALL
                 MusicService.REPEAT_ALL -> MusicService.REPEAT_ONE
+                MusicService.REPEAT_ONE -> MusicService.REPEAT_AUTO
                 else -> MusicService.REPEAT_NONE
             }
             musicService?.setRepeatMode(currentRepeatMode)
@@ -995,17 +996,14 @@ class NowPlayingActivity : AppCompatActivity() {
             repository.updatePitchAndSyncProfile(id, 0f)
             repository.updateSpeedAndSyncProfile(id, 1.0f)
             repository.updateTrimAndSyncProfile(id, 0L, -1L)
-            repository.updateRepeatModeAndSyncProfile(id, 0)
 
             // 2. Reset Profile fields
             viewModel.activeProfile.value?.let { profile ->
                 val resetProfile = profile.copy(
                     pitchSemitones = 0f,
                     playbackSpeed = 1.0f,
-                    volume = 1.0f,
                     trimStart = 0L,
                     trimEnd = -1L,
-                    loopEnabled = false,
                     abRepeatEnabled = false,
                     bassBoostEnabled = false,
                     reverbEnabled = false,
@@ -1019,22 +1017,33 @@ class NowPlayingActivity : AppCompatActivity() {
             profileRepo.deleteAllSkipRegions(id)
 
             runOnUiThread {
+                // Reset local variables
+                pointA = -1L
+                pointB = -1L
+                isAbRepeatEnabled = false
+
                 // Refresh UI
                 populate(
                     s.copy(
                         pitchSemitones = 0f,
                         playbackSpeed = 1.0f,
                         trimStart = 0L,
-                        trimEnd = -1L,
-                        repeatMode = 0
+                        trimEnd = -1L
                     )
                 )
+
+                // Additional UI resets not covered by populate()
+                binding.tvPointA.text = "A: --:--"
+                binding.tvPointB.text = "B: --:--"
+                binding.switchAbRepeat.isChecked = false
+                binding.switchPlaybackState.isChecked = true
+                viewModel.setOriginalState(false)
+                updateStateLabels(true)
 
                 // Refresh Service
                 musicService?.applyPitchToCurrentSong(0f)
                 musicService?.applySpeedToCurrentSong(1.0f)
                 musicService?.applyTrimToCurrentSong(0L, -1L)
-                musicService?.applyLoopToCurrentSong(0L, -1L, false)
                 musicService?.applyAbRepeatToCurrentSong(-1, -1, false)
                 musicService?.setBypassProfiles(false)
 
@@ -1052,24 +1061,44 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun updateRepeatButton() {
         when (currentRepeatMode) {
             MusicService.REPEAT_ALL -> {
+                val color = ContextCompat.getColor(this, R.color.neon_cyan)
                 binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
-                binding.btnRepeat.setColorFilter(ContextCompat.getColor(this, R.color.neon_cyan))
+                binding.btnRepeat.setColorFilter(color)
+                binding.tvRepeatIndicator.text = ""
+                binding.tvRepeatLabel.setTextColor(color)
                 binding.tvRepeatLabel.text = getString(R.string.repeat_all)
                 binding.tvRepeatLabel.visibility = android.view.View.VISIBLE
             }
 
             MusicService.REPEAT_ONE -> {
+                val color = ContextCompat.getColor(this, R.color.neon_pink)
                 binding.btnRepeat.setImageResource(R.drawable.ic_repeat_one)
-                binding.btnRepeat.setColorFilter(ContextCompat.getColor(this, R.color.neon_pink))
+                binding.btnRepeat.setColorFilter(color)
+                binding.tvRepeatIndicator.text = ""
+                binding.tvRepeatLabel.setTextColor(color)
                 binding.tvRepeatLabel.text = getString(R.string.repeat_one)
                 binding.tvRepeatLabel.visibility = android.view.View.VISIBLE
             }
 
-            else -> {
+            MusicService.REPEAT_AUTO -> {
+                val color = ContextCompat.getColor(this, R.color.neon_purple)
                 binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
-                binding.btnRepeat.setColorFilter(ContextCompat.getColor(this, R.color.text_hint))
+                binding.btnRepeat.setColorFilter(color)
+                binding.tvRepeatIndicator.text = "R"
+                binding.tvRepeatIndicator.setTextColor(color)
+                binding.tvRepeatLabel.setTextColor(color)
+                binding.tvRepeatLabel.text = getString(R.string.repeat_auto)
+                binding.tvRepeatLabel.visibility = android.view.View.VISIBLE
+            }
+
+            else -> {
+                val color = ContextCompat.getColor(this, R.color.text_hint)
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
+                binding.btnRepeat.setColorFilter(color)
+                binding.tvRepeatIndicator.text = ""
+                binding.tvRepeatLabel.setTextColor(color)
                 binding.tvRepeatLabel.text = getString(R.string.repeat_none)
-                binding.tvRepeatLabel.visibility = android.view.View.INVISIBLE
+                binding.tvRepeatLabel.visibility = android.view.View.VISIBLE
             }
         }
     }

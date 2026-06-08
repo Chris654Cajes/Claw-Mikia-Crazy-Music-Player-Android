@@ -204,6 +204,10 @@ class SongRepository(private val context: Context) {
         songDao.getSongCount()
     }
 
+    suspend fun getAllSongs(): List<Song> = withContext(Dispatchers.IO) {
+        songDao.getAllSongsSync()
+    }
+
     /**
      * Deletes every row from the songs table.
      * The actual MP3 files on the device are completely untouched.

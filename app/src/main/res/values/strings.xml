@@ -44,4 +44,5 @@
     <string name="repeat_all">ALL</string>
     <string name="repeat_one">ONE</string>
     <string name="repeat_none">OFF</string>
+    <string name="repeat_auto">RAND</string>
 </resources>

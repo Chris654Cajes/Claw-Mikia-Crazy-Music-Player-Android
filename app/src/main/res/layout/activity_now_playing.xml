@@ -270,14 +270,29 @@
             android:paddingStart="12dp"
             android:paddingEnd="12dp">
 
-            <ImageButton
-                android:id="@+id/btnRepeat"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:src="@drawable/ic_repeat"
-                android:tint="@color/text_hint"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Repeat" />
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ImageButton
+                    android:id="@+id/btnRepeat"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Repeat"
+                    android:src="@drawable/ic_repeat"
+                    android:tint="@color/text_hint" />
+
+                <TextView
+                    android:id="@+id/tvRepeatIndicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:text=""
+                    android:textColor="@color/neon_purple"
+                    android:textSize="10sp" />
+            </FrameLayout>
 
             <ImageButton
                 android:id="@+id/btnPrev"

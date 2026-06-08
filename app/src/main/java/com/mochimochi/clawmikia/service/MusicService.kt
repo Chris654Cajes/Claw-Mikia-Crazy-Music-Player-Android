@@ -107,6 +107,7 @@ class MusicService : Service() {
         const val REPEAT_NONE = 0
         const val REPEAT_ONE = 1
         const val REPEAT_ALL = 2
+        const val REPEAT_AUTO = 3
         const val ACTION_PLAY = "com.mochimochi.clawmikia.PLAY"
         const val ACTION_PAUSE = "com.mochimochi.clawmikia.PAUSE"
         const val ACTION_NEXT = "com.mochimochi.clawmikia.NEXT"
@@ -514,21 +515,46 @@ class MusicService : Service() {
 
     private fun advanceOrStop() {
         when (repeatMode) {
-            REPEAT_ONE -> playCurrent(forceReload = true)
+            REPEAT_ONE -> {
+                seekTo(activeProfile?.trimStart?.toInt() ?: 0)
+                resume()
+            }
             REPEAT_ALL -> {
                 advanceIndex()
                 playCurrent(forceReload = true)
             }
 
-            else -> { // REPEAT_NONE: play through and stop at end
-                if (isAtEndOfPlaylist()) {
-                    isPlayingRequested = false
-                    notifyPlayState(false)
-                } else {
-                    advanceIndex()
+            REPEAT_AUTO -> {
+                if (playlist.isNotEmpty()) {
+                    // Pick a random song from the current context, avoiding the current song if possible
+                    val randomSong = if (playlist.size > 1) {
+                        playlist.filter { it.id != currentSong?.id }.random()
+                    } else {
+                        playlist.random()
+                    }
+
+                    val newPlaylist = playlist.toMutableList()
+                    newPlaylist.add((currentIndex + 1).coerceAtMost(newPlaylist.size), randomSong)
+                    playlist = newPlaylist
+                    currentIndex++
                     playCurrent(forceReload = true)
+                } else {
+                    advanceOrStopFallback()
                 }
             }
+
+            else -> { // REPEAT_NONE: Stop completely after the current song
+                pause()
+            }
+        }
+    }
+
+    private fun advanceOrStopFallback() {
+        if (isAtEndOfPlaylist()) {
+            pause()
+        } else {
+            advanceIndex()
+            playCurrent(forceReload = true)
         }
     }
 
