@@ -25,6 +25,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="@font/orbitron_regular"
+            android:includeFontPadding="false"
             android:letterSpacing="0.1"
             android:textColor="@color/text_secondary"
             android:textSize="11sp" />
@@ -55,7 +56,6 @@
             android:textColor="@color/neon_pink"
             android:textSize="10sp"
             android:visibility="gone" />
-
     </LinearLayout>
 
     <!-- Divider -->
