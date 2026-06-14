@@ -45,4 +45,27 @@
     <string name="repeat_one">ONE</string>
     <string name="repeat_none">OFF</string>
     <string name="repeat_auto">RAND</string>
+    <string name="advanced_filters">Advanced filters</string>
+    <string name="advanced_filters_title">ADVANCED FILTERS</string>
+    <string name="duration_sec">Duration (sec)</string>
+    <string name="min">Min</string>
+    <string name="max">Max</string>
+    <string name="file_size_mb">File Size (MB)</string>
+    <string name="min_play_count">Minimum Play Count</string>
+    <string name="pitch_range">Pitch Range (semitones)</string>
+    <string name="speed_range">Speed Range (x)</string>
+    <string name="added_after">Added After</string>
+    <string name="modified_after">Modified After</string>
+    <string name="select_date">Select Date</string>
+    <string name="any_date">Any Date</string>
+    <string name="favorite">Favorite</string>
+    <string name="online_metadata">Online Metadata</string>
+    <string name="manual_edits">Manual Edits</string>
+    <string name="custom_pitch">Custom Pitch</string>
+    <string name="custom_speed">Custom Speed</string>
+    <string name="trim_applied">Trim Applied</string>
+    <string name="all">ALL</string>
+    <string name="yes">YES</string>
+    <string name="no">NO</string>
+    <string name="apply">APPLY</string>
 </resources>

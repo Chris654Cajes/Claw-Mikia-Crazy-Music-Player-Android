@@ -9,6 +9,28 @@ import com.mochimochi.clawmikia.data.repository.SongRepository
 import com.mochimochi.clawmikia.utils.MetadataFetcher
 import kotlinx.coroutines.launch
 
+enum class TriState { ALL, YES, NO }
+
+data class AdvancedFilter(
+    val minDuration: Long? = null,
+    val maxDuration: Long? = null,
+    val minSize: Long? = null,
+    val maxSize: Long? = null,
+    val minPlayCount: Int? = null,
+    val minPitch: Float? = null,
+    val maxPitch: Float? = null,
+    val minSpeed: Float? = null,
+    val maxSpeed: Float? = null,
+    val favoriteState: TriState = TriState.ALL,
+    val metadataState: TriState = TriState.ALL,
+    val manualEditState: TriState = TriState.ALL,
+    val customPitchState: TriState = TriState.ALL,
+    val customSpeedState: TriState = TriState.ALL,
+    val trimState: TriState = TriState.ALL,
+    val addedAfter: Long? = null,
+    val modifiedAfter: Long? = null
+)
+
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = SongRepository(application)
@@ -23,9 +45,99 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _searchQuery = MutableLiveData("")
     val searchQuery: LiveData<String> = _searchQuery
 
-    val filteredSongs: LiveData<List<Song>> = _searchQuery.switchMap { query ->
-        if (query.isBlank()) repository.allSongs
-        else repository.searchSongs(query)
+    private val _advancedFilter = MutableLiveData<AdvancedFilter>(AdvancedFilter())
+    val advancedFilter: LiveData<AdvancedFilter> = _advancedFilter
+
+    val filteredSongs: LiveData<List<Song>> =
+        MediatorLiveData<List<Song>>().apply {
+            addSource(_searchQuery) { query ->
+                value = applyFilters(
+                    query,
+                    _advancedFilter.value ?: AdvancedFilter(),
+                    allSongs.value ?: emptyList()
+                )
+            }
+            addSource(_advancedFilter) { filter ->
+                value =
+                    applyFilters(_searchQuery.value ?: "", filter, allSongs.value ?: emptyList())
+            }
+            addSource(allSongs) { songs ->
+                value = applyFilters(
+                    _searchQuery.value ?: "",
+                    _advancedFilter.value ?: AdvancedFilter(),
+                    songs ?: emptyList()
+                )
+            }
+        }
+
+    private fun applyFilters(query: String, filter: AdvancedFilter, songs: List<Song>): List<Song> {
+        return songs.filter { song ->
+            // Search query filter
+            val matchesQuery = if (query.isBlank()) true else {
+                song.title.contains(query, ignoreCase = true) ||
+                        song.artist.contains(query, ignoreCase = true) ||
+                        song.albumName.contains(query, ignoreCase = true) ||
+                        song.folderName.contains(query, ignoreCase = true)
+            }
+            if (!matchesQuery) return@filter false
+
+            // Advanced filters
+            if (filter.minDuration != null && song.duration < filter.minDuration * 1000) return@filter false
+            if (filter.maxDuration != null && song.duration > filter.maxDuration * 1000) return@filter false
+
+            if (filter.minSize != null && song.fileSize < filter.minSize * 1024 * 1024) return@filter false
+            if (filter.maxSize != null && song.fileSize > filter.maxSize * 1024 * 1024) return@filter false
+
+            if (filter.minPlayCount != null && song.playCount < filter.minPlayCount) return@filter false
+
+            if (filter.minPitch != null && song.pitchSemitones < filter.minPitch) return@filter false
+            if (filter.maxPitch != null && song.pitchSemitones > filter.maxPitch) return@filter false
+
+            if (filter.minSpeed != null && song.playbackSpeed < filter.minSpeed) return@filter false
+            if (filter.maxSpeed != null && song.playbackSpeed > filter.maxSpeed) return@filter false
+
+            // Tri-state filters
+            if (!matchesTriState(filter.favoriteState, song.isFavorite)) return@filter false
+            if (!matchesTriState(filter.metadataState, song.metadataFetched)) return@filter false
+            if (!matchesTriState(filter.manualEditState, song.isManuallyEdited)) return@filter false
+            if (!matchesTriState(
+                    filter.customPitchState,
+                    song.pitchSemitones != 0f
+                )
+            ) return@filter false
+            if (!matchesTriState(
+                    filter.customSpeedState,
+                    song.playbackSpeed != 1.0f
+                )
+            ) return@filter false
+            if (!matchesTriState(
+                    filter.trimState,
+                    song.trimStart > 0 || song.trimEnd != -1L
+                )
+            ) return@filter false
+
+            // Date filters
+            if (filter.addedAfter != null && song.dateAdded < filter.addedAfter) return@filter false
+            if (filter.modifiedAfter != null && song.dateModified < filter.modifiedAfter) return@filter false
+
+            true
+        }
+    }
+
+    private fun matchesTriState(state: TriState, value: Boolean): Boolean {
+        return when (state) {
+            TriState.ALL -> true
+            TriState.YES -> value
+            TriState.NO -> !value
+        }
+    }
+
+    fun setAdvancedFilter(filter: AdvancedFilter) {
+        _advancedFilter.value = filter
+    }
+
+    fun resetAdvancedFilters() {
+        _advancedFilter.value = AdvancedFilter()
     }
 
     private val _scanStatus = MutableLiveData<ScanStatus>()

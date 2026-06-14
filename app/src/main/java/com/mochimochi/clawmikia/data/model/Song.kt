@@ -15,6 +15,7 @@ data class Song(
     var duration: Long,          // ms
     var fileSize: Long,
     var dateAdded: Long = System.currentTimeMillis(),
+    var dateModified: Long = System.currentTimeMillis(),
 
     // User customizations (never touch original file)
     var pitchSemitones: Float = 0f,       // -6 to +6 (float for fine control)

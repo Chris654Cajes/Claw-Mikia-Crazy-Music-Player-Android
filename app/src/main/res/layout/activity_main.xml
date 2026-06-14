@@ -133,14 +133,27 @@
 
                 <androidx.appcompat.widget.SearchView
                     android:id="@+id/searchView"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_weight="1"
                     android:background="@drawable/bg_search_field"
+                    app:closeIcon="@drawable/ic_close"
                     app:iconifiedByDefault="false"
                     app:queryHint="Search songs, artists, folders…"
                     app:searchHintIcon="@null"
-                    app:closeIcon="@drawable/ic_close"
                     app:searchIcon="@drawable/ic_search" />
+
+                <ImageButton
+                    android:id="@+id/btnAdvancedFilter"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_search_field"
+                    android:contentDescription="@string/advanced_filters"
+                    android:padding="8dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_layers"
+                    android:tint="@color/neon_orange" />
 
             </LinearLayout>
 

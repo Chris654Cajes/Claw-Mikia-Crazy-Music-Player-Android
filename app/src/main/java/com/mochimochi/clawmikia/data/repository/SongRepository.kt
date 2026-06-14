@@ -82,7 +82,8 @@ class SongRepository(private val context: Context) {
                 folderPath = folderPath,
                 folderName = folderName,
                 duration = duration,
-                fileSize = file.length()
+                fileSize = file.length(),
+                dateModified = file.lastModified()
             )
         } catch (e: Exception) {
             null

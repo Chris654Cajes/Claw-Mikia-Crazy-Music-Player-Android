@@ -15,6 +15,8 @@ import android.os.IBinder
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.SeekBar
@@ -46,6 +48,8 @@ import com.mochimochi.clawmikia.ui.fragments.LibraryFragment
 import com.mochimochi.clawmikia.ui.fragments.PlaylistsFragment
 import com.mochimochi.clawmikia.ui.fragments.SettingsFragment
 import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikia.ui.viewmodels.AdvancedFilter
+import com.mochimochi.clawmikia.ui.viewmodels.TriState
 import com.mochimochi.clawmikia.data.repository.SettingsRepository
 import com.mochimochi.clawmikia.utils.FavoriteIconHelper
 import com.mochimochi.clawmikia.utils.formatDuration
@@ -502,6 +506,158 @@ class MainActivity : AppCompatActivity() {
         binding.btnScan.setOnClickListener { folderPickerLauncher.launch(null) }
         binding.btnScanFiles.setOnClickListener { filePickerLauncher.launch(arrayOf("audio/mpeg")) }
         binding.btnExport.setOnClickListener { showExportDialog() }
+        binding.btnAdvancedFilter.setOnClickListener { showAdvancedFilterDialog() }
+    }
+
+    private fun showAdvancedFilterDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_advanced_filter, null)
+        val current = viewModel.advancedFilter.value ?: AdvancedFilter()
+
+        // ─── Setup 3-state groups ───────────────────────────────────────────
+        fun setupTriState(
+            viewId: Int,
+            label: String,
+            currentState: TriState
+        ): com.google.android.material.button.MaterialButtonToggleGroup {
+            val groupView = dialogView.findViewById<View>(viewId)
+            groupView.findViewById<TextView>(R.id.tvLabel).text = label
+            val toggle =
+                groupView.findViewById<com.google.android.material.button.MaterialButtonToggleGroup>(
+                    R.id.toggleGroup
+                )
+            val checkedId = when (currentState) {
+                TriState.ALL -> R.id.btnAll
+                TriState.YES -> R.id.btnYes
+                TriState.NO -> R.id.btnNo
+            }
+            toggle.check(checkedId)
+            return toggle
+        }
+
+        fun getTriState(toggle: com.google.android.material.button.MaterialButtonToggleGroup): TriState {
+            return when (toggle.checkedButtonId) {
+                R.id.btnYes -> TriState.YES
+                R.id.btnNo -> TriState.NO
+                else -> TriState.ALL
+            }
+        }
+
+        val toggleFav =
+            setupTriState(R.id.groupFavorite, getString(R.string.favorite), current.favoriteState)
+        val toggleMeta = setupTriState(
+            R.id.groupMetadata,
+            getString(R.string.online_metadata),
+            current.metadataState
+        )
+        val toggleManual = setupTriState(
+            R.id.groupManual,
+            getString(R.string.manual_edits),
+            current.manualEditState
+        )
+        val togglePitch = setupTriState(
+            R.id.groupPitch,
+            getString(R.string.custom_pitch),
+            current.customPitchState
+        )
+        val toggleSpeed = setupTriState(
+            R.id.groupSpeed,
+            getString(R.string.custom_speed),
+            current.customSpeedState
+        )
+        val toggleTrim =
+            setupTriState(R.id.groupTrim, getString(R.string.trim_applied), current.trimState)
+
+        // ─── Setup numeric ranges ───────────────────────────────────────────
+        val etMinDur = dialogView.findViewById<EditText>(R.id.etMinDuration)
+            .apply { setText(current.minDuration?.toString() ?: "") }
+        val etMaxDur = dialogView.findViewById<EditText>(R.id.etMaxDuration)
+            .apply { setText(current.maxDuration?.toString() ?: "") }
+        val etMinPitch = dialogView.findViewById<EditText>(R.id.etMinPitch)
+            .apply { setText(current.minPitch?.toString() ?: "") }
+        val etMaxPitch = dialogView.findViewById<EditText>(R.id.etMaxPitch)
+            .apply { setText(current.maxPitch?.toString() ?: "") }
+        val etMinSpeed = dialogView.findViewById<EditText>(R.id.etMinSpeed)
+            .apply { setText(current.minSpeed?.toString() ?: "") }
+        val etMaxSpeed = dialogView.findViewById<EditText>(R.id.etMaxSpeed)
+            .apply { setText(current.maxSpeed?.toString() ?: "") }
+
+        // ─── Setup date pickers ─────────────────────────────────────────────
+        var selectedAddedAfter = current.addedAfter
+        var selectedModifiedAfter = current.modifiedAfter
+        val btnAdded =
+            dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnAddedAfter)
+        val btnModified =
+            dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnModifiedAfter)
+
+        fun updateDateButton(btn: androidx.appcompat.widget.AppCompatButton, timestamp: Long?) {
+            btn.text = if (timestamp == null) getString(R.string.any_date)
+            else java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+                .format(java.util.Date(timestamp))
+        }
+        updateDateButton(btnAdded, selectedAddedAfter)
+        updateDateButton(btnModified, selectedModifiedAfter)
+
+        fun showPicker(onPicked: (Long?) -> Unit) {
+            val picker =
+                com.google.android.material.datepicker.MaterialDatePicker.Builder.datePicker()
+                    .setTheme(R.style.CustomMaterialCalendar) // We'll define this
+                    .setTitleText(R.string.select_date)
+                    .build()
+            picker.addOnPositiveButtonClickListener { onPicked(it) }
+            picker.show(supportFragmentManager, "DATE_PICKER")
+        }
+
+        btnAdded.setOnClickListener {
+            showPicker {
+                selectedAddedAfter = it; updateDateButton(
+                btnAdded,
+                it
+            )
+            }
+        }
+        btnModified.setOnClickListener {
+            showPicker {
+                selectedModifiedAfter = it; updateDateButton(
+                btnModified,
+                it
+            )
+            }
+        }
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<View>(R.id.btnResetFilters).setOnClickListener {
+            viewModel.resetAdvancedFilters()
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<View>(R.id.btnApplyFilters).setOnClickListener {
+            val filter = AdvancedFilter(
+                minDuration = etMinDur.text.toString().toLongOrNull(),
+                maxDuration = etMaxDur.text.toString().toLongOrNull(),
+                minPitch = etMinPitch.text.toString().toFloatOrNull(),
+                maxPitch = etMaxPitch.text.toString().toFloatOrNull(),
+                minSpeed = etMinSpeed.text.toString().toFloatOrNull(),
+                maxSpeed = etMaxSpeed.text.toString().toFloatOrNull(),
+                favoriteState = getTriState(toggleFav),
+                metadataState = getTriState(toggleMeta),
+                manualEditState = getTriState(toggleManual),
+                customPitchState = getTriState(togglePitch),
+                customSpeedState = getTriState(toggleSpeed),
+                trimState = getTriState(toggleTrim),
+                addedAfter = selectedAddedAfter,
+                modifiedAfter = selectedModifiedAfter
+            )
+            viewModel.setAdvancedFilter(filter)
+            dialog.dismiss()
+        }
+
+        dialog.show()
+        val width = (resources.displayMetrics.widthPixels * 0.95).toInt()
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     private fun setupUpdateOnlineButton() {
