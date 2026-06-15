@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity() {
     // The panel's root stays visible as long as a song is loaded; only the
     // inner content is collapsed when the user taps the toggle button.
     private var miniPlayerExpanded = true
+    private var currentNavIndex = 0
 
     private lateinit var connectivityManager: ConnectivityManager
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
@@ -245,7 +246,7 @@ class MainActivity : AppCompatActivity() {
         observeViewModel()
         requestNotificationPermission()
         setupNetworkListener()
-        showFragment(LibraryFragment())
+        showFragment(LibraryFragment(), 0)
         observeFavoriteIconSetting()
 
         onBackPressedDispatcher.addCallback(this) {
@@ -253,7 +254,7 @@ class MainActivity : AppCompatActivity() {
             if (currentFragment !is LibraryFragment) {
                 // Navigate back to Library tab
                 binding.bottomNav.selectedItemId = R.id.nav_library
-                showFragment(LibraryFragment())
+                showFragment(LibraryFragment(), 0)
             } else {
                 // Default behavior (exit app)
                 isEnabled = false
@@ -272,18 +273,32 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupNavigation() {
         binding.bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_library -> showFragment(LibraryFragment())
-                R.id.nav_folders -> showFragment(FoldersFragment())
-                R.id.nav_favorites -> showFragment(FavoritesFragment())
-                R.id.nav_playlists -> showFragment(PlaylistsFragment())
-                R.id.nav_settings -> showFragment(SettingsFragment())
+            val nextIndex = when (item.itemId) {
+                R.id.nav_library -> 0
+                R.id.nav_favorites -> 1
+                R.id.nav_folders -> 2
+                R.id.nav_playlists -> 3
+                R.id.nav_settings -> 4
+                else -> 0
             }
+
+            if (nextIndex == currentNavIndex) return@setOnItemSelectedListener true
+
+            val fragment = when (item.itemId) {
+                R.id.nav_library -> LibraryFragment()
+                R.id.nav_favorites -> FavoritesFragment()
+                R.id.nav_playlists -> PlaylistsFragment()
+                R.id.nav_folders -> FoldersFragment()
+                R.id.nav_settings -> SettingsFragment()
+                else -> LibraryFragment()
+            }
+
+            showFragment(fragment, nextIndex)
             true
         }
     }
 
-    private fun showFragment(fragment: Fragment) {
+    private fun showFragment(fragment: Fragment, nextIndex: Int) {
         val appBar = binding.appBarLayout
         val contentArea = binding.contentArea
         val layoutParams =
@@ -310,12 +325,22 @@ class MainActivity : AppCompatActivity() {
             contentArea.layoutParams = layoutParams
 
             // 2. Remove extra padding — layout handles spacing naturally
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(contentArea, null)
             contentArea.setPadding(0, 0, 0, 0)
         }
 
         // Execute the fragment transaction
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, fragment)
+        val transaction = supportFragmentManager.beginTransaction()
+
+        if (nextIndex > currentNavIndex) {
+            transaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
+        } else if (nextIndex < currentNavIndex) {
+            transaction.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right)
+        }
+
+        currentNavIndex = nextIndex
+
+        transaction.replace(R.id.fragmentContainer, fragment)
             .commit()
     }
 
