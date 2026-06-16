@@ -7,7 +7,7 @@ import androidx.fragment.app.activityViewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.mochimochi.clawmikia.R
 import com.mochimochi.clawmikia.data.model.SongAnalysis
-import com.mochimochi.clawmikia.ui.viewmodel.NowPlayingViewModel
+import com.mochimochi.clawmikia.ui.viewmodels.NowPlayingViewModel
 
 class SongAnalysisFragment : BottomSheetDialogFragment() {
 

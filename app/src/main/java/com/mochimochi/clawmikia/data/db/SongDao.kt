@@ -31,12 +31,6 @@ interface SongDao {
     @Query("SELECT * FROM songs WHERE id = :id")
     fun getSongByIdLiveData(id: Long): LiveData<Song?>
 
-    @Query("SELECT * FROM songs WHERE filePath = :path")
-    suspend fun getSongByPath(path: String): Song?
-
-    @Query("SELECT * FROM songs WHERE title LIKE '%' || :query || '%' OR artist LIKE '%' || :query || '%' OR folderName LIKE '%' || :query || '%' ORDER BY folderName, title")
-    fun searchSongs(query: String): LiveData<List<Song>>
-
     @Query("SELECT * FROM songs WHERE folderPath = :folder ORDER BY title")
     fun getSongsByFolder(folder: String): LiveData<List<Song>>
 
@@ -51,9 +45,6 @@ interface SongDao {
 
     @Query("UPDATE songs SET trimStart = :start, trimEnd = :end WHERE id = :id")
     suspend fun updateTrim(id: Long, start: Long, end: Long)
-
-    @Query("UPDATE songs SET volume = :volume WHERE id = :id")
-    suspend fun updateVolume(id: Long, volume: Float)
 
     @Query("UPDATE songs SET isFavorite = :fav WHERE id = :id")
     suspend fun updateFavorite(id: Long, fav: Boolean)
@@ -85,7 +76,7 @@ interface SongDao {
         title: String,
         artist: String,
         album: String,
-        artUrl: String
+        artUrl: String,
     )
 
     @Query("SELECT * FROM songs WHERE metadataFetched = 0 AND isManuallyEdited = 0 ORDER BY dateAdded DESC")
@@ -105,9 +96,6 @@ interface SongDao {
 
     @Query("DELETE FROM songs WHERE filePath NOT IN (:validPaths)")
     suspend fun removeDeletedFiles(validPaths: List<String>)
-
-    @Query("SELECT COUNT(*) FROM songs")
-    suspend fun getSongCount(): Int
 
     /** Wipes every row from the songs table. Does NOT touch the actual MP3 files on disk. */
     @Query("DELETE FROM songs")

@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.viewmodel
+package com.mochimochi.clawmikia.ui.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

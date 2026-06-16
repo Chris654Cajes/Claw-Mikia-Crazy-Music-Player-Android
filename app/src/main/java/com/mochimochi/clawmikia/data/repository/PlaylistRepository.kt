@@ -7,7 +7,7 @@ import com.mochimochi.clawmikia.data.model.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class PlaylistRepository(private val context: Context) {
+class PlaylistRepository(context: Context) {
 
     private val db = MusicDatabase.getDatabase(context)
     private val playlistDao = db.playlistDao()
@@ -20,7 +20,7 @@ class PlaylistRepository(private val context: Context) {
     suspend fun createPlaylist(name: String, description: String = ""): Long =
         withContext(Dispatchers.IO) {
             playlistDao.insertPlaylist(
-                Playlist(name = name, description = description)
+                Playlist(name = name, description = description),
             )
         }
 
@@ -61,20 +61,7 @@ class PlaylistRepository(private val context: Context) {
             playlistDao.removeSongsFromPlaylist(playlistId, songIds)
         }
 
-    suspend fun isSongInPlaylist(playlistId: Long, songId: Long): Boolean =
-        withContext(Dispatchers.IO) {
-            playlistDao.containsSong(playlistId, songId)
-        }
-
-    suspend fun getPlaylistSongsForPlayback(playlistId: Long): List<Song> =
-        withContext(Dispatchers.IO) {
-            playlistDao.getSongsInPlaylistSync(playlistId)
-        }
-
     // ─── Playback History ─────────────────────────────────────────────────────
-
-    fun getRecentHistory(limit: Int = 50): LiveData<List<PlaybackHistory>> =
-        historyDao.getRecent(limit)
 
     suspend fun recordPlay(songId: Long, durationListened: Long = 0, completed: Boolean = false) =
         withContext(Dispatchers.IO) {
@@ -86,14 +73,4 @@ class PlaylistRepository(private val context: Context) {
                 )
             )
         }
-
-    suspend fun getTopPlayedSongIds(since: Long, limit: Int = 20): List<Long> =
-        withContext(Dispatchers.IO) {
-            historyDao.getTopPlayed(since, limit).map { it.songId }
-        }
-
-    suspend fun pruneHistory(keepDays: Int = 90) = withContext(Dispatchers.IO) {
-        val cutoff = System.currentTimeMillis() - (keepDays * 24 * 60 * 60 * 1000L)
-        historyDao.pruneOlderThan(cutoff)
-    }
 }

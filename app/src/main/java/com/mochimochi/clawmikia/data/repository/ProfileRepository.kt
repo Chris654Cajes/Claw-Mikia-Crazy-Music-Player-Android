@@ -8,7 +8,7 @@ import com.mochimochi.clawmikia.data.model.SkipRegion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class ProfileRepository(private val context: Context) {
+class ProfileRepository(context: Context) {
 
     private val db = MusicDatabase.getDatabase(context)
     private val profileDao = db.playbackProfileDao()
@@ -18,10 +18,6 @@ class ProfileRepository(private val context: Context) {
 
     fun getProfilesForSong(songId: Long): LiveData<List<PlaybackProfile>> =
         profileDao.getProfilesForSong(songId)
-
-    suspend fun getProfilesSync(songId: Long): List<PlaybackProfile> = withContext(Dispatchers.IO) {
-        profileDao.getProfilesForSongSync(songId)
-    }
 
     fun getActiveProfileLiveData(songId: Long): LiveData<PlaybackProfile?> =
         profileDao.getActiveProfileLiveData(songId)
@@ -47,7 +43,7 @@ class ProfileRepository(private val context: Context) {
             playbackSpeed = song?.playbackSpeed ?: 1.0f,
             volume = song?.volume ?: 1.0f,
             trimStart = song?.trimStart ?: 0L,
-            trimEnd = song?.trimEnd ?: -1L
+            trimEnd = song?.trimEnd ?: -1L,
         )
         val id = profileDao.insert(profile)
         return profile.copy(id = id)
@@ -78,18 +74,6 @@ class ProfileRepository(private val context: Context) {
         profileDao.updateName(profileId, newName)
     }
 
-    suspend fun duplicateProfile(original: PlaybackProfile, newName: String): Long =
-        withContext(Dispatchers.IO) {
-            val copy = original.copy(
-                id = 0,
-                name = newName,
-                isActive = false,
-                createdAt = System.currentTimeMillis(),
-                updatedAt = System.currentTimeMillis()
-            )
-            profileDao.insert(copy)
-        }
-
     suspend fun updatePitchSpeed(profileId: Long, pitch: Float, speed: Float) =
         withContext(Dispatchers.IO) {
             profileDao.updatePitchSpeed(profileId, pitch, speed)
@@ -109,10 +93,6 @@ class ProfileRepository(private val context: Context) {
         profileDao.updateTrim(profileId, start, end)
     }
 
-    suspend fun updateVolume(profileId: Long, volume: Float) = withContext(Dispatchers.IO) {
-        profileDao.updateVolume(profileId, volume)
-    }
-
     // ─── Skip Regions ─────────────────────────────────────────────────────────
 
     fun getSkipRegions(songId: Long): LiveData<List<SkipRegion>> =
@@ -125,10 +105,6 @@ class ProfileRepository(private val context: Context) {
 
     suspend fun addSkipRegion(region: SkipRegion): Long = withContext(Dispatchers.IO) {
         skipRegionDao.insert(region)
-    }
-
-    suspend fun updateSkipRegion(region: SkipRegion) = withContext(Dispatchers.IO) {
-        skipRegionDao.update(region)
     }
 
     suspend fun deleteSkipRegion(region: SkipRegion) = withContext(Dispatchers.IO) {

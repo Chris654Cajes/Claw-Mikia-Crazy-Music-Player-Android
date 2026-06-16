@@ -35,16 +35,6 @@ class SettingsRepository(context: Context) {
 
     val favoriteIconLive: LiveData<String> =
         SharedPrefLiveData(prefs, KEY_FAVORITE_ICON, DEFAULT_FAVORITE_ICON)
-    val volumeStepLive: LiveData<Float> =
-        SharedPrefLiveDataFloat(prefs, KEY_VOLUME_STEP, DEFAULT_VOLUME_STEP)
-    val pitchStepLive: LiveData<Float> =
-        SharedPrefLiveDataFloat(prefs, KEY_PITCH_STEP, DEFAULT_PITCH_STEP)
-    val speedStepLive: LiveData<Int> =
-        SharedPrefLiveDataInt(prefs, KEY_SPEED_STEP, DEFAULT_SPEED_STEP)
-    val trimStepLive: LiveData<Float> =
-        SharedPrefLiveDataFloat(prefs, KEY_TRIM_STEP, DEFAULT_TRIM_STEP)
-    val skipStepLive: LiveData<Int> =
-        SharedPrefLiveDataInt(prefs, KEY_SKIP_STEP, DEFAULT_SKIP_STEP)
 
     // ── Direct getters ────────────────────────────────────────────────────────
 
@@ -101,7 +91,7 @@ class SettingsRepository(context: Context) {
     private class SharedPrefLiveData(
         private val prefs: SharedPreferences,
         private val key: String,
-        private val defValue: String
+        private val defValue: String,
     ) : LiveData<String>(), SharedPreferences.OnSharedPreferenceChangeListener {
         override fun onActive() {
             super.onActive()
@@ -116,48 +106,6 @@ class SettingsRepository(context: Context) {
 
         override fun onSharedPreferenceChanged(sp: SharedPreferences, changedKey: String?) {
             if (changedKey == key) value = sp.getString(key, defValue) ?: defValue
-        }
-    }
-
-    private class SharedPrefLiveDataFloat(
-        private val prefs: SharedPreferences,
-        private val key: String,
-        private val defValue: Float
-    ) : LiveData<Float>(), SharedPreferences.OnSharedPreferenceChangeListener {
-        override fun onActive() {
-            super.onActive()
-            value = prefs.getFloat(key, defValue)
-            prefs.registerOnSharedPreferenceChangeListener(this)
-        }
-
-        override fun onInactive() {
-            prefs.unregisterOnSharedPreferenceChangeListener(this)
-            super.onInactive()
-        }
-
-        override fun onSharedPreferenceChanged(sp: SharedPreferences, changedKey: String?) {
-            if (changedKey == key) value = sp.getFloat(key, defValue)
-        }
-    }
-
-    private class SharedPrefLiveDataInt(
-        private val prefs: SharedPreferences,
-        private val key: String,
-        private val defValue: Int
-    ) : LiveData<Int>(), SharedPreferences.OnSharedPreferenceChangeListener {
-        override fun onActive() {
-            super.onActive()
-            value = prefs.getInt(key, defValue)
-            prefs.registerOnSharedPreferenceChangeListener(this)
-        }
-
-        override fun onInactive() {
-            prefs.unregisterOnSharedPreferenceChangeListener(this)
-            super.onInactive()
-        }
-
-        override fun onSharedPreferenceChanged(sp: SharedPreferences, changedKey: String?) {
-            if (changedKey == key) value = sp.getInt(key, defValue)
         }
     }
 }

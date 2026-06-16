@@ -78,9 +78,6 @@ interface PlaybackProfileDao {
 
     @Query("UPDATE playback_profiles SET trimStart = :start, trimEnd = :end, updatedAt = :now WHERE id = :id")
     suspend fun updateTrim(id: Long, start: Long, end: Long, now: Long = System.currentTimeMillis())
-
-    @Query("UPDATE playback_profiles SET volume = :volume, updatedAt = :now WHERE id = :id")
-    suspend fun updateVolume(id: Long, volume: Float, now: Long = System.currentTimeMillis())
 }
 
 // ─── SkipRegion DAO ───────────────────────────────────────────────────────────
@@ -179,9 +176,6 @@ interface PlaybackHistoryDao {
     @Query("SELECT * FROM playback_history ORDER BY playedAt DESC LIMIT :limit")
     fun getRecent(limit: Int = 50): LiveData<List<PlaybackHistory>>
 
-    @Query("SELECT * FROM playback_history WHERE songId = :songId ORDER BY playedAt DESC LIMIT 20")
-    suspend fun getForSong(songId: Long): List<PlaybackHistory>
-
     @Query(
         """
         SELECT ph.songId, COUNT(*) as playCount, MAX(ph.playedAt) as lastPlayed
@@ -215,9 +209,6 @@ interface SongAnalysisDao {
 
     @Query("SELECT * FROM song_analysis WHERE songId = :songId LIMIT 1")
     fun observeForSong(songId: Long): LiveData<SongAnalysis?>
-
-    @Query("SELECT songId FROM song_analysis")
-    suspend fun getAnalyzedSongIds(): List<Long>
 
     @Query("DELETE FROM song_analysis WHERE songId = :songId")
     suspend fun deleteForSong(songId: Long)

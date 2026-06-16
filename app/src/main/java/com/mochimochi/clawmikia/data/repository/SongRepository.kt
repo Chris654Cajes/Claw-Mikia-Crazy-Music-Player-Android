@@ -20,7 +20,6 @@ class SongRepository(private val context: Context) {
     val favorites: LiveData<List<Song>> = songDao.getFavorites()
     val folders: LiveData<List<FolderInfo>> = songDao.getDistinctFolders()
 
-    fun searchSongs(query: String): LiveData<List<Song>> = songDao.searchSongs(query)
     fun getSongsByFolder(folder: String): LiveData<List<Song>> = songDao.getSongsByFolder(folder)
 
     suspend fun scanFolder(treeUri: Uri): Int = withContext(Dispatchers.IO) {
@@ -47,7 +46,7 @@ class SongRepository(private val context: Context) {
     private fun scanDocumentFile(
         dir: DocumentFile,
         songs: MutableList<Song>,
-        parentPath: String = ""
+        parentPath: String = "",
     ) {
         val folderName = dir.name ?: "Unknown"
         val folderPath = if (parentPath.isEmpty()) folderName else "$parentPath/$folderName"
@@ -90,23 +89,6 @@ class SongRepository(private val context: Context) {
         }
     }
 
-    suspend fun updatePitch(id: Long, pitch: Float) = withContext(Dispatchers.IO) {
-        songDao.updatePitch(id, pitch)
-    }
-
-    suspend fun updateSpeed(id: Long, speed: Float) = withContext(Dispatchers.IO) {
-        songDao.updateSpeed(id, speed)
-    }
-
-    suspend fun updateTrim(id: Long, start: Long, end: Long) = withContext(Dispatchers.IO) {
-        songDao.updateTrim(id, start, end)
-    }
-
-    suspend fun updateRepeatMode(id: Long, repeatMode: Int) = withContext(Dispatchers.IO) {
-        songDao.updateRepeatMode(id, repeatMode)
-    }
-
-    // Synchronization methods to keep song settings in sync with active profile
     suspend fun updatePitchAndSyncProfile(id: Long, pitch: Float) = withContext(Dispatchers.IO) {
         songDao.updatePitch(id, pitch)
         // Also update the active profile if it exists
@@ -143,20 +125,6 @@ class SongRepository(private val context: Context) {
             songDao.updateRepeatMode(id, repeatMode)
             // Note: repeat mode is stored in song, not profile, so no profile sync needed
         }
-
-    suspend fun updateVolume(id: Long, volume: Float) = withContext(Dispatchers.IO) {
-        songDao.updateVolume(id, volume)
-    }
-
-    suspend fun updateVolumeAndSyncProfile(id: Long, volume: Float) = withContext(Dispatchers.IO) {
-        songDao.updateVolume(id, volume)
-        // Also update the active profile if it exists
-        val profileDao = MusicDatabase.getDatabase(context).playbackProfileDao()
-        val activeProfile = profileDao.getActiveProfile(id)
-        activeProfile?.let { profile ->
-            profileDao.updateVolume(profile.id, volume)
-        }
-    }
 
     suspend fun renameFolder(path: String, newName: String) = withContext(Dispatchers.IO) {
         songDao.renameFolder(path, newName)
@@ -200,14 +168,6 @@ class SongRepository(private val context: Context) {
     }
 
     fun getSongByIdLiveData(id: Long): LiveData<Song?> = songDao.getSongByIdLiveData(id)
-
-    suspend fun getSongCount(): Int = withContext(Dispatchers.IO) {
-        songDao.getSongCount()
-    }
-
-    suspend fun getAllSongs(): List<Song> = withContext(Dispatchers.IO) {
-        songDao.getAllSongsSync()
-    }
 
     /**
      * Deletes every row from the songs table.

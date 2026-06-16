@@ -17,7 +17,7 @@ import com.mochimochi.clawmikia.data.db.MusicDatabase
 import com.mochimochi.clawmikia.data.model.LyricLine
 import com.mochimochi.clawmikia.data.model.LyricsMeta
 import com.mochimochi.clawmikia.ui.adapters.LyricsAdapter
-import com.mochimochi.clawmikia.ui.viewmodel.NowPlayingViewModel
+import com.mochimochi.clawmikia.ui.viewmodels.NowPlayingViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

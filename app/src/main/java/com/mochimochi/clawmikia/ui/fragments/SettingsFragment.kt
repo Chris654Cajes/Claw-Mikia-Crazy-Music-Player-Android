@@ -9,13 +9,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.fragment.app.Fragment
 import com.mochimochi.clawmikia.R
 import com.mochimochi.clawmikia.data.repository.SettingsRepository
 import com.mochimochi.clawmikia.databinding.FragmentSettingsBinding
+import kotlin.math.roundToInt
 
 class SettingsFragment : Fragment() {
 
@@ -143,7 +143,7 @@ class SettingsFragment : Fragment() {
             if (!hasFocus) {
                 val raw = et.text.toString().trim()
                 val value = raw.toFloatOrNull() ?: SettingsRepository.DEFAULT_PITCH_STEP
-                val rounded = Math.round(value * 10f) / 10f
+                val rounded = (value * 10f).roundToInt() / 10f
                 val clamped = rounded.coerceIn(0.1f, 6.0f)
                 suppressWatcher = true
                 et.setText(formatDecimal1(clamped))
@@ -208,7 +208,7 @@ class SettingsFragment : Fragment() {
             if (!hasFocus) {
                 val raw = et.text.toString().trim()
                 val value = raw.toFloatOrNull() ?: SettingsRepository.DEFAULT_TRIM_STEP
-                val rounded = Math.round(value * 10f) / 10f
+                val rounded = (value * 10f).roundToInt() / 10f
                 val clamped = rounded.coerceIn(0.1f, 60.0f)
                 suppressWatcher = true
                 et.setText(formatDecimal1(clamped))

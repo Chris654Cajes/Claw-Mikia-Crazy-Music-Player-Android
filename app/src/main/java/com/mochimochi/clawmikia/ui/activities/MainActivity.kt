@@ -15,7 +15,6 @@ import android.os.IBinder
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.RelativeLayout

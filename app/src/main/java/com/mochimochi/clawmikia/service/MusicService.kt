@@ -89,10 +89,6 @@ class MusicService : Service() {
     private var loopWatchdog: Runnable? = null
     private var abRepeatWatchdog: Runnable? = null
 
-    private val sleepTimerHandler = Handler(Looper.getMainLooper())
-    private var sleepTimerRunnable: Runnable? = null
-    private var sleepTimerEndMs: Long = -1L
-
     private val playStateCallbacks = java.util.concurrent.CopyOnWriteArrayList<(Boolean) -> Unit>()
     private val songChangedCallbacks = java.util.concurrent.CopyOnWriteArrayList<(Song) -> Unit>()
 
@@ -853,11 +849,6 @@ class MusicService : Service() {
     fun applySkipRegions(regions: List<SkipRegion>) {
         skipRegions = regions
         if (isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
-    }
-
-    fun cancelSleepTimer() {
-        sleepTimerRunnable?.let { sleepTimerHandler.removeCallbacks(it) }; sleepTimerRunnable =
-            null; sleepTimerEndMs = -1L
     }
 
     fun setBypassProfiles(bypass: Boolean) {

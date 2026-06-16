@@ -68,4 +68,6 @@
     <string name="yes">YES</string>
     <string name="no">NO</string>
     <string name="apply">APPLY</string>
+    <string name="bpm_format">%1$d BPM</string>
+    <string name="key_format">Key: %1$s</string>
 </resources>

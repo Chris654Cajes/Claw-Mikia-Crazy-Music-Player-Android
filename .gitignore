@@ -1,4 +1,10 @@
-# IDE
+# Built variants
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Android Studio / IntelliJ
 .idea/
 *.iml
 *.iws
@@ -23,13 +29,10 @@ lint/
 .idea/navEditor.xml
 .idea/deploymentTargetSelector.xml
 
-# Build
+# Gradle
+.gradle/
 build/
 app/build/
-.gradle/
-bin/
-gen/
-out/
 
 # Local configuration
 local.properties
@@ -71,14 +74,10 @@ Thumbs.db
 *.db-shm
 *.db-wal
 
-# Kotlin / Java / Android
+# Kotlin / Java
 *.kotlin_module
 *.class
 R.txt
-*.apk
-*.ap_
-*.aab
-*.aar
 
 # Test
 test-results/
@@ -86,19 +85,3 @@ androidTest-results/
 coverage/
 *.coverage
 *.lcov
-
-# Documentation
-docs/build/
-
-# Editor specific
-.vscode/
-*.sublime-project
-*.sublime-workspace
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-env/
-venv/
-ENV/

@@ -11,7 +11,7 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 import com.mochimochi.clawmikia.R
 import com.mochimochi.clawmikia.data.model.PlaybackProfile
 import com.mochimochi.clawmikia.ui.adapters.ProfilesAdapter
-import com.mochimochi.clawmikia.ui.viewmodel.NowPlayingViewModel
+import com.mochimochi.clawmikia.ui.viewmodels.NowPlayingViewModel
 
 class ProfilesFragment : BottomSheetDialogFragment() {
 

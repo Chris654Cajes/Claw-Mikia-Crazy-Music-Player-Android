@@ -28,7 +28,7 @@ data class AdvancedFilter(
     val customSpeedState: TriState = TriState.ALL,
     val trimState: TriState = TriState.ALL,
     val addedAfter: Long? = null,
-    val modifiedAfter: Long? = null
+    val modifiedAfter: Long? = null,
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -43,9 +43,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val manuallyEditedCount: LiveData<Int> = repository.manuallyEditedCount
 
     private val _searchQuery = MutableLiveData("")
-    val searchQuery: LiveData<String> = _searchQuery
 
-    private val _advancedFilter = MutableLiveData<AdvancedFilter>(AdvancedFilter())
+    private val _advancedFilter = MutableLiveData(AdvancedFilter())
     val advancedFilter: LiveData<AdvancedFilter> = _advancedFilter
 
     val filteredSongs: LiveData<List<Song>> =
@@ -82,8 +81,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (!matchesQuery) return@filter false
 
             // Advanced filters
-            if (filter.minDuration != null && song.duration < filter.minDuration * 1000) return@filter false
-            if (filter.maxDuration != null && song.duration > filter.maxDuration * 1000) return@filter false
+            if (filter.minDuration != null && song.duration < (filter.minDuration * 1000)) return@filter false
+            if (filter.maxDuration != null && song.duration > (filter.maxDuration * 1000)) return@filter false
 
             if (filter.minSize != null && song.fileSize < filter.minSize * 1024 * 1024) return@filter false
             if (filter.maxSize != null && song.fileSize > filter.maxSize * 1024 * 1024) return@filter false
@@ -152,9 +151,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isPlaying = MutableLiveData(false)
     val isPlaying: LiveData<Boolean> = _isPlaying
 
-    private val _playlistMode = MutableLiveData(PlaylistMode.ALL)
-    val playlistMode: LiveData<PlaylistMode> = _playlistMode
-
     fun setSearchQuery(q: String) {
         _searchQuery.value = q
     }
@@ -191,25 +187,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Call this on app resume to pick up any songs that missed metadata last time. */
-    fun fetchMetadataIfOnline() {
-        // No longer auto-fetching on resume as per user request
-    }
-
     fun fetchMetadataManual(overwriteManual: Boolean) {
         viewModelScope.launch {
             _scanStatus.value = ScanStatus.FetchingMetadata
             MetadataFetcher.fetchMissingMetadata(getApplication<Application>(), overwriteManual)
             _scanStatus.value = ScanStatus.Idle
         }
-    }
-
-    fun updatePitch(id: Long, pitch: Float) {
-        viewModelScope.launch { repository.updatePitchAndSyncProfile(id, pitch) }
-    }
-
-    fun updateTrim(id: Long, start: Long, end: Long) {
-        viewModelScope.launch { repository.updateTrimAndSyncProfile(id, start, end) }
     }
 
     fun toggleFavorite(song: Song) {
@@ -264,11 +247,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         object FetchingMetadata : ScanStatus()
         data class Success(val count: Int) : ScanStatus()
         object Empty : ScanStatus()
-        data class Error(val msg: String) : ScanStatus()
 
         /** Emitted after a successful library reset. */
         object Reset : ScanStatus()
     }
-
-    enum class PlaylistMode { ALL, FOLDER, FAVORITES, SEARCH }
 }

@@ -34,7 +34,7 @@ import com.mochimochi.clawmikia.databinding.ActivityNowPlayingBinding
 import com.mochimochi.clawmikia.databinding.DialogEditSongBinding
 import com.mochimochi.clawmikia.service.MusicService
 import com.mochimochi.clawmikia.ui.fragments.ProfilesFragment
-import com.mochimochi.clawmikia.ui.viewmodel.NowPlayingViewModel
+import com.mochimochi.clawmikia.ui.viewmodels.NowPlayingViewModel
 import com.mochimochi.clawmikia.utils.FavoriteIconHelper
 import com.mochimochi.clawmikia.utils.formatDuration
 import kotlinx.coroutines.CoroutineScope
@@ -206,8 +206,8 @@ class NowPlayingActivity : AppCompatActivity() {
 
         viewModel.songAnalysis.observe(this) { analysis ->
             if (analysis != null) {
-                binding.tvBpm.text = "${analysis.bpm.toInt()} BPM"
-                binding.tvKey.text = "Key: ${analysis.key}"
+                binding.tvBpm.text = getString(R.string.bpm_format, analysis.bpm.toInt())
+                binding.tvKey.text = getString(R.string.key_format, analysis.key)
                 binding.tvBpm.visibility = android.view.View.VISIBLE
                 binding.tvKey.visibility = android.view.View.VISIBLE
             } else {
@@ -850,7 +850,7 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.switchAbRepeat.setOnCheckedChangeListener { _, checked ->
             isAbRepeatEnabled = checked
             if (checked) {
-                if (pointA >= 0 && pointB > pointA) {
+                if (pointA in 0..pointB.minus(1)) {
                     applyAbRepeat()
                 } else {
                     binding.switchAbRepeat.isChecked = false
