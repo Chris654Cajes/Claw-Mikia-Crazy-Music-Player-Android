@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.adapters
+package com.mochimochi.clawmikiacrazy.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.View
@@ -8,11 +8,11 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.mochimochi.clawmikia.R
-import com.mochimochi.clawmikia.data.model.Song
-import com.mochimochi.clawmikia.databinding.ItemSongBinding
-import com.mochimochi.clawmikia.utils.FavoriteIconHelper
-import com.mochimochi.clawmikia.utils.formatDuration
+import com.mochimochi.clawmikiacrazy.R
+import com.mochimochi.clawmikiacrazy.data.model.Song
+import com.mochimochi.clawmikiacrazy.databinding.ItemSongBinding
+import com.mochimochi.clawmikiacrazy.utils.FavoriteIconHelper
+import com.mochimochi.clawmikiacrazy.utils.formatDuration
 
 class SongAdapter(
     private val onSongClick: (Song, List<Song>) -> Unit,

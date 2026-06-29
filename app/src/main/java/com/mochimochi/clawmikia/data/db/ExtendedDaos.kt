@@ -1,8 +1,8 @@
-package com.mochimochi.clawmikia.data.db
+package com.mochimochi.clawmikiacrazy.data.db
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.mochimochi.clawmikia.data.model.*
+import com.mochimochi.clawmikiacrazy.data.model.*
 
 // ─── PlaybackProfile DAO ──────────────────────────────────────────────────────
 @Dao

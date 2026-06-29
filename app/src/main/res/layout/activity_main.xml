@@ -144,6 +144,19 @@
                     app:searchIcon="@drawable/ic_search" />
 
                 <ImageButton
+                    android:id="@+id/btnClearSearch"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_search_field"
+                    android:contentDescription="@string/clear_search"
+                    android:padding="10dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_close"
+                    android:tint="@color/neon_red"
+                    android:visibility="gone" />
+
+                <ImageButton
                     android:id="@+id/btnAdvancedFilter"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
@@ -185,40 +198,34 @@
             android:id="@+id/fragmentContainer"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@id/bottomArea"
+            app:layout_constraintBottom_toTopOf="@id/musicPanel"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Mini music panel + bottom nav stacked at bottom -->
-        <LinearLayout
-            android:id="@+id/bottomArea"
-            android:layout_width="0dp"
+        <!-- Mini player -->
+        <include
+            android:id="@+id/musicPanel"
+            layout="@layout/layout_mini_player"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@id/bottomNav"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- Bottom navigation -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNav"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/bg_surface"
+            app:itemIconTint="@color/nav_item_color"
+            app:itemTextColor="@color/nav_item_color"
+            app:labelVisibilityMode="labeled"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <!-- Mini player -->
-            <include
-                android:id="@+id/musicPanel"
-                layout="@layout/layout_mini_player"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <!-- Bottom navigation -->
-            <com.google.android.material.bottomnavigation.BottomNavigationView
-                android:id="@+id/bottomNav"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/bg_surface"
-                app:itemIconTint="@color/nav_item_color"
-                app:itemTextColor="@color/nav_item_color"
-                app:labelVisibilityMode="labeled"
-                app:menu="@menu/bottom_nav_menu" />
-
-        </LinearLayout>
+            app:layout_constraintStart_toStartOf="parent"
+            app:menu="@menu/bottom_nav_menu" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

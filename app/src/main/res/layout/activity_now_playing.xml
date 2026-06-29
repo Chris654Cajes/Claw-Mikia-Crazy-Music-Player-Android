@@ -213,7 +213,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <com.mochimochi.clawmikia.ui.views.SkipRegionsOverlayView
+                <com.mochimochi.clawmikiacrazy.ui.views.SkipRegionsOverlayView
                     android:id="@+id/skipRegionsOverlay"
                     android:layout_width="match_parent"
                     android:layout_height="6dp"

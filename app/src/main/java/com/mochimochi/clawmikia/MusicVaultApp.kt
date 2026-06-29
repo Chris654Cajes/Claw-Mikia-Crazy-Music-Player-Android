@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia
+package com.mochimochi.clawmikiacrazy
 
 import android.app.Application
 import android.content.SharedPreferences

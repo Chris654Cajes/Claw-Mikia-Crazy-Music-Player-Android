@@ -8,7 +8,7 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.mochimochi.clawmikia" />
+                  <option name="appId" value="com.mochimochi.clawmikiacrazy" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

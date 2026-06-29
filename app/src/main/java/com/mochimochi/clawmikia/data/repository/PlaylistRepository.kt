@@ -1,9 +1,9 @@
-package com.mochimochi.clawmikia.data.repository
+package com.mochimochi.clawmikiacrazy.data.repository
 
 import android.content.Context
 import androidx.lifecycle.LiveData
-import com.mochimochi.clawmikia.data.db.MusicDatabase
-import com.mochimochi.clawmikia.data.model.*
+import com.mochimochi.clawmikiacrazy.data.db.MusicDatabase
+import com.mochimochi.clawmikiacrazy.data.model.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

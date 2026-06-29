@@ -1,10 +1,10 @@
-package com.mochimochi.clawmikia.data.repository
+package com.mochimochi.clawmikiacrazy.data.repository
 
 import android.content.Context
 import androidx.lifecycle.LiveData
-import com.mochimochi.clawmikia.data.db.MusicDatabase
-import com.mochimochi.clawmikia.data.model.PlaybackProfile
-import com.mochimochi.clawmikia.data.model.SkipRegion
+import com.mochimochi.clawmikiacrazy.data.db.MusicDatabase
+import com.mochimochi.clawmikiacrazy.data.model.PlaybackProfile
+import com.mochimochi.clawmikiacrazy.data.model.SkipRegion
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

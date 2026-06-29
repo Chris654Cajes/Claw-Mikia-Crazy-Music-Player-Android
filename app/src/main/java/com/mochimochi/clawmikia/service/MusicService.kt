@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.service
+package com.mochimochi.clawmikiacrazy.service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -29,17 +29,17 @@ import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.asFlow
 import androidx.media.app.NotificationCompat.MediaStyle
-import com.mochimochi.clawmikia.R
-import com.mochimochi.clawmikia.audio.analysis.AnalysisEngine
-import com.mochimochi.clawmikia.audio.dsp.DSPProcessor
-import com.mochimochi.clawmikia.data.model.PlaybackProfile
-import com.mochimochi.clawmikia.data.model.SkipRegion
-import com.mochimochi.clawmikia.data.model.Song
-import com.mochimochi.clawmikia.data.repository.PlaylistRepository
-import com.mochimochi.clawmikia.data.repository.ProfileRepository
-import com.mochimochi.clawmikia.data.repository.SongRepository
-import com.mochimochi.clawmikia.lyrics.LyricsManager
-import com.mochimochi.clawmikia.ui.activities.MainActivity
+import com.mochimochi.clawmikiacrazy.R
+import com.mochimochi.clawmikiacrazy.audio.analysis.AnalysisEngine
+import com.mochimochi.clawmikiacrazy.audio.dsp.DSPProcessor
+import com.mochimochi.clawmikiacrazy.data.model.PlaybackProfile
+import com.mochimochi.clawmikiacrazy.data.model.SkipRegion
+import com.mochimochi.clawmikiacrazy.data.model.Song
+import com.mochimochi.clawmikiacrazy.data.repository.PlaylistRepository
+import com.mochimochi.clawmikiacrazy.data.repository.ProfileRepository
+import com.mochimochi.clawmikiacrazy.data.repository.SongRepository
+import com.mochimochi.clawmikiacrazy.lyrics.LyricsManager
+import com.mochimochi.clawmikiacrazy.ui.activities.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -104,11 +104,11 @@ class MusicService : Service() {
         const val REPEAT_ONE = 1
         const val REPEAT_ALL = 2
         const val REPEAT_AUTO = 3
-        const val ACTION_PLAY = "com.mochimochi.clawmikia.PLAY"
-        const val ACTION_PAUSE = "com.mochimochi.clawmikia.PAUSE"
-        const val ACTION_NEXT = "com.mochimochi.clawmikia.NEXT"
-        const val ACTION_PREV = "com.mochimochi.clawmikia.PREV"
-        const val ACTION_STOP = "com.mochimochi.clawmikia.STOP"
+        const val ACTION_PLAY = "com.mochimochi.clawmikiacrazy.PLAY"
+        const val ACTION_PAUSE = "com.mochimochi.clawmikiacrazy.PAUSE"
+        const val ACTION_NEXT = "com.mochimochi.clawmikiacrazy.NEXT"
+        const val ACTION_PREV = "com.mochimochi.clawmikiacrazy.PREV"
+        const val ACTION_STOP = "com.mochimochi.clawmikiacrazy.STOP"
         private const val SEMITONE_RATIO = 1.0594630943592953
         private const val WATCHDOG_MS = 250L
     }
@@ -138,11 +138,11 @@ class MusicService : Service() {
         analysisEngine = AnalysisEngine(applicationContext)
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
 
-        val prefs = com.mochimochi.clawmikia.MusicVaultApp.instance.prefs
+        val prefs = com.mochimochi.clawmikiacrazy.MusicVaultApp.instance.prefs
         repeatMode =
-            prefs.getInt(com.mochimochi.clawmikia.MusicVaultApp.KEY_REPEAT_MODE, REPEAT_NONE)
+            prefs.getInt(com.mochimochi.clawmikiacrazy.MusicVaultApp.KEY_REPEAT_MODE, REPEAT_NONE)
         shuffleEnabled =
-            prefs.getBoolean(com.mochimochi.clawmikia.MusicVaultApp.KEY_SHUFFLE_ON, false)
+            prefs.getBoolean(com.mochimochi.clawmikiacrazy.MusicVaultApp.KEY_SHUFFLE_ON, false)
 
         createNotificationChannel()
         initMediaSession()
@@ -787,14 +787,14 @@ class MusicService : Service() {
     fun getRepeatMode(): Int = repeatMode
     fun setRepeatMode(mode: Int) {
         repeatMode = mode
-        com.mochimochi.clawmikia.MusicVaultApp.instance.prefs.edit()
-            .putInt(com.mochimochi.clawmikia.MusicVaultApp.KEY_REPEAT_MODE, mode).apply()
+        com.mochimochi.clawmikiacrazy.MusicVaultApp.instance.prefs.edit()
+            .putInt(com.mochimochi.clawmikiacrazy.MusicVaultApp.KEY_REPEAT_MODE, mode).apply()
     }
 
     fun toggleShuffle() {
         shuffleEnabled = !shuffleEnabled; if (shuffleEnabled) rebuildShuffleIndices()
-        com.mochimochi.clawmikia.MusicVaultApp.instance.prefs.edit()
-            .putBoolean(com.mochimochi.clawmikia.MusicVaultApp.KEY_SHUFFLE_ON, shuffleEnabled)
+        com.mochimochi.clawmikiacrazy.MusicVaultApp.instance.prefs.edit()
+            .putBoolean(com.mochimochi.clawmikiacrazy.MusicVaultApp.KEY_SHUFFLE_ON, shuffleEnabled)
             .apply()
     }
 

@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.player
+package com.mochimochi.clawmikiacrazy.ui.player
 
 import android.content.Context
 import android.graphics.*
@@ -6,7 +6,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.content.ContextCompat
-import com.mochimochi.clawmikia.R
+import com.mochimochi.clawmikiacrazy.R
 import kotlin.math.abs
 import kotlin.math.roundToInt
 

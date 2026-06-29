@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.activities
+package com.mochimochi.clawmikiacrazy.ui.activities
 
 import android.content.ComponentName
 import android.content.Context
@@ -27,31 +27,32 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.mochimochi.clawmikia.MusicVaultApp
-import com.mochimochi.clawmikia.R
+import com.mochimochi.clawmikiacrazy.MusicVaultApp
+import com.mochimochi.clawmikiacrazy.R
 import androidx.lifecycle.Observer
-import com.mochimochi.clawmikia.data.model.Playlist
-import com.mochimochi.clawmikia.data.model.Song
-import com.mochimochi.clawmikia.data.db.FolderInfo
-import com.mochimochi.clawmikia.databinding.ActivityMainBinding
-import com.mochimochi.clawmikia.service.MusicService
-import com.mochimochi.clawmikia.ui.fragments.FavoritesFragment
-import com.mochimochi.clawmikia.ui.fragments.FoldersFragment
-import com.mochimochi.clawmikia.ui.fragments.LibraryFragment
-import com.mochimochi.clawmikia.ui.fragments.PlaylistsFragment
-import com.mochimochi.clawmikia.ui.fragments.SettingsFragment
-import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
-import com.mochimochi.clawmikia.ui.viewmodels.AdvancedFilter
-import com.mochimochi.clawmikia.ui.viewmodels.TriState
-import com.mochimochi.clawmikia.data.repository.SettingsRepository
-import com.mochimochi.clawmikia.utils.FavoriteIconHelper
-import com.mochimochi.clawmikia.utils.formatDuration
+import com.mochimochi.clawmikiacrazy.data.model.Playlist
+import com.mochimochi.clawmikiacrazy.data.model.Song
+import com.mochimochi.clawmikiacrazy.data.db.FolderInfo
+import com.mochimochi.clawmikiacrazy.databinding.ActivityMainBinding
+import com.mochimochi.clawmikiacrazy.service.MusicService
+import com.mochimochi.clawmikiacrazy.ui.fragments.FavoritesFragment
+import com.mochimochi.clawmikiacrazy.ui.fragments.FoldersFragment
+import com.mochimochi.clawmikiacrazy.ui.fragments.LibraryFragment
+import com.mochimochi.clawmikiacrazy.ui.fragments.PlaylistsFragment
+import com.mochimochi.clawmikiacrazy.ui.fragments.SettingsFragment
+import com.mochimochi.clawmikiacrazy.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikiacrazy.ui.viewmodels.AdvancedFilter
+import com.mochimochi.clawmikiacrazy.ui.viewmodels.TriState
+import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
+import com.mochimochi.clawmikiacrazy.utils.FavoriteIconHelper
+import com.mochimochi.clawmikiacrazy.utils.formatDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -149,7 +150,7 @@ class MainActivity : AppCompatActivity() {
         uri?.let {
             lifecycleScope.launch {
                 val songs = withContext(Dispatchers.IO) {
-                    com.mochimochi.clawmikia.data.db.MusicDatabase.getDatabase(this@MainActivity)
+                    com.mochimochi.clawmikiacrazy.data.db.MusicDatabase.getDatabase(this@MainActivity)
                         .songDao().getAllSongsSync()
                 }
 
@@ -164,7 +165,7 @@ class MainActivity : AppCompatActivity() {
 
                 binding.scanProgress.visibility = View.VISIBLE
                 val tempFile = File(cacheDir, "export_temp.zip")
-                val exportCount = com.mochimochi.clawmikia.utils.Exporter.exportToZip(
+                val exportCount = com.mochimochi.clawmikiacrazy.utils.Exporter.exportToZip(
                     this@MainActivity,
                     songs,
                     tempFile,
@@ -221,9 +222,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Handle bottom system nav bar insets on bottomArea so the
+        // Handle bottom system nav bar insets on bottomNav so the
         // BottomNavigationView doesn't add its own automatic bottom padding.
-        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.bottomArea) { view, insets ->
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNav) { view, insets ->
             val navBars =
                 insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
             view.setPadding(0, 0, 0, navBars.bottom)
@@ -309,7 +310,7 @@ class MainActivity : AppCompatActivity() {
             layoutParams?.behavior = null
             contentArea.layoutParams = layoutParams
 
-            // 2. Safe padding injection for top status bar (bottom nav handled by bottomArea)
+            // 2. Safe padding injection for top status bar (bottom nav handled by bottomNav)
             androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(contentArea) { view, insets ->
                 val systemBars =
                     insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
@@ -427,7 +428,8 @@ class MainActivity : AppCompatActivity() {
      */
     private fun applyMiniPlayerExpansion() {
         val panel = binding.musicPanel
-        val params = panel.root.layoutParams
+        val params = panel.root.layoutParams as ConstraintLayout.LayoutParams
+        val fragParams = binding.fragmentContainer.layoutParams as ConstraintLayout.LayoutParams
 
         if (miniPlayerExpanded) {
             // Expanded → show everything
@@ -443,10 +445,15 @@ class MainActivity : AppCompatActivity() {
             panel.btnPlayPause.visibility = View.VISIBLE
             panel.btnNext.visibility = View.VISIBLE
 
-            // Reset cropping
-            params.width = ViewGroup.LayoutParams.MATCH_PARENT
+            // Reset cropping and return to full width
+            params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
             params.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            params.horizontalBias = 0.5f
             panel.root.layoutParams = params
+
+            // Fragment container should be above the expanded mini player
+            fragParams.bottomToTop = R.id.musicPanel
+            binding.fragmentContainer.layoutParams = fragParams
 
             // Restore toggle button to natural size (matching layout_mini_player.xml)
             val btnParams = panel.btnToggleMiniPlayer.layoutParams as? RelativeLayout.LayoutParams
@@ -463,12 +470,17 @@ class MainActivity : AppCompatActivity() {
             panel.seekBar.visibility = View.GONE
             panel.layoutControls.visibility = View.GONE
 
-            // Shrink the root to just the toggle button width
+            // Shrink the root to just the toggle button width and align left
             val density = resources.displayMetrics.density
             val collapsedWidthPx = (56 * density).toInt()
             params.width = collapsedWidthPx
             params.height = (64 * density).toInt() // Match toggle button height
+            params.horizontalBias = 0.0f // To the left
             panel.root.layoutParams = params
+
+            // Fragment container extends down to the bottom navigation bar
+            fragParams.bottomToTop = R.id.bottomNav
+            binding.fragmentContainer.layoutParams = fragParams
 
             // Toggle button fills the collapsed strip
             val btnParams = panel.btnToggleMiniPlayer.layoutParams as? RelativeLayout.LayoutParams
@@ -483,6 +495,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         panel.root.requestLayout()
+        binding.fragmentContainer.requestLayout()
 
         // Always re-assert the text — song changes can wipe it via binding reuse
         panel.btnToggleMiniPlayer.text = "瞼"
@@ -523,10 +536,16 @@ class MainActivity : AppCompatActivity() {
             object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(q: String?) = true
                 override fun onQueryTextChange(q: String?): Boolean {
-                    viewModel.setSearchQuery(q ?: ""); return true
+                    viewModel.setSearchQuery(q ?: "")
+                    binding.btnClearSearch.visibility =
+                        if (q.isNullOrEmpty()) View.GONE else View.VISIBLE
+                    return true
                 }
             },
         )
+        binding.btnClearSearch.setOnClickListener {
+            binding.searchView.setQuery("", false)
+        }
         binding.btnScan.setOnClickListener { folderPickerLauncher.launch(null) }
         binding.btnScanFiles.setOnClickListener { filePickerLauncher.launch(arrayOf("audio/mpeg")) }
         binding.btnExport.setOnClickListener { showExportDialog() }
@@ -686,7 +705,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupUpdateOnlineButton() {
         binding.btnUpdateOnline.setOnClickListener {
-            if (!com.mochimochi.clawmikia.utils.MetadataFetcher.isOnline(this)) {
+            if (!com.mochimochi.clawmikiacrazy.utils.MetadataFetcher.isOnline(this)) {
                 showAestheticStatusDialog(
                     success = false,
                     title = "OFFLINE",
@@ -867,6 +886,9 @@ class MainActivity : AppCompatActivity() {
         showMusicPanel(song)
         updatePlayButton(playing = true)
         startProgressUpdates()
+
+        // Navigate to Now Playing
+        NowPlayingActivity.start(this, song.id)
 
         // Ensure service is bound before calling it
         if (serviceBound && musicService != null) {

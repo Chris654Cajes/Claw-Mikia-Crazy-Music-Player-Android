@@ -1,9 +1,9 @@
-package com.mochimochi.clawmikia.utils
+package com.mochimochi.clawmikiacrazy.utils
 
 import android.content.Context
 import android.net.Uri
-import com.mochimochi.clawmikia.data.db.MusicDatabase
-import com.mochimochi.clawmikia.data.model.Song
+import com.mochimochi.clawmikiacrazy.data.db.MusicDatabase
+import com.mochimochi.clawmikiacrazy.data.model.Song
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedOutputStream

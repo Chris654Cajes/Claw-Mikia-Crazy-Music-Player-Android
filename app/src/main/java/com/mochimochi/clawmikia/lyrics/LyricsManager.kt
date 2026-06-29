@@ -1,10 +1,10 @@
-package com.mochimochi.clawmikia.lyrics
+package com.mochimochi.clawmikiacrazy.lyrics
 
 import android.content.Context
 import android.util.Log
-import com.mochimochi.clawmikia.data.db.MusicDatabase
-import com.mochimochi.clawmikia.data.model.LyricLine
-import com.mochimochi.clawmikia.data.model.LyricsMeta
+import com.mochimochi.clawmikiacrazy.data.db.MusicDatabase
+import com.mochimochi.clawmikiacrazy.data.model.LyricLine
+import com.mochimochi.clawmikiacrazy.data.model.LyricsMeta
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext

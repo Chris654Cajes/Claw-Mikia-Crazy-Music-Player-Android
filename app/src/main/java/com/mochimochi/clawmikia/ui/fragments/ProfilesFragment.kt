@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.fragments
+package com.mochimochi.clawmikiacrazy.ui.fragments
 
 import android.os.Bundle
 import android.view.*
@@ -8,10 +8,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-import com.mochimochi.clawmikia.R
-import com.mochimochi.clawmikia.data.model.PlaybackProfile
-import com.mochimochi.clawmikia.ui.adapters.ProfilesAdapter
-import com.mochimochi.clawmikia.ui.viewmodels.NowPlayingViewModel
+import com.mochimochi.clawmikiacrazy.R
+import com.mochimochi.clawmikiacrazy.data.model.PlaybackProfile
+import com.mochimochi.clawmikiacrazy.ui.adapters.ProfilesAdapter
+import com.mochimochi.clawmikiacrazy.ui.viewmodels.NowPlayingViewModel
 
 class ProfilesFragment : BottomSheetDialogFragment() {
 

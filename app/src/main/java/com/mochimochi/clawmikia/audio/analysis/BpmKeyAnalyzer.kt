@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.audio.analysis
+package com.mochimochi.clawmikiacrazy.audio.analysis
 
 import android.content.Context
 import android.media.MediaMetadataRetriever

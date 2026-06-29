@@ -1,10 +1,10 @@
-package com.mochimochi.clawmikia.audio.analysis
+package com.mochimochi.clawmikiacrazy.audio.analysis
 
 import android.content.Context
 import android.util.Log
-import com.mochimochi.clawmikia.data.db.MusicDatabase
-import com.mochimochi.clawmikia.data.model.SongAnalysis
-import com.mochimochi.clawmikia.data.model.WaveformCache
+import com.mochimochi.clawmikiacrazy.data.db.MusicDatabase
+import com.mochimochi.clawmikiacrazy.data.model.SongAnalysis
+import com.mochimochi.clawmikiacrazy.data.model.WaveformCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

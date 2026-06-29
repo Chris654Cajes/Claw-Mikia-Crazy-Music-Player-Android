@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.fragments
+package com.mochimochi.clawmikiacrazy.ui.fragments
 
 import android.os.Bundle
 import android.view.*
@@ -16,15 +16,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.mochimochi.clawmikia.R
-import com.mochimochi.clawmikia.data.model.Playlist
-import com.mochimochi.clawmikia.data.model.Song
-import com.mochimochi.clawmikia.data.repository.PlaylistRepository
-import com.mochimochi.clawmikia.data.repository.SongRepository
-import com.mochimochi.clawmikia.ui.activities.MainActivity
-import com.mochimochi.clawmikia.ui.adapters.SongAdapter
-import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
-import com.mochimochi.clawmikia.utils.SwipeToDeleteCallback
+import com.mochimochi.clawmikiacrazy.R
+import com.mochimochi.clawmikiacrazy.data.model.Playlist
+import com.mochimochi.clawmikiacrazy.data.model.Song
+import com.mochimochi.clawmikiacrazy.data.repository.PlaylistRepository
+import com.mochimochi.clawmikiacrazy.data.repository.SongRepository
+import com.mochimochi.clawmikiacrazy.ui.activities.MainActivity
+import com.mochimochi.clawmikiacrazy.ui.adapters.SongAdapter
+import com.mochimochi.clawmikiacrazy.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikiacrazy.utils.SwipeToDeleteCallback
 import kotlinx.coroutines.*
 
 // ─── Filter modes ─────────────────────────────────────────────────────────────
@@ -411,7 +411,7 @@ class PlaylistDetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         repo = PlaylistRepository(requireContext())
         val settingsRepo =
-            com.mochimochi.clawmikia.data.repository.SettingsRepository(requireContext())
+            com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository(requireContext())
 
         view.findViewById<TextView>(R.id.tvPlaylistName).text = playlistName
         view.findViewById<View>(R.id.btnBack).setOnClickListener {

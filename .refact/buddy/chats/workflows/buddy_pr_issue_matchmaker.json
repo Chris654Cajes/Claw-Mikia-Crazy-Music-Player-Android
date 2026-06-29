@@ -1,0 +1,28 @@
+{
+  "entries": [
+    {
+      "timestamp": "2026-06-23T12:22:58.242485+00:00",
+      "input_summary": "",
+      "output_summary": "Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+      "success": false,
+      "failure_category": "unknown",
+      "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
+    },
+    {
+      "timestamp": "2026-06-29T14:52:31.280602+00:00",
+      "input_summary": "",
+      "output_summary": "Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+      "success": false,
+      "failure_category": "unknown",
+      "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
+    },
+    {
+      "timestamp": "2026-06-29T22:25:58.734938100+00:00",
+      "input_summary": "",
+      "output_summary": "Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+      "success": false,
+      "failure_category": "unknown",
+      "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.data.model
+package com.mochimochi.clawmikiacrazy.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

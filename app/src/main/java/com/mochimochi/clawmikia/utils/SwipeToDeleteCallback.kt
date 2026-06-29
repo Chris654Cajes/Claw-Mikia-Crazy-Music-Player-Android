@@ -1,11 +1,11 @@
-package com.mochimochi.clawmikia.utils
+package com.mochimochi.clawmikiacrazy.utils
 
 import android.content.Context
 import android.graphics.*
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.mochimochi.clawmikia.R
+import com.mochimochi.clawmikiacrazy.R
 
 abstract class SwipeToDeleteCallback(context: Context) :
     ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {

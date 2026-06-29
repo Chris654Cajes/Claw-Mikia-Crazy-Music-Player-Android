@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.fragments
+package com.mochimochi.clawmikiacrazy.ui.fragments
 
 import android.os.Bundle
 import android.view.*
@@ -12,12 +12,12 @@ import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.switchmaterial.SwitchMaterial
-import com.mochimochi.clawmikia.R
-import com.mochimochi.clawmikia.data.db.MusicDatabase
-import com.mochimochi.clawmikia.data.model.LyricLine
-import com.mochimochi.clawmikia.data.model.LyricsMeta
-import com.mochimochi.clawmikia.ui.adapters.LyricsAdapter
-import com.mochimochi.clawmikia.ui.viewmodels.NowPlayingViewModel
+import com.mochimochi.clawmikiacrazy.R
+import com.mochimochi.clawmikiacrazy.data.db.MusicDatabase
+import com.mochimochi.clawmikiacrazy.data.model.LyricLine
+import com.mochimochi.clawmikiacrazy.data.model.LyricsMeta
+import com.mochimochi.clawmikiacrazy.ui.adapters.LyricsAdapter
+import com.mochimochi.clawmikiacrazy.ui.viewmodels.NowPlayingViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

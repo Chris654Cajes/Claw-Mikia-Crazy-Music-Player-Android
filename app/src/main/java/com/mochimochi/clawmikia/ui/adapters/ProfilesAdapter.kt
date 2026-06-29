@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.adapters
+package com.mochimochi.clawmikiacrazy.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.View
@@ -8,8 +8,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.mochimochi.clawmikia.R
-import com.mochimochi.clawmikia.data.model.PlaybackProfile
+import com.mochimochi.clawmikiacrazy.R
+import com.mochimochi.clawmikiacrazy.data.model.PlaybackProfile
 
 class ProfilesAdapter(
     private val onActivate: (PlaybackProfile) -> Unit,

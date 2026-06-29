@@ -72,7 +72,7 @@
         android:id="@+id/tvTagline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Written by Christopher Lee Cajes"
+        android:text="Written by a friend you will meet soon"
         android:textSize="14sp"
         android:letterSpacing="0.08"
         android:textColor="@color/text_secondary"

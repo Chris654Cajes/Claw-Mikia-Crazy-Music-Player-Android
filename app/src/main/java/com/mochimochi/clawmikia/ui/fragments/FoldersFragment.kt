@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.fragments
+package com.mochimochi.clawmikiacrazy.ui.fragments
 
 import android.app.AlertDialog
 import android.widget.EditText
@@ -10,9 +10,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.mochimochi.clawmikia.databinding.FragmentFoldersBinding
-import com.mochimochi.clawmikia.ui.adapters.FolderAdapter
-import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikiacrazy.databinding.FragmentFoldersBinding
+import com.mochimochi.clawmikiacrazy.ui.adapters.FolderAdapter
+import com.mochimochi.clawmikiacrazy.ui.viewmodels.MainViewModel
 
 class FoldersFragment : Fragment() {
 
@@ -34,7 +34,7 @@ class FoldersFragment : Fragment() {
                 // Navigate into folder
                 val fragment = FolderSongsFragment.newInstance(folder.folderPath, folder.folderName)
                 parentFragmentManager.beginTransaction()
-                    .replace(com.mochimochi.clawmikia.R.id.fragmentContainer, fragment)
+                    .replace(com.mochimochi.clawmikiacrazy.R.id.fragmentContainer, fragment)
                     .addToBackStack(null)
                     .commit()
             },
@@ -55,7 +55,7 @@ class FoldersFragment : Fragment() {
         }
     }
 
-    private fun showRenameDialog(folder: com.mochimochi.clawmikia.data.db.FolderInfo) {
+    private fun showRenameDialog(folder: com.mochimochi.clawmikiacrazy.data.db.FolderInfo) {
         val editText = EditText(requireContext()).apply {
             setText(folder.folderName)
             setSelection(folder.folderName.length)

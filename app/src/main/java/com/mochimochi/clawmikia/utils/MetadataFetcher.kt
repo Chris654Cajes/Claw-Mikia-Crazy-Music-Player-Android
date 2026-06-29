@@ -1,10 +1,10 @@
-package com.mochimochi.clawmikia.utils
+package com.mochimochi.clawmikiacrazy.utils
 
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import com.mochimochi.clawmikia.data.db.MusicDatabase
-import com.mochimochi.clawmikia.data.model.Song
+import com.mochimochi.clawmikiacrazy.data.db.MusicDatabase
+import com.mochimochi.clawmikiacrazy.data.model.Song
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -55,7 +55,7 @@ object MetadataFetcher {
     }
 
     private suspend fun processSongs(
-        dao: com.mochimochi.clawmikia.data.db.SongDao,
+        dao: com.mochimochi.clawmikiacrazy.data.db.SongDao,
         songs: List<Song>
     ) {
         for (song in songs) {

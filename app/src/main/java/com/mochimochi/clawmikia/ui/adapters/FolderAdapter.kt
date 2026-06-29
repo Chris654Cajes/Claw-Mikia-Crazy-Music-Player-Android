@@ -1,12 +1,12 @@
-package com.mochimochi.clawmikia.ui.adapters
+package com.mochimochi.clawmikiacrazy.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.mochimochi.clawmikia.data.db.FolderInfo
-import com.mochimochi.clawmikia.databinding.ItemFolderBinding
+import com.mochimochi.clawmikiacrazy.data.db.FolderInfo
+import com.mochimochi.clawmikiacrazy.databinding.ItemFolderBinding
 
 class FolderAdapter(
     private val onClick: (FolderInfo) -> Unit,

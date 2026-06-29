@@ -1,9 +1,9 @@
-package com.mochimochi.clawmikia.data.repository
+package com.mochimochi.clawmikiacrazy.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
-import com.mochimochi.clawmikia.MusicVaultApp
+import com.mochimochi.clawmikiacrazy.MusicVaultApp
 
 /**
  * Repository for app-wide user settings stored in SharedPreferences.

@@ -1,6 +1,6 @@
-package com.mochimochi.clawmikia.utils
+package com.mochimochi.clawmikiacrazy.utils
 
-import com.mochimochi.clawmikia.R
+import com.mochimochi.clawmikiacrazy.R
 
 /**
  * Maps a string icon type to the correct filled / outline drawable resource IDs

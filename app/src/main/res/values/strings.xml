@@ -70,4 +70,5 @@
     <string name="apply">APPLY</string>
     <string name="bpm_format">%1$d BPM</string>
     <string name="key_format">Key: %1$s</string>
+    <string name="clear_search">Clear search</string>
 </resources>

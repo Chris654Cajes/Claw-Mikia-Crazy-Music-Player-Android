@@ -1,11 +1,11 @@
-package com.mochimochi.clawmikia.ui.activities
+package com.mochimochi.clawmikiacrazy.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.mochimochi.clawmikia.R
+import com.mochimochi.clawmikiacrazy.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

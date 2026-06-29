@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.views
+package com.mochimochi.clawmikiacrazy.ui.views
 
 import android.content.Context
 import android.graphics.Canvas
@@ -6,8 +6,8 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
-import com.mochimochi.clawmikia.R
-import com.mochimochi.clawmikia.data.model.SkipRegion
+import com.mochimochi.clawmikiacrazy.R
+import com.mochimochi.clawmikiacrazy.data.model.SkipRegion
 
 class SkipRegionsOverlayView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0

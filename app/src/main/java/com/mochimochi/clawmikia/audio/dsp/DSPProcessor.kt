@@ -1,8 +1,8 @@
-package com.mochimochi.clawmikia.audio.dsp
+package com.mochimochi.clawmikiacrazy.audio.dsp
 
 import android.media.audiofx.*
 import android.util.Log
-import com.mochimochi.clawmikia.data.model.PlaybackProfile
+import com.mochimochi.clawmikiacrazy.data.model.PlaybackProfile
 
 /**
  * Manages all Android AudioEffect instances for a given audio session.

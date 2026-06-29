@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.fragments
+package com.mochimochi.clawmikiacrazy.ui.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,12 +8,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.mochimochi.clawmikia.databinding.FragmentLibraryBinding
-import com.mochimochi.clawmikia.data.repository.SettingsRepository
-import com.mochimochi.clawmikia.ui.activities.MainActivity
-import com.mochimochi.clawmikia.ui.adapters.SongAdapter
-import com.mochimochi.clawmikia.ui.viewmodels.MainViewModel
-import com.mochimochi.clawmikia.utils.SwipeToDeleteCallback
+import com.mochimochi.clawmikiacrazy.databinding.FragmentLibraryBinding
+import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
+import com.mochimochi.clawmikiacrazy.ui.activities.MainActivity
+import com.mochimochi.clawmikiacrazy.ui.adapters.SongAdapter
+import com.mochimochi.clawmikiacrazy.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikiacrazy.utils.SwipeToDeleteCallback
 
 class FavoritesFragment : Fragment() {
 

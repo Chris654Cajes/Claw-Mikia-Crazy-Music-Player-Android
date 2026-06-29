@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.utils
+package com.mochimochi.clawmikiacrazy.utils
 
 fun formatDuration(ms: Long): String {
     if (ms < 0) return "0:00"

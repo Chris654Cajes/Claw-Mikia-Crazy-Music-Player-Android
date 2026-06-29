@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.adapters
+package com.mochimochi.clawmikiacrazy.ui.adapters
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
@@ -10,7 +10,7 @@ import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.mochimochi.clawmikia.data.model.LyricLine
+import com.mochimochi.clawmikiacrazy.data.model.LyricLine
 
 class LyricsAdapter : ListAdapter<LyricLine, LyricsAdapter.ViewHolder>(DIFF) {
 

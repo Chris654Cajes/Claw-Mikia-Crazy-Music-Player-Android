@@ -1,5 +1,5 @@
--keep class com.mochimochi.clawmikia.data.model.** { *; }
--keep class com.mochimochi.clawmikia.data.db.** { *; }
+-keep class com.mochimochi.clawmikiacrazy.data.model.** { *; }
+-keep class com.mochimochi.clawmikiacrazy.data.db.** { *; }
 -keepattributes Signature
 -keepattributes *Annotation*
 -dontwarn kotlin.**

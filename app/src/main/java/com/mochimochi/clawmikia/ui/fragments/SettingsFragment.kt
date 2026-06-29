@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.fragments
+package com.mochimochi.clawmikiacrazy.ui.fragments
 
 import android.os.Bundle
 import android.text.Editable
@@ -12,9 +12,9 @@ import androidx.appcompat.app.AlertDialog
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.fragment.app.Fragment
-import com.mochimochi.clawmikia.R
-import com.mochimochi.clawmikia.data.repository.SettingsRepository
-import com.mochimochi.clawmikia.databinding.FragmentSettingsBinding
+import com.mochimochi.clawmikiacrazy.R
+import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
+import com.mochimochi.clawmikiacrazy.databinding.FragmentSettingsBinding
 import kotlin.math.roundToInt
 
 class SettingsFragment : Fragment() {

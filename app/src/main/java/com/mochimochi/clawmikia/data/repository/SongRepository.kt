@@ -1,14 +1,14 @@
-package com.mochimochi.clawmikia.data.repository
+package com.mochimochi.clawmikiacrazy.data.repository
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
-import com.mochimochi.clawmikia.data.db.FolderInfo
-import com.mochimochi.clawmikia.data.db.MusicDatabase
-import com.mochimochi.clawmikia.data.db.SongDao
-import com.mochimochi.clawmikia.data.model.Song
+import com.mochimochi.clawmikiacrazy.data.db.FolderInfo
+import com.mochimochi.clawmikiacrazy.data.db.MusicDatabase
+import com.mochimochi.clawmikiacrazy.data.db.SongDao
+import com.mochimochi.clawmikiacrazy.data.model.Song
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

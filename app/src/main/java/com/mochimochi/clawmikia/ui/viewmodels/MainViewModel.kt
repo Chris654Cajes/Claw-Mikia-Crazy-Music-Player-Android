@@ -1,12 +1,12 @@
-package com.mochimochi.clawmikia.ui.viewmodels
+package com.mochimochi.clawmikiacrazy.ui.viewmodels
 
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.*
-import com.mochimochi.clawmikia.data.model.Song
-import com.mochimochi.clawmikia.data.repository.PlaylistRepository
-import com.mochimochi.clawmikia.data.repository.SongRepository
-import com.mochimochi.clawmikia.utils.MetadataFetcher
+import com.mochimochi.clawmikiacrazy.data.model.Song
+import com.mochimochi.clawmikiacrazy.data.repository.PlaylistRepository
+import com.mochimochi.clawmikiacrazy.data.repository.SongRepository
+import com.mochimochi.clawmikiacrazy.utils.MetadataFetcher
 import kotlinx.coroutines.launch
 
 enum class TriState { ALL, YES, NO }

@@ -1,4 +1,4 @@
-package com.mochimochi.clawmikia.ui.viewmodels
+package com.mochimochi.clawmikiacrazy.ui.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -6,16 +6,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
-import com.mochimochi.clawmikia.data.db.MusicDatabase
-import com.mochimochi.clawmikia.data.model.LyricLine
-import com.mochimochi.clawmikia.data.model.LyricsMeta
-import com.mochimochi.clawmikia.data.model.PlaybackProfile
-import com.mochimochi.clawmikia.data.model.SkipRegion
-import com.mochimochi.clawmikia.data.model.Song
-import com.mochimochi.clawmikia.data.model.SongAnalysis
-import com.mochimochi.clawmikia.data.repository.PlaylistRepository
-import com.mochimochi.clawmikia.data.repository.ProfileRepository
-import com.mochimochi.clawmikia.data.repository.SongRepository
+import com.mochimochi.clawmikiacrazy.data.db.MusicDatabase
+import com.mochimochi.clawmikiacrazy.data.model.LyricLine
+import com.mochimochi.clawmikiacrazy.data.model.LyricsMeta
+import com.mochimochi.clawmikiacrazy.data.model.PlaybackProfile
+import com.mochimochi.clawmikiacrazy.data.model.SkipRegion
+import com.mochimochi.clawmikiacrazy.data.model.Song
+import com.mochimochi.clawmikiacrazy.data.model.SongAnalysis
+import com.mochimochi.clawmikiacrazy.data.repository.PlaylistRepository
+import com.mochimochi.clawmikiacrazy.data.repository.ProfileRepository
+import com.mochimochi.clawmikiacrazy.data.repository.SongRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
