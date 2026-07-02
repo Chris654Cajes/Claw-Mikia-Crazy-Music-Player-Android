@@ -64,6 +64,14 @@ class ProfilesAdapter(
         holder.btnDelete.setOnClickListener { onDelete(profile) }
         holder.itemView.setOnClickListener { onClick(profile) }
 
+        if (profile.isDefault) {
+            holder.btnRename.visibility = View.GONE
+            holder.btnDelete.visibility = View.GONE
+        } else {
+            holder.btnRename.visibility = View.VISIBLE
+            holder.btnDelete.visibility = View.VISIBLE
+        }
+
         // Highlight active profile
         val cardColor = if (profile.isActive)
             android.graphics.Color.parseColor("#1AFA024D")

@@ -20,6 +20,8 @@ import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
@@ -120,6 +122,17 @@ class NowPlayingActivity : AppCompatActivity() {
         binding = ActivityNowPlayingBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setupSystemBars()
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.mainContentLayout.setPadding(
+                systemBars.left,
+                systemBars.top,
+                systemBars.right,
+                systemBars.bottom + (16 * resources.displayMetrics.density).toInt()
+            )
+            insets
+        }
 
         repository = SongRepository(applicationContext)
         profileRepo = ProfileRepository(applicationContext)
@@ -263,6 +276,43 @@ class NowPlayingActivity : AppCompatActivity() {
 
                 // Sync Volume UI
                 syncVolumeSeekBar()
+
+                // Disable editing for Default profile
+                val isDefault = profile.isDefault
+                val editAlpha = if (isDefault) 0.6f else 1.0f
+
+                binding.seekPitch.isEnabled = !isDefault
+                binding.btnPitchDown.isEnabled = !isDefault
+                binding.btnPitchUp.isEnabled = !isDefault
+                binding.btnPitchReset.isEnabled = !isDefault
+                binding.cardPitch.alpha = editAlpha
+
+                binding.seekSpeed.isEnabled = !isDefault
+                binding.btnSpeedDown.isEnabled = !isDefault
+                binding.btnSpeedUp.isEnabled = !isDefault
+                binding.btnSpeedReset.isEnabled = !isDefault
+                binding.cardSpeed.alpha = editAlpha
+
+                binding.seekTrimStart.isEnabled = !isDefault
+                binding.seekTrimEnd.isEnabled = !isDefault
+                binding.btnTrimReset.isEnabled = !isDefault
+                binding.btnTrimStartMinus.isEnabled = !isDefault
+                binding.btnTrimStartPlus.isEnabled = !isDefault
+                binding.btnTrimEndMinus.isEnabled = !isDefault
+                binding.btnTrimEndPlus.isEnabled = !isDefault
+                binding.cardTrim.alpha = editAlpha
+
+                binding.btnSetPointA.isEnabled = !isDefault
+                binding.btnSetPointB.isEnabled = !isDefault
+                binding.btnResetAb.isEnabled = !isDefault
+                binding.switchAbRepeat.isEnabled = !isDefault
+                binding.switchLoop.isEnabled = !isDefault
+                binding.cardAbRepeat.alpha = editAlpha
+
+                binding.btnAddSkipSection.isEnabled = !isDefault
+                binding.cardSkipSections.alpha = editAlpha
+
+                binding.btnResetAllStates.isEnabled = !isDefault
             }
         }
 

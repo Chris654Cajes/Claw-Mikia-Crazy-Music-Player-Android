@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.mochimochi.clawmikiacrazy.MusicVaultApp
 import com.mochimochi.clawmikiacrazy.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -18,7 +19,12 @@ class SplashActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             delay(2000)
-            startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+            val isFirstLaunch =
+                MusicVaultApp.instance.prefs.getBoolean(MusicVaultApp.KEY_FIRST_LAUNCH, true)
+            val nextActivity =
+                if (isFirstLaunch) OnboardingActivity::class.java else MainActivity::class.java
+
+            startActivity(Intent(this@SplashActivity, nextActivity))
             finish()
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }

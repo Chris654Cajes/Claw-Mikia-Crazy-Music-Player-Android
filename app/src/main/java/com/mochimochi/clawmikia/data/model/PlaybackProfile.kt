@@ -25,6 +25,7 @@ data class PlaybackProfile(
     val songId: Long,
     val name: String,                        // "Default", "Karaoke", "Running", etc.
     val isActive: Boolean = false,
+    val isDefault: Boolean = false,
 
     // Pitch & Speed
     val pitchSemitones: Float = 0f,          // -12.0 to +12.0 semitones (float for fine control)

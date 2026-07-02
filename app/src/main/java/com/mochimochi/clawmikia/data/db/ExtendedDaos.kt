@@ -17,6 +17,9 @@ interface PlaybackProfileDao {
     @Delete
     suspend fun delete(profile: PlaybackProfile)
 
+    @Query("SELECT * FROM playback_profiles WHERE id = :id LIMIT 1")
+    suspend fun getProfileById(id: Long): PlaybackProfile?
+
     @Query("SELECT * FROM playback_profiles WHERE songId = :songId ORDER BY createdAt")
     fun getProfilesForSong(songId: Long): LiveData<List<PlaybackProfile>>
 
@@ -41,7 +44,7 @@ interface PlaybackProfileDao {
         setActive(profileId)
     }
 
-    @Query("UPDATE playback_profiles SET name = :name, updatedAt = :now WHERE id = :id")
+    @Query("UPDATE playback_profiles SET name = :name, updatedAt = :now WHERE id = :id AND isDefault = 0")
     suspend fun updateName(id: Long, name: String, now: Long = System.currentTimeMillis())
 
     @Query("SELECT COUNT(*) FROM playback_profiles WHERE songId = :songId")
@@ -50,7 +53,7 @@ interface PlaybackProfileDao {
     @Query("DELETE FROM playback_profiles WHERE songId = :songId")
     suspend fun deleteAllForSong(songId: Long)
 
-    @Query("UPDATE playback_profiles SET pitchSemitones = :pitch, playbackSpeed = :speed, updatedAt = :now WHERE id = :id")
+    @Query("UPDATE playback_profiles SET pitchSemitones = :pitch, playbackSpeed = :speed, updatedAt = :now WHERE id = :id AND isDefault = 0")
     suspend fun updatePitchSpeed(
         id: Long,
         pitch: Float,
@@ -58,7 +61,7 @@ interface PlaybackProfileDao {
         now: Long = System.currentTimeMillis()
     )
 
-    @Query("UPDATE playback_profiles SET loopStart = :start, loopEnd = :end, loopEnabled = :enabled, updatedAt = :now WHERE id = :id")
+    @Query("UPDATE playback_profiles SET loopStart = :start, loopEnd = :end, loopEnabled = :enabled, updatedAt = :now WHERE id = :id AND isDefault = 0")
     suspend fun updateLoop(
         id: Long,
         start: Long,
@@ -67,7 +70,7 @@ interface PlaybackProfileDao {
         now: Long = System.currentTimeMillis()
     )
 
-    @Query("UPDATE playback_profiles SET abRepeatA = :a, abRepeatB = :b, abRepeatEnabled = :enabled, updatedAt = :now WHERE id = :id")
+    @Query("UPDATE playback_profiles SET abRepeatA = :a, abRepeatB = :b, abRepeatEnabled = :enabled, updatedAt = :now WHERE id = :id AND isDefault = 0")
     suspend fun updateAbRepeat(
         id: Long,
         a: Long,
@@ -76,7 +79,7 @@ interface PlaybackProfileDao {
         now: Long = System.currentTimeMillis()
     )
 
-    @Query("UPDATE playback_profiles SET trimStart = :start, trimEnd = :end, updatedAt = :now WHERE id = :id")
+    @Query("UPDATE playback_profiles SET trimStart = :start, trimEnd = :end, updatedAt = :now WHERE id = :id AND isDefault = 0")
     suspend fun updateTrim(id: Long, start: Long, end: Long, now: Long = System.currentTimeMillis())
 }
 

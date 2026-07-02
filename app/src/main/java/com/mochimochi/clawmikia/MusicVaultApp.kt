@@ -12,6 +12,7 @@ class MusicVaultApp : Application() {
         const val KEY_FOLDER_URI = "folder_uri"
         const val KEY_REPEAT_MODE = "repeat_mode"
         const val KEY_SHUFFLE_ON = "shuffle_on"
+        const val KEY_FIRST_LAUNCH = "first_launch"
         lateinit var instance: MusicVaultApp
     }
 

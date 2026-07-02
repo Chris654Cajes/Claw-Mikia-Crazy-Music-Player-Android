@@ -37,6 +37,11 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".ui.activities.OnboardingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MusicVault" />
+
+        <activity
             android:name=".ui.activities.NowPlayingActivity"
             android:exported="false"
             android:launchMode="singleTop"

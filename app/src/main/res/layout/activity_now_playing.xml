@@ -4,14 +4,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_primary"
-    android:fitsSystemWindows="true">
+    android:background="@color/bg_primary">
 
     <LinearLayout
+        android:id="@+id/mainContentLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingBottom="40dp">
+        android:orientation="vertical">
 
         <!-- Header row -->
         <LinearLayout
@@ -350,6 +349,7 @@
 
         <!-- ═══════════════════ VOLUME CARD ═══════════════════ -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/cardVolume"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -514,6 +514,7 @@
 
         <!-- ═══════════════════ PITCH CARD ═══════════════════ -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/cardPitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -690,6 +691,7 @@
 
         <!-- ═══════════════════ SPEED CARD ═══════════════════ -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/cardSpeed"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -895,6 +897,7 @@
 
         <!-- ═══════════════════ A-B REPEAT CARD ═══════════════════ -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/cardAbRepeat"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -1048,6 +1051,7 @@
 
         <!-- ═══════════════════ TRIM CARD ═══════════════════ -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/cardTrim"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
@@ -1301,6 +1305,7 @@
 
         <!-- ═══════════════════ SKIP SECTIONS CARD ═══════════════════ -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/cardSkipSections"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"

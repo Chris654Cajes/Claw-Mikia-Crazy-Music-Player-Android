@@ -18,6 +18,8 @@ class SettingsRepository(context: Context) {
         private const val KEY_SPEED_STEP = "speed_step"
         private const val KEY_TRIM_STEP = "trim_step_seconds"
         private const val KEY_SKIP_STEP = "skip_step_seconds"
+        private const val KEY_SOUND_ENVIRONMENT = "sound_environment"
+        private const val KEY_VOLUME_LEVEL = "volume_level"
 
         // Default values
         const val DEFAULT_FAVORITE_ICON = "heart"
@@ -26,6 +28,8 @@ class SettingsRepository(context: Context) {
         const val DEFAULT_SPEED_STEP = 1         // 1 unit
         const val DEFAULT_TRIM_STEP = 10.0f      // 10.0 seconds
         const val DEFAULT_SKIP_STEP = 5          // 5 seconds
+        const val DEFAULT_SOUND_ENVIRONMENT = "Default"
+        const val DEFAULT_VOLUME_LEVEL = 70      // 70%
     }
 
     private val prefs: SharedPreferences =
@@ -46,6 +50,12 @@ class SettingsRepository(context: Context) {
     fun getSpeedStep(): Int = prefs.getInt(KEY_SPEED_STEP, DEFAULT_SPEED_STEP)
     fun getTrimStep(): Float = prefs.getFloat(KEY_TRIM_STEP, DEFAULT_TRIM_STEP)
     fun getSkipStep(): Int = prefs.getInt(KEY_SKIP_STEP, DEFAULT_SKIP_STEP)
+
+    fun getSoundEnvironment(): String =
+        prefs.getString(KEY_SOUND_ENVIRONMENT, DEFAULT_SOUND_ENVIRONMENT)
+            ?: DEFAULT_SOUND_ENVIRONMENT
+
+    fun getVolumeLevel(): Int = prefs.getInt(KEY_VOLUME_LEVEL, DEFAULT_VOLUME_LEVEL)
 
     // ── Setters ────────────────────────────────────────────────────────────────
 
@@ -73,6 +83,14 @@ class SettingsRepository(context: Context) {
         prefs.edit().putInt(KEY_SKIP_STEP, step).apply()
     }
 
+    fun setSoundEnvironment(env: String) {
+        prefs.edit().putString(KEY_SOUND_ENVIRONMENT, env).apply()
+    }
+
+    fun setVolumeLevel(level: Int) {
+        prefs.edit().putInt(KEY_VOLUME_LEVEL, level).apply()
+    }
+
     // ── Reset all to defaults ──────────────────────────────────────────────────
 
     fun resetAll() {
@@ -83,6 +101,8 @@ class SettingsRepository(context: Context) {
             .putInt(KEY_SPEED_STEP, DEFAULT_SPEED_STEP)
             .putFloat(KEY_TRIM_STEP, DEFAULT_TRIM_STEP)
             .putInt(KEY_SKIP_STEP, DEFAULT_SKIP_STEP)
+            .putString(KEY_SOUND_ENVIRONMENT, DEFAULT_SOUND_ENVIRONMENT)
+            .putInt(KEY_VOLUME_LEVEL, DEFAULT_VOLUME_LEVEL)
             .apply()
     }
 

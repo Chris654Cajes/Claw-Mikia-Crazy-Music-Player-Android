@@ -21,7 +21,7 @@ import com.mochimochi.clawmikiacrazy.data.model.*
         Playlist::class,
         PlaylistSong::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 abstract class MusicDatabase : RoomDatabase() {
@@ -41,6 +41,14 @@ abstract class MusicDatabase : RoomDatabase() {
         private val MIGRATION_9_10 = object : Migration(9, 10) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE songs ADD COLUMN dateModified INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE playback_profiles ADD COLUMN isDefault INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE playback_profiles SET isDefault = 1 WHERE name = 'Default'")
+                db.execSQL("UPDATE playback_profiles SET pitchSemitones = 0.0, playbackSpeed = 1.0, volume = 1.0, trimStart = 0, trimEnd = -1, loopStart = -1, loopEnd = -1, loopEnabled = 0 WHERE isDefault = 1")
             }
         }
 
@@ -149,7 +157,8 @@ abstract class MusicDatabase : RoomDatabase() {
                         MIGRATION_4_5,
                         MIGRATION_5_6,
                         MIGRATION_8_9,
-                        MIGRATION_9_10
+                        MIGRATION_9_10,
+                        MIGRATION_10_11
                     )
                     .fallbackToDestructiveMigration()
                     .build()

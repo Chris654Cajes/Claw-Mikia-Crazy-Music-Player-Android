@@ -33,17 +33,22 @@ class ProfileRepository(context: Context) {
         }
 
     private suspend fun createDefaultProfile(songId: Long): PlaybackProfile {
-        // Fetch song to seed pitch/speed/trim/volume
-        val song = db.songDao().getSongById(songId)
         val profile = PlaybackProfile(
             songId = songId,
             name = "Default",
             isActive = true,
-            pitchSemitones = song?.pitchSemitones ?: 0f,
-            playbackSpeed = song?.playbackSpeed ?: 1.0f,
-            volume = song?.volume ?: 1.0f,
-            trimStart = song?.trimStart ?: 0L,
-            trimEnd = song?.trimEnd ?: -1L,
+            isDefault = true,
+            pitchSemitones = 0f,
+            playbackSpeed = 1.0f,
+            volume = 1.0f,
+            trimStart = 0L,
+            trimEnd = -1L,
+            loopStart = -1L,
+            loopEnd = -1L,
+            loopEnabled = false,
+            abRepeatA = -1L,
+            abRepeatB = -1L,
+            abRepeatEnabled = false,
         )
         val id = profileDao.insert(profile)
         return profile.copy(id = id)
@@ -54,6 +59,7 @@ class ProfileRepository(context: Context) {
     }
 
     suspend fun updateProfile(profile: PlaybackProfile) = withContext(Dispatchers.IO) {
+        if (profile.isDefault) return@withContext
         profileDao.update(profile.copy(updatedAt = System.currentTimeMillis()))
     }
 
@@ -71,25 +77,35 @@ class ProfileRepository(context: Context) {
     }
 
     suspend fun renameProfile(profileId: Long, newName: String) = withContext(Dispatchers.IO) {
+        val profile = profileDao.getProfileById(profileId)
+        if (profile?.isDefault == true) return@withContext
         profileDao.updateName(profileId, newName)
     }
 
     suspend fun updatePitchSpeed(profileId: Long, pitch: Float, speed: Float) =
         withContext(Dispatchers.IO) {
+            val profile = profileDao.getProfileById(profileId)
+            if (profile?.isDefault == true) return@withContext
             profileDao.updatePitchSpeed(profileId, pitch, speed)
         }
 
     suspend fun updateLoop(profileId: Long, start: Long, end: Long, enabled: Boolean) =
         withContext(Dispatchers.IO) {
+            val profile = profileDao.getProfileById(profileId)
+            if (profile?.isDefault == true) return@withContext
             profileDao.updateLoop(profileId, start, end, enabled)
         }
 
     suspend fun updateAbRepeat(profileId: Long, a: Long, b: Long, enabled: Boolean) =
         withContext(Dispatchers.IO) {
+            val profile = profileDao.getProfileById(profileId)
+            if (profile?.isDefault == true) return@withContext
             profileDao.updateAbRepeat(profileId, a, b, enabled)
         }
 
     suspend fun updateTrim(profileId: Long, start: Long, end: Long) = withContext(Dispatchers.IO) {
+        val profile = profileDao.getProfileById(profileId)
+        if (profile?.isDefault == true) return@withContext
         profileDao.updateTrim(profileId, start, end)
     }
 

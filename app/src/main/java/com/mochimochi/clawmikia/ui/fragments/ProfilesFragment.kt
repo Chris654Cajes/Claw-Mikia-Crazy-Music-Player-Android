@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.activityViewModels
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -29,6 +31,12 @@ class ProfilesFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, systemBars.bottom)
+            insets
+        }
 
         adapter = ProfilesAdapter(
             onActivate = { profile ->
@@ -71,10 +79,10 @@ class ProfilesFragment : BottomSheetDialogFragment() {
     }
 
     private fun showRenameProfileDialog(profile: PlaybackProfile) {
-        if (profile.name == "Default") {
+        if (profile.isDefault) {
             showAestheticConfirmDialog(
                 title = "Cannot Rename",
-                message = "The Default profile name is protected."
+                message = "The Default profile is protected."
             ) { }
             return
         }
@@ -89,7 +97,7 @@ class ProfilesFragment : BottomSheetDialogFragment() {
     }
 
     private fun confirmDelete(profile: PlaybackProfile) {
-        if (profile.name == "Default") {
+        if (profile.isDefault) {
             showAestheticConfirmDialog(
                 title = "Cannot Delete",
                 message = "Cannot delete the Default profile."

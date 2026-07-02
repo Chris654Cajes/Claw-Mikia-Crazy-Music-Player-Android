@@ -9,12 +9,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import android.widget.ArrayAdapter
 import android.widget.RadioButton
 import android.widget.RadioGroup
+import android.widget.SeekBar
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.mochimochi.clawmikiacrazy.R
 import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
 import com.mochimochi.clawmikiacrazy.databinding.FragmentSettingsBinding
+import com.mochimochi.clawmikiacrazy.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikiacrazy.utils.MetadataFetcher
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 class SettingsFragment : Fragment() {
@@ -23,6 +30,7 @@ class SettingsFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var settingsRepo: SettingsRepository
+    private val mainViewModel: MainViewModel by activityViewModels()
 
     // Suppress TextWatcher feedback loop when we programmatically set text
     private var suppressWatcher = false
@@ -44,8 +52,90 @@ class SettingsFragment : Fragment() {
         setupSpeedStep()
         setupTrimStep()
         setupSkipStep()
+        setupEnvironmentSpinner()
+        setupVolumeControl()
+        setupMetadataUpdateButton()
         setupResetButton()
         observeSettings()
+    }
+
+    // ── Sound Environment ────────────────────────────────────────────────────
+
+    private fun setupEnvironmentSpinner() {
+        val environments = arrayOf("Default", "Car", "Plane", "Bus", "Office", "Street")
+        val adapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, environments)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerEnvironment.adapter = adapter
+
+        val currentEnv = settingsRepo.getSoundEnvironment()
+        val index = environments.indexOf(currentEnv).coerceAtLeast(0)
+        binding.spinnerEnvironment.setSelection(index)
+
+        binding.spinnerEnvironment.onItemSelectedListener =
+            object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: android.widget.AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    settingsRepo.setSoundEnvironment(environments[position])
+                }
+
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+            }
+    }
+
+    // ── Volume Control ───────────────────────────────────────────────────────
+
+    private fun setupVolumeControl() {
+        binding.seekVolume.progress = settingsRepo.getVolumeLevel()
+        updateVolumeCaution(binding.seekVolume.progress)
+
+        binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    settingsRepo.setVolumeLevel(progress)
+                    updateVolumeCaution(progress)
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+    }
+
+    private fun updateVolumeCaution(progress: Int) {
+        binding.tvVolumeCaution.visibility = if (progress > 85) View.VISIBLE else View.GONE
+    }
+
+    // ── Metadata Update ──────────────────────────────────────────────────────
+
+    private fun setupMetadataUpdateButton() {
+        binding.btnUpdateMetadata.setOnClickListener {
+            if (MetadataFetcher.isOnline(requireContext())) {
+                AlertDialog.Builder(requireContext())
+                    .setTitle("UPDATE METADATA")
+                    .setMessage("Automatically update all songs, albums, and singers information? This might take a while.")
+                    .setPositiveButton("UPDATE") { _, _ ->
+                        mainViewModel.fetchMetadataManual(overwriteManual = true)
+                        Toast.makeText(
+                            requireContext(),
+                            "Updating metadata in background...",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    .setNegativeButton("CANCEL", null)
+                    .show()
+            } else {
+                AlertDialog.Builder(requireContext())
+                    .setTitle("OFFLINE")
+                    .setMessage("Please connect to the internet to update song metadata.")
+                    .setPositiveButton("OK", null)
+                    .show()
+            }
+        }
     }
 
     // ── Favorite Icon ──────────────────────────────────────────────────────────
@@ -267,6 +357,11 @@ class SettingsFragment : Fragment() {
                     binding.etSpeedStep.setText(SettingsRepository.DEFAULT_SPEED_STEP.toString())
                     binding.etTrimStep.setText(formatDecimal1(SettingsRepository.DEFAULT_TRIM_STEP))
                     binding.etSkipStep.setText(SettingsRepository.DEFAULT_SKIP_STEP.toString())
+
+                    binding.spinnerEnvironment.setSelection(0)
+                    binding.seekVolume.progress = SettingsRepository.DEFAULT_VOLUME_LEVEL
+                    updateVolumeCaution(SettingsRepository.DEFAULT_VOLUME_LEVEL)
+
                     suppressWatcher = false
                     Toast.makeText(
                         requireContext(),
