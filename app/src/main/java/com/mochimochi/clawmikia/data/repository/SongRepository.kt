@@ -3,6 +3,7 @@ package com.mochimochi.clawmikiacrazy.data.repository
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import com.mochimochi.clawmikiacrazy.data.db.FolderInfo
@@ -11,6 +12,8 @@ import com.mochimochi.clawmikiacrazy.data.db.SongDao
 import com.mochimochi.clawmikiacrazy.data.model.Song
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 
 class SongRepository(private val context: Context) {
 
@@ -74,10 +77,15 @@ class SongRepository(private val context: Context) {
                 mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
                     ?: 0L
             mmr.release()
+
+            // Copy file to internal storage so it remains playable even if deleted from device
+            val internalUri = copyToInternalStorage(file.uri, file.name ?: "$title.mp3")
+                ?: return null
+
             Song(
                 title = title,
                 artist = artist,
-                filePath = file.uri.toString(),
+                filePath = internalUri,
                 folderPath = folderPath,
                 folderName = folderName,
                 duration = duration,
@@ -85,6 +93,34 @@ class SongRepository(private val context: Context) {
                 dateModified = file.lastModified()
             )
         } catch (e: Exception) {
+            Log.e("SongRepository", "Error extracting meta or copying file: ${e.message}")
+            null
+        }
+    }
+
+    private fun copyToInternalStorage(uri: Uri, fileName: String): String? {
+        return try {
+            // If the URI is already a file in our internal music directory, no need to copy again
+            if (uri.scheme == "file" && uri.path?.contains(context.filesDir.absolutePath) == true) {
+                return uri.toString()
+            }
+
+            val musicDir = File(context.filesDir, "music")
+            if (!musicDir.exists()) musicDir.mkdirs()
+
+            // Sanitize filename and make it unique to avoid overwriting or collisions
+            val safeName = fileName.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+            val uniqueName = "${System.currentTimeMillis()}_$safeName"
+            val destFile = File(musicDir, uniqueName)
+
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(destFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            Uri.fromFile(destFile).toString()
+        } catch (e: Exception) {
+            Log.e("SongRepository", "Failed to copy file to internal storage: ${e.message}")
             null
         }
     }
@@ -150,6 +186,21 @@ class SongRepository(private val context: Context) {
     }
 
     suspend fun deleteSong(song: Song) = withContext(Dispatchers.IO) {
+        // Delete the internal file associated with this song
+        try {
+            val uri = Uri.parse(song.filePath)
+            if (uri.scheme == "file") {
+                val path = uri.path
+                if (path != null) {
+                    val file = File(path)
+                    if (file.exists() && path.contains(context.filesDir.absolutePath)) {
+                        file.delete()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("SongRepository", "Failed to delete internal file: ${e.message}")
+        }
         songDao.deleteSong(song)
     }
 
@@ -170,11 +221,19 @@ class SongRepository(private val context: Context) {
     fun getSongByIdLiveData(id: Long): LiveData<Song?> = songDao.getSongByIdLiveData(id)
 
     /**
-     * Deletes every row from the songs table.
-     * The actual MP3 files on the device are completely untouched.
+     * Deletes every row from the songs table and all internal music files.
+     * The original MP3 files on the device (outside app storage) are completely untouched.
      * After this call, allSongs LiveData will emit an empty list automatically.
      */
     suspend fun resetLibrary() = withContext(Dispatchers.IO) {
+        try {
+            val musicDir = File(context.filesDir, "music")
+            if (musicDir.exists()) {
+                musicDir.deleteRecursively()
+            }
+        } catch (e: Exception) {
+            Log.e("SongRepository", "Failed to clear internal music directory: ${e.message}")
+        }
         songDao.deleteAllSongs()
     }
 }

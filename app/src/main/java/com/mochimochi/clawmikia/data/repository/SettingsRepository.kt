@@ -38,7 +38,10 @@ class SettingsRepository(context: Context) {
     // ── LiveData wrappers ─────────────────────────────────────────────────────
 
     val favoriteIconLive: LiveData<String> =
-        SharedPrefLiveData(prefs, KEY_FAVORITE_ICON, DEFAULT_FAVORITE_ICON)
+        SharedPrefStringLiveData(prefs, KEY_FAVORITE_ICON, DEFAULT_FAVORITE_ICON)
+
+    val volumeLevelLive: LiveData<Int> =
+        SharedPrefIntLiveData(prefs, KEY_VOLUME_LEVEL, DEFAULT_VOLUME_LEVEL)
 
     // ── Direct getters ────────────────────────────────────────────────────────
 
@@ -108,7 +111,7 @@ class SettingsRepository(context: Context) {
 
     // ── LiveData implementations ──────────────────────────────────────────────
 
-    private class SharedPrefLiveData(
+    private class SharedPrefStringLiveData(
         private val prefs: SharedPreferences,
         private val key: String,
         private val defValue: String,
@@ -128,4 +131,26 @@ class SettingsRepository(context: Context) {
             if (changedKey == key) value = sp.getString(key, defValue) ?: defValue
         }
     }
+
+    private class SharedPrefIntLiveData(
+        private val prefs: SharedPreferences,
+        private val key: String,
+        private val defValue: Int,
+    ) : LiveData<Int>(), SharedPreferences.OnSharedPreferenceChangeListener {
+        override fun onActive() {
+            super.onActive()
+            value = prefs.getInt(key, defValue)
+            prefs.registerOnSharedPreferenceChangeListener(this)
+        }
+
+        override fun onInactive() {
+            prefs.unregisterOnSharedPreferenceChangeListener(this)
+            super.onInactive()
+        }
+
+        override fun onSharedPreferenceChanged(sp: SharedPreferences, changedKey: String?) {
+            if (changedKey == key) value = sp.getInt(key, defValue)
+        }
+    }
 }
+

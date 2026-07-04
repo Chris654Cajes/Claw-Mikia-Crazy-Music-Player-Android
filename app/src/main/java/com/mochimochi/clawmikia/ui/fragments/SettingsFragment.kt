@@ -1,5 +1,7 @@
 package com.mochimochi.clawmikiacrazy.ui.fragments
 
+import android.content.Context
+import android.media.AudioManager
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
@@ -90,12 +92,20 @@ class SettingsFragment : Fragment() {
     // ── Volume Control ───────────────────────────────────────────────────────
 
     private fun setupVolumeControl() {
-        binding.seekVolume.progress = settingsRepo.getVolumeLevel()
-        updateVolumeCaution(binding.seekVolume.progress)
+        val audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+
+        // Sync UI with current system volume percentage
+        val currentPct = ((currentVolume.toFloat() / maxVolume) * 100).toInt()
+        binding.seekVolume.progress = currentPct
+        updateVolumeCaution(currentPct)
 
         binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
+                    val targetVol = (progress.toFloat() / 100f * maxVolume).toInt()
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVol, 0)
                     settingsRepo.setVolumeLevel(progress)
                     updateVolumeCaution(progress)
                 }
@@ -359,6 +369,14 @@ class SettingsFragment : Fragment() {
                     binding.etSkipStep.setText(SettingsRepository.DEFAULT_SKIP_STEP.toString())
 
                     binding.spinnerEnvironment.setSelection(0)
+
+                    val audioManager =
+                        requireContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                    val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                    val targetVol =
+                        (SettingsRepository.DEFAULT_VOLUME_LEVEL.toFloat() / 100f * maxVolume).toInt()
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVol, 0)
+
                     binding.seekVolume.progress = SettingsRepository.DEFAULT_VOLUME_LEVEL
                     updateVolumeCaution(SettingsRepository.DEFAULT_VOLUME_LEVEL)
 
