@@ -96,17 +96,34 @@ class SettingsFragment : Fragment() {
         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
 
-        // Sync UI with current system volume percentage
-        val currentPct = ((currentVolume.toFloat() / maxVolume) * 100).toInt()
-        binding.seekVolume.progress = currentPct
-        updateVolumeCaution(currentPct)
+        // Sync UI: 0-100 is system volume, 101-200 is boost
+        val currentBoost = settingsRepo.getVolumeBoost() // 0 to 1000 mB
+        val systemPct = ((currentVolume.toFloat() / maxVolume) * 100).toInt()
+
+        val initialProgress = if (currentBoost > 0) {
+            100 + (currentBoost / 10)
+        } else {
+            systemPct
+        }
+
+        binding.seekVolume.progress = initialProgress
+        updateVolumeCaution(initialProgress)
 
         binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    val targetVol = (progress.toFloat() / 100f * maxVolume).toInt()
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVol, 0)
-                    settingsRepo.setVolumeLevel(progress)
+                    if (progress <= 100) {
+                        val targetVol = (progress.toFloat() / 100f * maxVolume).toInt()
+                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVol, 0)
+                        settingsRepo.setVolumeBoost(0)
+                        settingsRepo.setVolumeLevel(progress)
+                    } else {
+                        // Max out system volume and add boost
+                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
+                        val boostMb = (progress - 100) * 10
+                        settingsRepo.setVolumeBoost(boostMb)
+                        settingsRepo.setVolumeLevel(progress)
+                    }
                     updateVolumeCaution(progress)
                 }
             }
@@ -118,7 +135,15 @@ class SettingsFragment : Fragment() {
 
     private fun updateVolumeCaution(progress: Int) {
         binding.tvVolumeCaution.visibility = if (progress > 85) View.VISIBLE else View.GONE
+        if (progress > 100) {
+            binding.tvVolumeCaution.text =
+                "CAUTION: VOLUME BOOST ACTIVE ($progress%). May distort audio or damage hearing."
+        } else {
+            binding.tvVolumeCaution.text =
+                "Caution: Listening at high volumes may damage your hearing."
+        }
     }
+
 
     // ── Metadata Update ──────────────────────────────────────────────────────
 

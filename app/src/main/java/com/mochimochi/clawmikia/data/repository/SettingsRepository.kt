@@ -20,6 +20,7 @@ class SettingsRepository(context: Context) {
         private const val KEY_SKIP_STEP = "skip_step_seconds"
         private const val KEY_SOUND_ENVIRONMENT = "sound_environment"
         private const val KEY_VOLUME_LEVEL = "volume_level"
+        private const val KEY_VOLUME_BOOST = "volume_boost"
 
         // Default values
         const val DEFAULT_FAVORITE_ICON = "heart"
@@ -30,6 +31,7 @@ class SettingsRepository(context: Context) {
         const val DEFAULT_SKIP_STEP = 5          // 5 seconds
         const val DEFAULT_SOUND_ENVIRONMENT = "Default"
         const val DEFAULT_VOLUME_LEVEL = 70      // 70%
+        const val DEFAULT_VOLUME_BOOST = 0       // 0 milliBels
     }
 
     private val prefs: SharedPreferences =
@@ -42,6 +44,9 @@ class SettingsRepository(context: Context) {
 
     val volumeLevelLive: LiveData<Int> =
         SharedPrefIntLiveData(prefs, KEY_VOLUME_LEVEL, DEFAULT_VOLUME_LEVEL)
+
+    val volumeBoostLive: LiveData<Int> =
+        SharedPrefIntLiveData(prefs, KEY_VOLUME_BOOST, DEFAULT_VOLUME_BOOST)
 
     // ── Direct getters ────────────────────────────────────────────────────────
 
@@ -59,6 +64,7 @@ class SettingsRepository(context: Context) {
             ?: DEFAULT_SOUND_ENVIRONMENT
 
     fun getVolumeLevel(): Int = prefs.getInt(KEY_VOLUME_LEVEL, DEFAULT_VOLUME_LEVEL)
+    fun getVolumeBoost(): Int = prefs.getInt(KEY_VOLUME_BOOST, DEFAULT_VOLUME_BOOST)
 
     // ── Setters ────────────────────────────────────────────────────────────────
 
@@ -94,6 +100,10 @@ class SettingsRepository(context: Context) {
         prefs.edit().putInt(KEY_VOLUME_LEVEL, level).apply()
     }
 
+    fun setVolumeBoost(boostMb: Int) {
+        prefs.edit().putInt(KEY_VOLUME_BOOST, boostMb).apply()
+    }
+
     // ── Reset all to defaults ──────────────────────────────────────────────────
 
     fun resetAll() {
@@ -106,8 +116,10 @@ class SettingsRepository(context: Context) {
             .putInt(KEY_SKIP_STEP, DEFAULT_SKIP_STEP)
             .putString(KEY_SOUND_ENVIRONMENT, DEFAULT_SOUND_ENVIRONMENT)
             .putInt(KEY_VOLUME_LEVEL, DEFAULT_VOLUME_LEVEL)
+            .putInt(KEY_VOLUME_BOOST, DEFAULT_VOLUME_BOOST)
             .apply()
     }
+
 
     // ── LiveData implementations ──────────────────────────────────────────────
 

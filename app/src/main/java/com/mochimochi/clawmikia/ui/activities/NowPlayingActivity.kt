@@ -195,6 +195,7 @@ class NowPlayingActivity : AppCompatActivity() {
             updateStateLabels(!isBypassing)
         }
         syncVolumeSeekBar()
+        updateProfileSwitchButtons()
     }
 
     override fun onPause() {
@@ -215,6 +216,10 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.currentSong.observe(this) {
             // Keep currentSong active so fragments can access .value
+        }
+
+        viewModel.profiles.observe(this) {
+            updateProfileSwitchButtons()
         }
 
         viewModel.songAnalysis.observe(this) { analysis ->
@@ -313,6 +318,8 @@ class NowPlayingActivity : AppCompatActivity() {
                 binding.cardSkipSections.alpha = editAlpha
 
                 binding.btnResetAllStates.isEnabled = !isDefault
+
+                updateProfileSwitchButtons()
             }
         }
 
@@ -335,17 +342,24 @@ class NowPlayingActivity : AppCompatActivity() {
     // ─── Volume ──────────────────────────────────────────────────────────────────
 
     private fun setupVolumeSeekBar() {
-        binding.seekVolume.max = maxVolume
+        // Support up to 200% volume (100% system + boost)
+        binding.seekVolume.max = maxVolume * 2
         syncVolumeSeekBar()
         binding.seekVolume.setOnSeekBarChangeListener(
             object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
-                    if (fromUser) audioManager.setStreamVolume(
-                        AudioManager.STREAM_MUSIC,
-                        progress,
-                        0
-                    )
-                    val pct = ((sb.progress.toFloat() / maxVolume) * 100).toInt()
+                    if (fromUser) {
+                        if (progress <= maxVolume) {
+                            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0)
+                            settingsRepo.setVolumeBoost(0)
+                        } else {
+                            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
+                            val boostPercent =
+                                ((progress - maxVolume).toFloat() / maxVolume * 100).toInt()
+                            settingsRepo.setVolumeBoost(boostPercent * 10) // up to 1000mB
+                        }
+                    }
+                    val pct = ((progress.toFloat() / maxVolume) * 100).toInt()
                     binding.tvVolumeValue.text = pct.toString()
                 }
 
@@ -357,8 +371,11 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private fun syncVolumeSeekBar() {
         val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        binding.seekVolume.progress = current
-        val pct = ((current.toFloat() / maxVolume) * 100).toInt()
+        val boostMb = settingsRepo.getVolumeBoost()
+        val boostProgress = (boostMb / 10f / 100f * maxVolume).toInt()
+
+        binding.seekVolume.progress = current + boostProgress
+        val pct = ((binding.seekVolume.progress.toFloat() / maxVolume) * 100).toInt()
         binding.tvVolumeValue.text = pct.toString()
         binding.btnVolumeMute.setImageResource(
             if (current == 0) R.drawable.ic_volume_off else R.drawable.ic_speaker
@@ -579,8 +596,15 @@ class NowPlayingActivity : AppCompatActivity() {
             ProfilesFragment().show(supportFragmentManager, "profiles")
         }
 
-        binding.btnProfiles.setOnClickListener {
-            ProfilesFragment().show(supportFragmentManager, "profiles")
+        // ─── Switch Profile ───────────────────────────────────────────────────
+        binding.btnProfileDefault.setOnClickListener {
+            viewModel.switchToDefaultProfile()
+        }
+        binding.btnProfilePrev.setOnClickListener {
+            viewModel.switchToPreviousProfile()
+        }
+        binding.btnProfileNext.setOnClickListener {
+            viewModel.switchToNextProfile()
         }
 
         // ── Rewind / Forward ────────────────────────────────────────────────────
@@ -793,27 +817,45 @@ class NowPlayingActivity : AppCompatActivity() {
 
         // ── Volume buttons ───────────────────────────────────────────────────────
         binding.btnVolumeUp.setOnClickListener {
-            val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            val currentProgress = binding.seekVolume.progress
             val volStepPercent = settingsRepo.getVolumeStep()
             val step = maxOf(1, (maxVolume * volStepPercent / 100f).toInt())
-            val newVolume = (current + step).coerceAtMost(maxVolume)
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
+            val newProgress = (currentProgress + step).coerceAtMost(maxVolume * 2)
+
+            if (newProgress <= maxVolume) {
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newProgress, 0)
+                settingsRepo.setVolumeBoost(0)
+            } else {
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
+                val boostPercent = ((newProgress - maxVolume).toFloat() / maxVolume * 100).toInt()
+                settingsRepo.setVolumeBoost(boostPercent * 10)
+            }
             syncVolumeSeekBar()
         }
 
         binding.btnVolumeDown.setOnClickListener {
-            val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            val currentProgress = binding.seekVolume.progress
             val volStepPercent = settingsRepo.getVolumeStep()
             val step = maxOf(1, (maxVolume * volStepPercent / 100f).toInt())
-            val newVolume = (current - step).coerceAtLeast(0)
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
+            val newProgress = (currentProgress - step).coerceAtLeast(0)
+
+            if (newProgress <= maxVolume) {
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newProgress, 0)
+                settingsRepo.setVolumeBoost(0)
+            } else {
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
+                val boostPercent = ((newProgress - maxVolume).toFloat() / maxVolume * 100).toInt()
+                settingsRepo.setVolumeBoost(boostPercent * 10)
+            }
             syncVolumeSeekBar()
         }
 
         binding.btnVolumeReset.setOnClickListener {
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
+            settingsRepo.setVolumeBoost(0)
             syncVolumeSeekBar()
         }
+
 
         binding.btnVolumeMute.setOnClickListener {
             val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
@@ -900,7 +942,7 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.switchAbRepeat.setOnCheckedChangeListener { _, checked ->
             isAbRepeatEnabled = checked
             if (checked) {
-                if (pointA in 0..pointB.minus(1)) {
+                if (pointA >= 0L && pointA < pointB) {
                     applyAbRepeat()
                 } else {
                     binding.switchAbRepeat.isChecked = false
@@ -1266,6 +1308,23 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun saveAbRepeat() {
         viewModel.activeProfile.value?.let { profile ->
             viewModel.updateAbRepeat(profile.id, pointA, pointB, isAbRepeatEnabled)
+        }
+    }
+
+    private fun updateProfileSwitchButtons() {
+        val currentProfiles = viewModel.profiles.value ?: return
+        val active = viewModel.activeProfile.value ?: return
+
+        val currentIndex = currentProfiles.indexOfFirst { it.id == active.id }
+        if (currentIndex != -1) {
+            val hasPrev = currentIndex > 0
+            val hasNext = currentIndex < currentProfiles.size - 1
+
+            binding.btnProfilePrev.isEnabled = hasPrev
+            binding.btnProfileNext.isEnabled = hasNext
+
+            binding.btnProfilePrev.alpha = if (hasPrev) 1.0f else 0.5f
+            binding.btnProfileNext.alpha = if (hasNext) 1.0f else 0.5f
         }
     }
 

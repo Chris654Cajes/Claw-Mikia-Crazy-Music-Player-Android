@@ -12,15 +12,17 @@ cyberpunk-inspired dynamic interface.
 ### 🎧 Professional Audio Engine & Studio Controls
 
 - **Precision Playback**: Independent adjustment of **Speed** (0.5x - 3.0x) and **Pitch** (-6.0 to
-  +6.0 semitones).
-- **A-B Repeat & Smart Looping**: Precise looping with dedicated markers and suggested loop points
-  from song analysis.
-- **Timeline Trim**: Non-destructive trimming to eliminate unwanted intros or outros without
-  modifying the original file.
-- **Playback Profiles**: Create and save multiple custom profiles per song, storing unique pitch,
-  speed, and trim settings.
-- **Skip Regions**: Define and automatically bypass intros, ads, or outros for a seamless listening
-  experience.
+  +6.0 semitones) with dedicated fine-tuning buttons and instant reset.
+- **A-B Repeat & Smart Looping**: Define precise looping points with "Set A" and "Set B" controls.
+  Includes a global loop toggle and A-B mode.
+- **Timeline Trim**: Non-destructive trimming to eliminate unwanted intros or outros. Features ±10s
+  fine-adjustment buttons for surgical precision.
+- **Playback Profiles**: Create and save multiple custom profiles per song. Each profile stores
+  unique pitch, speed, and trim settings, switchable instantly from the main player.
+- **Skip Regions**: Define and automatically bypass specific segments (ads, long intros, or fillers)
+  within tracks for a seamless listening experience.
+- **Granular Volume Management**: High-fidelity volume slider with dedicated mute and "Reset to
+  100%" functionality.
 
 ### 📊 Intelligent Song Analysis
 
@@ -28,30 +30,33 @@ cyberpunk-inspired dynamic interface.
   organization.
 - **Chorus Detection**: Automatically identifies the most energetic parts of a song.
 - **Silence Detection**: Finds and marks silent regions at the start, end, or middle of tracks.
-- **Waveform Visualization**: Real-time interactive waveform for precise seeking and trimming.
+- **Waveform Visualization**: Real-time interactive waveform for precise seeking, trimming, and
+  skip-region visualization.
 
 ### 📱 Cyberpunk UI & Aesthetic UX
 
-- **Neon Aesthetic**: High-contrast, tech-forward interface with dynamic neon accents and "
-  Aesthetic" dialogs.
-- **Adaptive Theming**: Palette-based UI that morphs its colors to match the current album art.
-- **Collapsible Mini Player**: A sleek playback bar that can be collapsed into a minimal "瞼" (
-  eyelid) mode to maximize screen space.
+- **Neon Aesthetic**: High-contrast, tech-forward interface using "Neon Cyan", "Neon Pink", "Neon
+  Green", and "Neon Orange" accents.
+- **Card-Based Control Center**: All studio controls are organized into sleek, semi-transparent
+  cards (Volume, Pitch, Speed, A-B Repeat, Trim, Skip/Cut, Profiles).
+- **Adaptive Theming**: Palette-based UI that morphs its colors and glow effects to match the
+  current album art.
 - **Orbitron Typography**: Futuristically styled fonts for a consistent, immersive sci-fi
   atmosphere.
-- **Synchronized Lyrics**: Full `.lrc` support with real-time scrolling and a dedicated lyrics
-  panel.
+- **State Persistence**: Visual indicators for manually edited songs and active playback states (
+  Original vs Updated).
 
 ### 📂 Advanced Library Management
 
-- **Smart Scanning**: Deep scan folders with persistent URI permissions.
+- **Smart Playlists**: Filter and organize your collection using criteria like "Smart", "Manual", "
+  Has Songs", "Empty", and "Recent".
+- **Deep Folder Integration**: Browse and play music directly from your file system with persistent
+  URI permissions.
+- **Global Search**: Find songs or playlists instantly with a high-performance search engine.
 - **Cloud Sync**: Fetch missing high-resolution album art and metadata automatically via the
   MusicBrainz API.
-- **Advanced Filtering**: Find songs using complex criteria: duration ranges, pitch/speed offsets,
-  addition date, and manual edit status.
 - **Library Export**: Package your curated library and metadata into a single ZIP archive for backup
   or transfer.
-- **File Management**: Move files between folders and manage playlists directly within the app.
 
 ---
 
@@ -93,8 +98,8 @@ cyberpunk-inspired dynamic interface.
   appropriate.
 - **Performance Optimized**: Low-latency audio playback and efficient background processing to
   minimize battery impact.
-- **Modern Standards**: Uses official AndroidX libraries and Google-recommended architectural
-  patterns.
+- **Safety First**: "Destroy All States" reset button for troubleshooting or starting fresh with
+  song metadata.
 
 ---
 *Developed by **Christopher Lee Cajes***

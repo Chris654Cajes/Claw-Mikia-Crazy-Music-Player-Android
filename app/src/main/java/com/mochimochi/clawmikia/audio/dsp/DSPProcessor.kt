@@ -73,7 +73,7 @@ class DSPProcessor(private val audioSessionId: Int) {
             }
             val le =
                 loudnessEnhancer ?: LoudnessEnhancer(audioSessionId).also { loudnessEnhancer = it }
-            le.setTargetGain(gainMb.coerceIn(0, 1000))
+            le.setTargetGain(gainMb.coerceIn(0, 2000))
             le.enabled = true
         } catch (e: Exception) {
             Log.e(TAG, "LoudnessEnhancer apply failed: ${e.message}")

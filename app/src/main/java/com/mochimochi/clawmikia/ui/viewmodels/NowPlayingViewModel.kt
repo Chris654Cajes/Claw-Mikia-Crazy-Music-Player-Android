@@ -167,6 +167,37 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    fun switchToDefaultProfile() {
+        _currentSongId.value ?: return
+        val currentProfiles = profiles.value ?: return
+        val defaultProfile = currentProfiles.find { it.isDefault }
+        if (defaultProfile != null) {
+            activateProfile(defaultProfile)
+        }
+    }
+
+    fun switchToNextProfile() {
+        val currentProfiles = profiles.value ?: return
+        if (currentProfiles.isEmpty()) return
+        val active = activeProfile.value ?: return
+
+        val currentIndex = currentProfiles.indexOfFirst { it.id == active.id }
+        if (currentIndex != -1 && currentIndex < currentProfiles.size - 1) {
+            activateProfile(currentProfiles[currentIndex + 1])
+        }
+    }
+
+    fun switchToPreviousProfile() {
+        val currentProfiles = profiles.value ?: return
+        if (currentProfiles.isEmpty()) return
+        val active = activeProfile.value ?: return
+
+        val currentIndex = currentProfiles.indexOfFirst { it.id == active.id }
+        if (currentIndex > 0) {
+            activateProfile(currentProfiles[currentIndex - 1])
+        }
+    }
+
     fun updatePitchSpeed(profileId: Long, pitch: Float, speed: Float) {
         viewModelScope.launch {
             profileRepository.updatePitchSpeed(profileId, pitch, speed)
