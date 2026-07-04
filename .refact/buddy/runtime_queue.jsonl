@@ -10,7 +10,7 @@
     "progress": null,
     "dedupe_key": "health_models",
     "priority": "high",
-    "created_at": "2026-07-04T06:41:19.839202300+00:00",
+    "created_at": "2026-07-04T06:56:29.267227+00:00",
     "ttl_ms": null,
     "speech_text": null,
     "scene": null,
@@ -54,14 +54,14 @@
   "event": {
     "id": "7b54fe28-b025-4bd6-9797-76b53122e57a",
     "signal_type": "ast_parsing",
-    "title": "AST complete: 112 files, 2224 symbols in 3367.2s",
+    "title": "AST complete: 112 files, 2224 symbols in 3677.0s",
     "description": null,
     "source": "indexer",
     "status": "completed",
     "progress": null,
     "dedupe_key": "ast",
     "priority": "normal",
-    "created_at": "2026-07-04T06:50:58.881462900+00:00",
+    "created_at": "2026-07-04T06:56:08.638411400+00:00",
     "ttl_ms": null,
     "speech_text": null,
     "scene": null,
@@ -146,4 +146,25 @@
     "dismissed": false
   }
 }
-{"kind":"event","event":{"id":"7b54fe28-b025-4bd6-9797-76b53122e57a","signal_type":"ast_parsing","title":"AST complete: 112 files, 2224 symbols in 3656.8s","description":null,"source":"indexer","status":"completed","progress":null,"dedupe_key":"ast","priority":"normal","created_at":"2026-07-04T06:55:48.516759+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"dismissed":false}}
+{
+  "kind": "event",
+  "event": {
+    "id": "7b54fe28-b025-4bd6-9797-76b53122e57a",
+    "signal_type": "ast_parsing",
+    "title": "AST complete: 112 files, 2224 symbols in 3937.6s",
+    "description": null,
+    "source": "indexer",
+    "status": "completed",
+    "progress": null,
+    "dedupe_key": "ast",
+    "priority": "normal",
+    "created_at": "2026-07-04T07:00:29.324510900+00:00",
+    "ttl_ms": null,
+    "speech_text": null,
+    "scene": null,
+    "duration_hint": null,
+    "persistent": false,
+    "controls": [],
+    "dismissed": false
+  }
+}

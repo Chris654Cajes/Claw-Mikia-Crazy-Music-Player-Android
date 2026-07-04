@@ -1319,12 +1319,16 @@ class NowPlayingActivity : AppCompatActivity() {
         if (currentIndex != -1) {
             val hasPrev = currentIndex > 0
             val hasNext = currentIndex < currentProfiles.size - 1
+            // Disable default button if only the default profile exists
+            val hasMultipleProfiles = currentProfiles.size > 1
 
             binding.btnProfilePrev.isEnabled = hasPrev
             binding.btnProfileNext.isEnabled = hasNext
+            binding.btnProfileDefault.isEnabled = hasMultipleProfiles
 
             binding.btnProfilePrev.alpha = if (hasPrev) 1.0f else 0.5f
             binding.btnProfileNext.alpha = if (hasNext) 1.0f else 0.5f
+            binding.btnProfileDefault.alpha = if (hasMultipleProfiles) 1.0f else 0.5f
         }
     }
 
