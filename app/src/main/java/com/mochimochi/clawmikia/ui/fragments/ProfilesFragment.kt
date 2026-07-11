@@ -69,13 +69,11 @@ class ProfilesFragment : BottomSheetDialogFragment() {
 
     private fun showCreateProfileDialog() {
         val songId = viewModel.currentSong.value?.id ?: return
-        showAestheticInputDialog(
-            title = "New Playback Profile",
-            hint = "Profile name"
-        ) { name ->
-            val profileName = name.ifBlank { "Profile ${System.currentTimeMillis() % 1000}" }
-            viewModel.createProfile(songId, profileName)
-        }
+        val count = (viewModel.profiles.value?.size ?: 0) + 1
+        val profileName = "Profile $count"
+        viewModel.createAndActivateProfile(songId, profileName)
+        onProfileActivated?.invoke()
+        dismiss()
     }
 
     private fun showRenameProfileDialog(profile: PlaybackProfile) {

@@ -54,8 +54,10 @@ class ProfileRepository(context: Context) {
         return profile.copy(id = id)
     }
 
-    suspend fun createProfile(profile: PlaybackProfile): Long = withContext(Dispatchers.IO) {
-        profileDao.insert(profile)
+    suspend fun createProfile(profile: PlaybackProfile): PlaybackProfile =
+        withContext(Dispatchers.IO) {
+            val id = profileDao.insert(profile)
+            profile.copy(id = id)
     }
 
     suspend fun updateProfile(profile: PlaybackProfile) = withContext(Dispatchers.IO) {

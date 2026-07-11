@@ -103,6 +103,14 @@
       "success": false,
       "failure_category": "unknown",
       "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
+    },
+    {
+      "timestamp": "2026-07-11T14:45:22.686658300+00:00",
+      "input_summary": "",
+      "output_summary": "Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+      "success": false,
+      "failure_category": "unknown",
+      "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
     }
   ]
 }

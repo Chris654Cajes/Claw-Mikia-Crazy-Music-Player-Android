@@ -149,6 +149,21 @@ class NowPlayingViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    fun createAndActivateProfile(songId: Long, name: String) {
+        viewModelScope.launch {
+            val base = activeProfile.value
+            val newProfile = PlaybackProfile(
+                songId = songId, name = name,
+                pitchSemitones = base?.pitchSemitones ?: 0f,
+                playbackSpeed = base?.playbackSpeed ?: 1f,
+                trimStart = base?.trimStart ?: 0L,
+                trimEnd = base?.trimEnd ?: -1L
+            )
+            val created = profileRepository.createProfile(newProfile)
+            profileRepository.activateProfile(created.id, created.songId)
+        }
+    }
+
     fun activateProfile(profile: PlaybackProfile) {
         viewModelScope.launch {
             profileRepository.activateProfile(profile.id, profile.songId)
