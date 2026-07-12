@@ -54,11 +54,30 @@ class SettingsFragment : Fragment() {
         setupSpeedStep()
         setupTrimStep()
         setupSkipStep()
+        setupNowPlayingView()
         setupEnvironmentSpinner()
         setupVolumeControl()
         setupMetadataUpdateButton()
         setupResetButton()
         observeSettings()
+    }
+
+    // ── Now Playing View ───────────────────────────────────────────────────
+
+    private fun setupNowPlayingView() {
+        val rg = binding.rgNowPlayingView
+        rg.setOnCheckedChangeListener { _, checkedId ->
+            val viewType = if (checkedId == R.id.rbCoverFlow) "coverflow" else "standard"
+            settingsRepo.setNowPlayingView(viewType)
+        }
+    }
+
+    private fun checkRadioForNowPlayingView(viewType: String) {
+        if (viewType == "coverflow") {
+            binding.rgNowPlayingView.check(R.id.rbCoverFlow)
+        } else {
+            binding.rgNowPlayingView.check(R.id.rbStandard)
+        }
     }
 
     // ── Sound Environment ────────────────────────────────────────────────────
@@ -420,6 +439,10 @@ class SettingsFragment : Fragment() {
     private fun observeSettings() {
         settingsRepo.favoriteIconLive.observe(viewLifecycleOwner) { iconType ->
             checkRadioForIcon(iconType)
+        }
+
+        settingsRepo.nowPlayingViewLive.observe(viewLifecycleOwner) { viewType ->
+            checkRadioForNowPlayingView(viewType)
         }
 
         // Only populate initial values if EditText is empty (first load).

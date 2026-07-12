@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardVinyl"
+        android:layout_width="260dp"
+        android:layout_height="260dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="40dp"
+        android:backgroundTint="#111111"
+        app:cardCornerRadius="130dp"
+        app:cardElevation="4dp">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:alpha="0.8"
+            android:padding="4dp"
+            android:src="@drawable/bg_album_disc" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardCover"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_gravity="center"
+        android:backgroundTint="@color/bg_card"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="16dp"
+        app:strokeColor="@color/neon_cyan"
+        app:strokeWidth="3dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/ivCover"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_note_icon"
+                android:contentDescription="Album Art"
+                android:scaleType="centerCrop" />
+
+            <!-- Favorite Indicator -->
+            <ImageView
+                android:id="@+id/ivFavoriteIndicator"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="16dp"
+                android:src="@drawable/ic_heart_filled"
+                android:visibility="gone"
+                app:tint="@color/neon_pink" />
+
+            <!-- Edited Indicator -->
+            <ImageView
+                android:id="@+id/ivEditedIndicator"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="top|start"
+                android:layout_margin="16dp"
+                android:src="@drawable/ic_check"
+                android:visibility="gone"
+                app:tint="@color/neon_green" />
+
+            <!-- Bottom Gradient Overlay -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/bg_gradient_bottom_black" />
+
+            <!-- Song Info Pill (Bottom) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvIndex"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.9"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:text="1 / 10"
+                    android:textColor="@color/text_primary"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/tvFormat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:alpha="0.7"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:text="MP3 • 320kbps"
+                    android:textColor="@color/neon_cyan"
+                    android:textSize="8sp" />
+
+            </LinearLayout>
+
+        </FrameLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</FrameLayout>

@@ -358,6 +358,15 @@ class MainActivity : AppCompatActivity() {
 
     // ─── Mini player ─────────────────────────────────────────────────────────────
 
+    private fun startNowPlaying(songId: Long) {
+        val settingsRepo = SettingsRepository(this)
+        if (settingsRepo.getNowPlayingView() == "coverflow") {
+            CoverFlowActivity.start(this, songId)
+        } else {
+            NowPlayingActivity.start(this, songId)
+        }
+    }
+
     private fun setupMusicPanel() {
         binding.musicPanel.root.visibility = View.GONE
 
@@ -407,7 +416,7 @@ class MainActivity : AppCompatActivity() {
 
         // Tap the info area (not a button) → open Now Playing
         binding.musicPanel.root.setOnClickListener {
-            viewModel.currentSong.value?.let { NowPlayingActivity.start(this, it.id) }
+            viewModel.currentSong.value?.let { startNowPlaying(it.id) }
         }
 
         // ── Show / Hide mini player toggle ──────────────────────────────────────
@@ -888,7 +897,7 @@ class MainActivity : AppCompatActivity() {
         startProgressUpdates()
 
         // Navigate to Now Playing
-        NowPlayingActivity.start(this, song.id)
+        startNowPlaying(song.id)
 
         // Ensure service is bound before calling it
         if (serviceBound && musicService != null) {

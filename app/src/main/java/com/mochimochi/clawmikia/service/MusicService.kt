@@ -188,6 +188,13 @@ class MusicService : Service() {
         playCurrent(forceReload = true)
     }
 
+    fun getQueue(): List<Song> = playlist
+    fun getCurrentIndex(): Int = currentIndex
+    fun playAt(index: Int) {
+        currentIndex = index.coerceIn(0, (playlist.size - 1).coerceAtLeast(0))
+        playCurrent(forceReload = true)
+    }
+
     private fun playCurrent(forceReload: Boolean = false) {
         lastSkipPrevTime = 0L // Reset double-tap timer on any manual or automatic song change
         if (playlist.isEmpty()) return

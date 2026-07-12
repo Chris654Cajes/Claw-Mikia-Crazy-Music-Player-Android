@@ -47,6 +47,12 @@
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.activities.CoverFlowActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize" />
+
         <service
             android:name=".service.MusicService"
             android:exported="false"

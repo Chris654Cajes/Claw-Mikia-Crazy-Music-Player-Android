@@ -314,10 +314,11 @@ class NowPlayingActivity : AppCompatActivity() {
                 binding.switchLoop.isEnabled = !isDefault
                 binding.cardAbRepeat.alpha = editAlpha
 
-                binding.btnAddSkipSection.isEnabled = !isDefault
-                binding.cardSkipSections.alpha = editAlpha
+                // Skip sections and Reset All are Song-level, so keep them enabled
+                binding.btnAddSkipSection.isEnabled = true
+                binding.cardSkipSections.alpha = 1.0f
 
-                binding.btnResetAllStates.isEnabled = !isDefault
+                binding.btnResetAllStates.isEnabled = true
 
                 updateProfileSwitchButtons()
             }
