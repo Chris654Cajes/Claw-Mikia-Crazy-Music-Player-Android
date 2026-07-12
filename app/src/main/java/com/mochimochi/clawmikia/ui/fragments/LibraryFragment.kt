@@ -6,13 +6,15 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.mochimochi.clawmikiacrazy.R
 import com.mochimochi.clawmikiacrazy.data.model.Song
 import com.mochimochi.clawmikiacrazy.databinding.FragmentLibraryBinding
 import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
 import com.mochimochi.clawmikiacrazy.ui.activities.MainActivity
-import com.mochimochi.clawmikiacrazy.ui.adapters.SongAdapter
+import com.mochimochi.clawmikiacrazy.ui.adapters.LibraryAdapter
 import com.mochimochi.clawmikiacrazy.ui.viewmodels.MainViewModel
 import com.mochimochi.clawmikiacrazy.utils.SwipeToDeleteCallback
 
@@ -21,7 +23,7 @@ class LibraryFragment : Fragment() {
     private var _binding: FragmentLibraryBinding? = null
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by activityViewModels()
-    private lateinit var adapter: SongAdapter
+    private lateinit var adapter: LibraryAdapter
     private var latestSongs: List<Song> = emptyList()
 
     override fun onCreateView(
@@ -35,9 +37,9 @@ class LibraryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val settingsRepo = SettingsRepository(requireContext())
-        adapter = SongAdapter(
+
+        adapter = LibraryAdapter(
             onSongClick = { song, _ ->
-                // Pass the full current list so the service has the complete playlist
                 (activity as? MainActivity)?.playSong(song, latestSongs)
             },
             onFavoriteClick = { song -> viewModel.toggleFavorite(song) }
@@ -62,13 +64,78 @@ class LibraryFragment : Fragment() {
                 viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
                 direction: Int
             ) {
-                val song = adapter.currentList[viewHolder.bindingAdapterPosition]
-                (activity as? MainActivity)?.showDeleteConfirmDialog(song)
-                adapter.notifyItemChanged(viewHolder.bindingAdapterPosition) // Reset the swipe
+                val song = adapter.getSongAtPosition(viewHolder.bindingAdapterPosition)
+                if (song != null) {
+                    (activity as? MainActivity)?.showDeleteConfirmDialog(song)
+                }
+                adapter.notifyItemChanged(viewHolder.bindingAdapterPosition)
             }
         }
         ItemTouchHelper(swipeHandler).attachToRecyclerView(binding.recyclerView)
 
+        // ── View toggle (list / grid) ──────────────────────────────
+        fun updateViewButtons(isGrid: Boolean) {
+            binding.btnViewList.setColorFilter(
+                androidx.core.content.ContextCompat.getColor(
+                    requireContext(),
+                    if (isGrid) R.color.text_hint else R.color.neon_cyan
+                )
+            )
+            binding.btnViewGrid.setColorFilter(
+                androidx.core.content.ContextCompat.getColor(
+                    requireContext(),
+                    if (isGrid) R.color.neon_cyan else R.color.text_hint
+                )
+            )
+        }
+
+        binding.btnViewList.setOnClickListener {
+            if (adapter.isGridMode) {
+                adapter.isGridMode = false
+                binding.recyclerView.layoutManager = LinearLayoutManager(context)
+                updateViewButtons(false)
+            }
+        }
+
+        binding.btnViewGrid.setOnClickListener {
+            if (!adapter.isGridMode) {
+                adapter.isGridMode = true
+                binding.recyclerView.layoutManager = GridLayoutManager(context, 3)
+                updateViewButtons(true)
+            }
+        }
+
+        updateViewButtons(false)
+
+        // ── Group by album toggle ──────────────────────────────────
+        val groupModes = listOf("None", "Album")
+        var currentGroupIndex = 0
+
+        fun updateGroupButton() {
+            val mode = groupModes[currentGroupIndex]
+            binding.btnGroupBy.text = mode
+            val isActive = mode != "None"
+            binding.btnGroupBy.setTextColor(
+                androidx.core.content.ContextCompat.getColor(
+                    requireContext(),
+                    if (isActive) R.color.neon_cyan else R.color.text_secondary
+                )
+            )
+            binding.btnGroupBy.setBackgroundResource(
+                if (isActive) R.drawable.bg_button_outline_cyan
+                else R.drawable.bg_button_outline_neutral
+            )
+        }
+
+        binding.btnGroupBy.setOnClickListener {
+            currentGroupIndex = (currentGroupIndex + 1) % groupModes.size
+            adapter.isGroupByAlbum = groupModes[currentGroupIndex] == "Album"
+            updateGroupButton()
+        }
+
+        updateGroupButton()
+
+        // ── Select All / Add to playlist ───────────────────────────
         binding.btnSelectAll.setOnClickListener {
             adapter.selectAll()
         }
@@ -81,13 +148,12 @@ class LibraryFragment : Fragment() {
             }
         }
 
+        // ── Observe songs ──────────────────────────────────────────
         viewModel.filteredSongs.observe(viewLifecycleOwner) { songs ->
             latestSongs = songs
-            adapter.submitList(songs)
+            adapter.submitSongs(songs)
             binding.tvEmpty.visibility = if (songs.isEmpty()) View.VISIBLE else View.GONE
             binding.tvSongCount.text = "${songs.size} songs"
-
-            // Sync the service playlist if we are in this layout
             (activity as? MainActivity)?.updateCurrentPlaylist(songs)
         }
 
@@ -95,7 +161,6 @@ class LibraryFragment : Fragment() {
             adapter.setCurrentSong(song?.id)
         }
 
-        // Observe favorite icon type setting and refresh adapter
         settingsRepo.favoriteIconLive.observe(viewLifecycleOwner) { iconType ->
             adapter.favoriteIconType = iconType
         }

@@ -30,10 +30,45 @@
             android:textColor="@color/text_secondary"
             android:textSize="11sp" />
 
+        <!-- Group by album toggle -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnGroupBy"
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:background="@drawable/bg_button_outline_cyan"
+            android:minWidth="0dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="Album"
+            android:textColor="@color/neon_cyan"
+            android:textSize="10sp" />
+
+        <!-- List/Grid view toggle -->
+        <ImageButton
+            android:id="@+id/btnViewList"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="4dp"
+            android:src="@drawable/ic_list_view"
+            app:tint="@color/neon_cyan" />
+
+        <ImageButton
+            android:id="@+id/btnViewGrid"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="4dp"
+            android:src="@drawable/ic_grid_view"
+            app:tint="@color/text_hint" />
+
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnSelectAll"
             android:layout_width="wrap_content"
             android:layout_height="28dp"
+            android:layout_marginStart="8dp"
             android:background="@drawable/bg_button_outline_cyan"
             android:minWidth="0dp"
             android:paddingStart="10dp"

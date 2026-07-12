@@ -1,11 +1,154 @@
-{"kind":"event","event":{"id":"1d7dbd29-9174-4d8e-8d13-9cf240fc7c9b","signal_type":"health","title":"No AI models configured","description":null,"source":"health_watcher","status":"failed","progress":null,"dedupe_key":"health_models","priority":"high","created_at":"2026-07-11T15:15:56.355014900+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"dismissed":false}}
+{
+  "kind": "event",
+  "event": {
+    "id": "1d7dbd29-9174-4d8e-8d13-9cf240fc7c9b",
+    "signal_type": "health",
+    "title": "No AI models configured",
+    "description": null,
+    "source": "health_watcher",
+    "status": "failed",
+    "progress": null,
+    "dedupe_key": "health_models",
+    "priority": "high",
+    "created_at": "2026-07-12T01:45:21.718935900+00:00",
+    "ttl_ms": null,
+    "speech_text": null,
+    "scene": null,
+    "duration_hint": null,
+    "persistent": false,
+    "controls": [],
+    "dismissed": false
+  }
+}
 {"kind":"event","event":{"id":"2c5ab9bf-20d0-436f-ba96-a8989b3435e1","signal_type":"buddy_refactor_hunter_failed","title":"buddy_refactor_hunter failed: Workflow failed","description":"Buddy model required by subagent 'buddy_refactor_hunter' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_refactor_hunter' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_refactor_hunter:unknown","priority":"normal","created_at":"2026-07-11T14:46:58.403722400+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_refactor_hunter' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
 {"kind":"event","event":{"id":"d5e742b7-46a3-4746-a4ca-5f2ad50f3120","signal_type":"buddy_daily_digest_failed","title":"buddy_daily_digest failed: Workflow failed","description":"Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_daily_digest:unknown","priority":"normal","created_at":"2026-07-02T19:23:23.705905300+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
 {"kind":"event","event":{"id":"b068598b-4bd5-4ad2-a11b-ec85b70e3d69","signal_type":"buddy_dependency_radar_failed","title":"buddy_dependency_radar failed: Workflow failed","description":"Buddy model required by subagent 'buddy_dependency_radar' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_dependency_radar' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_dependency_radar:unknown","priority":"normal","created_at":"2026-06-29T22:24:26.315107500+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_dependency_radar' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
 {"kind":"event","event":{"id":"32b20b6d-eaff-40c8-99b8-4a658a0ca73f","signal_type":"buddy_architecture_drift_watcher_failed","title":"buddy_architecture_drift_watcher failed: Workflow failed","description":"Buddy model required by subagent 'buddy_architecture_drift_watcher' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_architecture_drift_watcher' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_architecture_drift_watcher:unknown","priority":"normal","created_at":"2026-07-11T14:46:27.889119400+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_architecture_drift_watcher' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
-{"kind":"event","event":{"id":"70c63f98-ac0d-42ac-a86e-b964b106d264","signal_type":"buddy_setup_coach_failed","title":"buddy_setup_coach failed: Workflow failed","description":"Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_setup_coach:unknown","priority":"normal","created_at":"2026-07-11T14:45:22.686392500+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
-{"kind":"event","event":{"id":"17cb4e2d-4130-4fe4-a364-126d5c686a19","signal_type":"buddy_docs_gardener_failed","title":"buddy_docs_gardener failed: Workflow failed","description":"Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_docs_gardener:unknown","priority":"normal","created_at":"2026-07-11T14:45:57.201974600+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
-{"kind":"event","event":{"id":"42088bfa-ebc7-4673-bd2c-4730730fc46e","signal_type":"buddy_pr_issue_matchmaker_failed","title":"buddy_pr_issue_matchmaker failed: Workflow failed","description":"Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_pr_issue_matchmaker:unknown","priority":"normal","created_at":"2026-07-11T14:47:59.524091100+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
-{"kind":"event","event":{"id":"5262fc76-0135-4b88-b398-99c19655eb5e","signal_type":"buddy_idle_suggester_failed","title":"buddy_idle_suggester failed: Workflow failed","description":"Buddy model required by subagent 'buddy_idle_suggester' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_idle_suggester' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_idle_suggester:unknown","priority":"normal","created_at":"2026-07-11T15:05:05.443333800+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_idle_suggester' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
-{"kind":"event","event":{"id":"aeff0a10-ed34-4b5a-82af-af667cd7132d","signal_type":"ast_parsing","title":"AST complete: 112 files, 2235 symbols in 2114.5s","description":null,"source":"indexer","status":"completed","progress":null,"dedupe_key":"ast","priority":"normal","created_at":"2026-07-11T15:19:15.371940600+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"dismissed":false}}
+{
+  "kind": "event",
+  "event": {
+    "id": "70c63f98-ac0d-42ac-a86e-b964b106d264",
+    "signal_type": "buddy_setup_coach_failed",
+    "title": "buddy_setup_coach failed: Workflow failed",
+    "description": "Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "source": "buddy",
+    "status": "failed",
+    "failure_category": "unknown",
+    "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "progress": null,
+    "dedupe_key": "workflow_failure:buddy_setup_coach:unknown",
+    "priority": "normal",
+    "created_at": "2026-07-12T00:44:46.876050300+00:00",
+    "ttl_ms": null,
+    "bubble_policy": "durable",
+    "speech_text": "Workflow failed. Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "scene": "alert",
+    "duration_hint": 12,
+    "persistent": true,
+    "controls": [],
+    "dismissed": false
+  }
+}
+{
+  "kind": "event",
+  "event": {
+    "id": "17cb4e2d-4130-4fe4-a364-126d5c686a19",
+    "signal_type": "buddy_docs_gardener_failed",
+    "title": "buddy_docs_gardener failed: Workflow failed",
+    "description": "Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "source": "buddy",
+    "status": "failed",
+    "failure_category": "unknown",
+    "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "progress": null,
+    "dedupe_key": "workflow_failure:buddy_docs_gardener:unknown",
+    "priority": "normal",
+    "created_at": "2026-07-12T00:45:18.850028800+00:00",
+    "ttl_ms": null,
+    "bubble_policy": "durable",
+    "speech_text": "Workflow failed. Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "scene": "alert",
+    "duration_hint": 12,
+    "persistent": true,
+    "controls": [],
+    "dismissed": false
+  }
+}
+{
+  "kind": "event",
+  "event": {
+    "id": "42088bfa-ebc7-4673-bd2c-4730730fc46e",
+    "signal_type": "buddy_pr_issue_matchmaker_failed",
+    "title": "buddy_pr_issue_matchmaker failed: Workflow failed",
+    "description": "Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "source": "buddy",
+    "status": "failed",
+    "failure_category": "unknown",
+    "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "progress": null,
+    "dedupe_key": "workflow_failure:buddy_pr_issue_matchmaker:unknown",
+    "priority": "normal",
+    "created_at": "2026-07-12T00:46:21.995178500+00:00",
+    "ttl_ms": null,
+    "bubble_policy": "durable",
+    "speech_text": "Workflow failed. Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "scene": "alert",
+    "duration_hint": 12,
+    "persistent": true,
+    "controls": [],
+    "dismissed": false
+  }
+}
+{
+  "kind": "event",
+  "event": {
+    "id": "5262fc76-0135-4b88-b398-99c19655eb5e",
+    "signal_type": "buddy_idle_suggester_failed",
+    "title": "buddy_idle_suggester failed: Workflow failed",
+    "description": "Buddy model required by subagent 'buddy_idle_suggester' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "source": "buddy",
+    "status": "failed",
+    "failure_category": "unknown",
+    "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_idle_suggester' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "progress": null,
+    "dedupe_key": "workflow_failure:buddy_idle_suggester:unknown",
+    "priority": "normal",
+    "created_at": "2026-07-12T01:04:28.549557900+00:00",
+    "ttl_ms": null,
+    "bubble_policy": "durable",
+    "speech_text": "Workflow failed. Buddy model required by subagent 'buddy_idle_suggester' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "scene": "alert",
+    "duration_hint": 12,
+    "persistent": true,
+    "controls": [],
+    "dismissed": false
+  }
+}
 {"kind":"event","event":{"id":"ac31f29f-87f6-4c82-b670-6641d63c89eb","signal_type":"refact_self_critic_failed","title":"refact_self_critic failed: Workflow failed","description":"Buddy model required by subagent 'refact_self_critic' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'refact_self_critic' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:refact_self_critic:unknown","priority":"normal","created_at":"2026-07-11T14:47:59.522229100+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'refact_self_critic' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
+{
+  "kind": "event",
+  "event": {
+    "id": "ac8cf2b7-0c3a-4432-aec1-018a585e694c",
+    "signal_type": "ast_parsing",
+    "title": "AST complete: 113 files, 2275 symbols in 4214.6s",
+    "description": null,
+    "source": "indexer",
+    "status": "completed",
+    "progress": null,
+    "dedupe_key": "ast",
+    "priority": "normal",
+    "created_at": "2026-07-12T01:53:18.039236100+00:00",
+    "ttl_ms": null,
+    "speech_text": null,
+    "scene": null,
+    "duration_hint": null,
+    "persistent": false,
+    "controls": [],
+    "dismissed": false
+  }
+}
+{"kind":"event","event":{"id":"1d7dbd29-9174-4d8e-8d13-9cf240fc7c9b","signal_type":"health","title":"No AI models configured","description":null,"source":"health_watcher","status":"failed","progress":null,"dedupe_key":"health_models","priority":"high","created_at":"2026-07-12T02:00:48.838009900+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"f5986fa3-2c61-4dbb-b56f-4cfd8b5cbbda","signal_type":"speech_quest_accept","title":"Warm up this workspace","description":"cozy oracle: I will scout this corner for you.","source":"quest_prompt","status":"completed","progress":null,"dedupe_key":"speech_runtime:quest_prompt:quest_prompt_start_setup","priority":"normal","created_at":"2026-07-12T02:00:48.839174900+00:00","ttl_ms":12000,"bubble_policy":"durable","speech_text":"cozy oracle: I will scout this corner for you.","scene":"welcome","duration_hint":12,"persistent":false,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"ac8cf2b7-0c3a-4432-aec1-018a585e694c","signal_type":"ast_parsing","title":"AST complete: 113 files, 2275 symbols in 4667.1s","description":null,"source":"indexer","status":"completed","progress":null,"dedupe_key":"ast","priority":"normal","created_at":"2026-07-12T02:00:50.603435600+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"ac8cf2b7-0c3a-4432-aec1-018a585e694c","signal_type":"ast_parsing","title":"AST complete: 113 files, 2275 symbols in 4687.3s","description":null,"source":"indexer","status":"completed","progress":null,"dedupe_key":"ast","priority":"normal","created_at":"2026-07-12T02:01:10.739106400+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"dismissed":false}}
+{"kind":"removed","id":"f5986fa3-2c61-4dbb-b56f-4cfd8b5cbbda"}
