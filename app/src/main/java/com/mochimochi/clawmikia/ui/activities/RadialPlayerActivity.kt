@@ -1,5 +1,6 @@
 package com.mochimochi.clawmikiacrazy.ui.activities
 
+import android.animation.ValueAnimator
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -75,6 +76,10 @@ class RadialPlayerActivity : AppCompatActivity() {
 
     private var lastTouchAngle = 0f
     private var glowRotation = 0f
+    private var momentumAnimator: ValueAnimator? = null
+    private var lastAngleDelta = 0f
+    private var wheelCenterX = 0f
+    private var wheelCenterY = 0f
     private val pickArtLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
@@ -731,14 +736,28 @@ class RadialPlayerActivity : AppCompatActivity() {
 
     private fun setupCircularRotation() {
         binding.ivCircularGlow.setOnTouchListener { v, event ->
-            val cx = v.width / 2f
-            val cy = v.height / 2f
-            val angle =
-                Math.toDegrees(Math.atan2((event.y - cy).toDouble(), (event.x - cx).toDouble()))
-                    .toFloat()
+            // Calculate center of the wheel in screen space using the parent to avoid rotation-induced wobble
+            val parent = binding.radialWheelLayout.parent as android.view.View
+            val parentLoc = IntArray(2)
+            parent.getLocationOnScreen(parentLoc)
+            val centerX =
+                parentLoc[0] + binding.radialWheelLayout.left + binding.radialWheelLayout.width / 2f
+            val centerY =
+                parentLoc[1] + binding.radialWheelLayout.top + binding.radialWheelLayout.height / 2f
+
+            val angle = Math.toDegrees(
+                Math.atan2(
+                    (event.rawY - centerY).toDouble(),
+                    (event.rawX - centerX).toDouble()
+                )
+            ).toFloat()
+
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
+                    momentumAnimator?.cancel()
                     lastTouchAngle = angle
+                    glowRotation = binding.radialWheelLayout.rotation
+                    lastAngleDelta = 0f
                     v.parent?.requestDisallowInterceptTouchEvent(true)
                     true
                 }
@@ -747,8 +766,19 @@ class RadialPlayerActivity : AppCompatActivity() {
                     var delta = angle - lastTouchAngle
                     if (delta > 180f) delta -= 360f
                     else if (delta < -180f) delta += 360f
+
+                    val oldRotation = glowRotation
                     glowRotation += delta
-                    v.rotation = glowRotation
+
+                    // Haptic feedback for every 15 degrees
+                    if (Math.abs(glowRotation - oldRotation) >= 1f) {
+                        if ((glowRotation / 15).toInt() != (oldRotation / 15).toInt()) {
+                            v.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
+                        }
+                    }
+
+                    updateWheelRotation(glowRotation)
+                    lastAngleDelta = delta
                     lastTouchAngle = angle
                     true
                 }
@@ -761,6 +791,21 @@ class RadialPlayerActivity : AppCompatActivity() {
                 else -> false
             }
         }
+    }
+
+    private fun updateWheelRotation(rotation: Float) {
+        binding.radialWheelLayout.rotation = rotation
+        // Counter-rotate items to keep them upright
+        val counter = -rotation
+        binding.cardCenterArt.rotation = counter
+        binding.btnPlayPause.rotation = counter
+        binding.btnPrev.rotation = counter
+        binding.btnNext.rotation = counter
+        binding.btnRewind.rotation = counter
+        binding.btnForward.rotation = counter
+        binding.btnRepeat.rotation = counter
+        binding.tvRepeatIndicator.rotation = counter
+        binding.tvRepeatLabel.rotation = counter
     }
 
     private fun adjustVolume(up: Boolean) {

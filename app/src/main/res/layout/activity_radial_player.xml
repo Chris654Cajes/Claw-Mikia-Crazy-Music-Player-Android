@@ -55,7 +55,7 @@
                     android:fontFamily="@font/orbitron_bold"
                     android:gravity="center"
                     android:letterSpacing="0.16"
-                    android:text="RADIAL PLAYER"
+                    android:text="NOW PLAYING"
                     android:textColor="@color/text_primary"
                     android:textSize="13sp" />
 
@@ -108,6 +108,7 @@
 
             <!-- Radial Wheel Layout -->
             <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/radialWheelLayout"
                 android:layout_width="match_parent"
                 android:layout_height="400dp"
                 android:layout_marginTop="20dp"

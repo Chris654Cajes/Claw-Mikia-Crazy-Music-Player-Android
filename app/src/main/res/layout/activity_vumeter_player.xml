@@ -50,7 +50,7 @@
                     android:layout_weight="1"
                     android:fontFamily="@font/orbitron_bold"
                     android:gravity="center"
-                    android:text="VU METER PLAYER"
+                    android:text="NOW PLAYING"
                     android:textColor="@color/text_primary"
                     android:textSize="13sp" />
 
