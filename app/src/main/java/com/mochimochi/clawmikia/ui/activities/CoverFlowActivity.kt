@@ -191,11 +191,17 @@ class CoverFlowActivity : AppCompatActivity() {
         binding.btnBack.setOnClickListener { finish() }
         binding.btnPlayPause.setOnClickListener { musicService?.togglePlayPause() }
 
-        binding.btnNext.setOnClickListener { musicService?.skipNext() }
+        binding.btnNext.setOnClickListener {
+            val current = binding.viewPagerCovers.currentItem
+            if (current < adapter.itemCount - 1) {
+                binding.viewPagerCovers.setCurrentItem(current + 1, true)
+            }
+        }
         binding.btnPrev.setOnClickListener {
-            binding.seekPlayback.progress = 0
-            binding.tvCurrentTime.text = formatDuration(0)
-            musicService?.skipPrev()
+            val current = binding.viewPagerCovers.currentItem
+            if (current > 0) {
+                binding.viewPagerCovers.setCurrentItem(current - 1, true)
+            }
         }
 
         binding.btnRepeat.setOnClickListener {
@@ -715,17 +721,48 @@ class CoverFlowActivity : AppCompatActivity() {
     }
 
     private fun updateRepeatButton() {
-        val color = ContextCompat.getColor(
-            this, when (currentRepeatMode) {
-                MusicService.REPEAT_ALL -> R.color.neon_cyan
-                MusicService.REPEAT_ONE -> R.color.neon_pink
-                MusicService.REPEAT_AUTO -> R.color.neon_purple
-                else -> R.color.text_hint
+        when (currentRepeatMode) {
+            MusicService.REPEAT_ALL -> {
+                val color = ContextCompat.getColor(this, R.color.neon_cyan)
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
+                binding.btnRepeat.setColorFilter(color)
+                binding.tvRepeatIndicator.text = ""
+                binding.tvRepeatLabel.setTextColor(color)
+                binding.tvRepeatLabel.text = "ALL"
+                binding.tvRepeatLabel.visibility = View.VISIBLE
             }
-        )
-        binding.btnRepeat.setColorFilter(color)
-        binding.tvRepeatIndicator.text =
-            if (currentRepeatMode == MusicService.REPEAT_AUTO) "R" else ""
+
+            MusicService.REPEAT_ONE -> {
+                val color = ContextCompat.getColor(this, R.color.neon_pink)
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat_one)
+                binding.btnRepeat.setColorFilter(color)
+                binding.tvRepeatIndicator.text = ""
+                binding.tvRepeatLabel.setTextColor(color)
+                binding.tvRepeatLabel.text = "ONE"
+                binding.tvRepeatLabel.visibility = View.VISIBLE
+            }
+
+            MusicService.REPEAT_AUTO -> {
+                val color = ContextCompat.getColor(this, R.color.neon_purple)
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
+                binding.btnRepeat.setColorFilter(color)
+                binding.tvRepeatIndicator.text = "R"
+                binding.tvRepeatIndicator.setTextColor(color)
+                binding.tvRepeatLabel.setTextColor(color)
+                binding.tvRepeatLabel.text = "AUTO"
+                binding.tvRepeatLabel.visibility = View.VISIBLE
+            }
+
+            else -> {
+                val color = ContextCompat.getColor(this, R.color.text_hint)
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
+                binding.btnRepeat.setColorFilter(color)
+                binding.tvRepeatIndicator.text = ""
+                binding.tvRepeatLabel.setTextColor(color)
+                binding.tvRepeatLabel.text = "OFF"
+                binding.tvRepeatLabel.visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun updateShuffleButton() {

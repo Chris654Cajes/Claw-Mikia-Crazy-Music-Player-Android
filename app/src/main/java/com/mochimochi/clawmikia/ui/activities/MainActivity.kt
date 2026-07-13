@@ -360,10 +360,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun startNowPlaying(songId: Long) {
         val settingsRepo = SettingsRepository(this)
-        if (settingsRepo.getNowPlayingView() == "coverflow") {
-            CoverFlowActivity.start(this, songId)
-        } else {
-            NowPlayingActivity.start(this, songId)
+        when (settingsRepo.getNowPlayingView()) {
+            "coverflow" -> CoverFlowActivity.start(this, songId)
+            "radial" -> RadialPlayerActivity.start(this, songId)
+            "vumeter" -> VuMeterPlayerActivity.start(this, songId)
+            else -> NowPlayingActivity.start(this, songId)
         }
     }
 

@@ -134,28 +134,50 @@
             android:textColor="@color/text_primary"
             android:textSize="14sp" />
 
-        <RadioGroup
-            android:id="@+id/rgNowPlayingView"
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:orientation="horizontal">
+            android:scrollbars="none">
 
-            <RadioButton
-                android:id="@+id/rbStandard"
+            <RadioGroup
+                android:id="@+id/rgNowPlayingView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingEnd="24dp"
-                android:text="Standard"
-                android:textColor="@color/text_secondary" />
+                android:orientation="horizontal">
 
-            <RadioButton
-                android:id="@+id/rbCoverFlow"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cover Flow"
-                android:textColor="@color/text_secondary" />
-        </RadioGroup>
+                <RadioButton
+                    android:id="@+id/rbStandard"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingEnd="12dp"
+                    android:text="Standard"
+                    android:textColor="@color/text_secondary" />
+
+                <RadioButton
+                    android:id="@+id/rbCoverFlow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingEnd="12dp"
+                    android:text="Cover Flow"
+                    android:textColor="@color/text_secondary" />
+
+                <RadioButton
+                    android:id="@+id/rbRadial"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingEnd="12dp"
+                    android:text="Radial Wheel"
+                    android:textColor="@color/text_secondary" />
+
+                <RadioButton
+                    android:id="@+id/rbVuMeter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="VU Meter"
+                    android:textColor="@color/text_secondary" />
+            </RadioGroup>
+        </HorizontalScrollView>
 
         <!-- Volume Step -->
         <TextView

@@ -67,16 +67,22 @@ class SettingsFragment : Fragment() {
     private fun setupNowPlayingView() {
         val rg = binding.rgNowPlayingView
         rg.setOnCheckedChangeListener { _, checkedId ->
-            val viewType = if (checkedId == R.id.rbCoverFlow) "coverflow" else "standard"
+            val viewType = when (checkedId) {
+                R.id.rbCoverFlow -> "coverflow"
+                R.id.rbRadial -> "radial"
+                R.id.rbVuMeter -> "vumeter"
+                else -> "standard"
+            }
             settingsRepo.setNowPlayingView(viewType)
         }
     }
 
     private fun checkRadioForNowPlayingView(viewType: String) {
-        if (viewType == "coverflow") {
-            binding.rgNowPlayingView.check(R.id.rbCoverFlow)
-        } else {
-            binding.rgNowPlayingView.check(R.id.rbStandard)
+        when (viewType) {
+            "coverflow" -> binding.rgNowPlayingView.check(R.id.rbCoverFlow)
+            "radial" -> binding.rgNowPlayingView.check(R.id.rbRadial)
+            "vumeter" -> binding.rgNowPlayingView.check(R.id.rbVuMeter)
+            else -> binding.rgNowPlayingView.check(R.id.rbStandard)
         }
     }
 
