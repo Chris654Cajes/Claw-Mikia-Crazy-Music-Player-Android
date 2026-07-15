@@ -93,6 +93,8 @@ class MusicService : Service() {
 
     private val playStateCallbacks = java.util.concurrent.CopyOnWriteArrayList<(Boolean) -> Unit>()
     private val songChangedCallbacks = java.util.concurrent.CopyOnWriteArrayList<(Song) -> Unit>()
+    private val repeatModeCallbacks = java.util.concurrent.CopyOnWriteArrayList<(Int) -> Unit>()
+    private val shuffleCallbacks = java.util.concurrent.CopyOnWriteArrayList<(Boolean) -> Unit>()
 
     private var isPlayingRequested = false
     private var isPrepared = false
@@ -179,6 +181,22 @@ class MusicService : Service() {
 
     fun removeSongChangedCallback(cb: (Song) -> Unit) {
         songChangedCallbacks.remove(cb)
+    }
+
+    fun addRepeatModeCallback(cb: (Int) -> Unit) {
+        repeatModeCallbacks.add(cb); cb(repeatMode)
+    }
+
+    fun removeRepeatModeCallback(cb: (Int) -> Unit) {
+        repeatModeCallbacks.remove(cb)
+    }
+
+    fun addShuffleCallback(cb: (Boolean) -> Unit) {
+        shuffleCallbacks.add(cb); cb(shuffleEnabled)
+    }
+
+    fun removeShuffleCallback(cb: (Boolean) -> Unit) {
+        shuffleCallbacks.remove(cb)
     }
 
     fun setPlaylist(songs: List<Song>, startIndex: Int = 0) {
@@ -411,14 +429,20 @@ class MusicService : Service() {
 
     fun skipPrev() {
         val now = System.currentTimeMillis()
-        // If pressed twice within 2 seconds, skip to previous song.
-        // Otherwise, just replay the current song from the start.
-        if (now - lastSkipPrevTime < 2000) {
+        // Double click logic (within 1 second) to skip to previous
+        if (now - lastSkipPrevTime < 1000) {
+            val oldIndex = currentIndex
             retreatIndex()
-            playCurrent(forceReload = true)
+            if (currentIndex != oldIndex) {
+                playCurrent(forceReload = true)
+            } else {
+                // If it didn't change (e.g. REPEAT_NONE at start), just seek to start
+                seekTo(activeProfile?.trimStart?.toInt() ?: 0)
+            }
+            lastSkipPrevTime = 0 // Reset after double click
         } else {
-            val startPos = activeProfile?.trimStart?.toInt() ?: 0
-            seekTo(startPos)
+            // Single click: just replay current song
+            seekTo(activeProfile?.trimStart?.toInt() ?: 0)
             lastSkipPrevTime = now
         }
     }
@@ -427,9 +451,17 @@ class MusicService : Service() {
         if (playlist.isEmpty()) return
         if (shuffleEnabled && shuffledIndices.isNotEmpty()) {
             val pos = shuffledIndices.indexOf(currentIndex)
-            currentIndex = shuffledIndices[(pos + 1) % shuffledIndices.size]
+            if (pos < shuffledIndices.size - 1) {
+                currentIndex = shuffledIndices[pos + 1]
+            } else if (repeatMode != REPEAT_NONE) {
+                currentIndex = shuffledIndices[0]
+            }
         } else {
-            currentIndex = (currentIndex + 1) % playlist.size
+            if (currentIndex < playlist.size - 1) {
+                currentIndex++
+            } else if (repeatMode != REPEAT_NONE) {
+                currentIndex = 0
+            }
         }
     }
 
@@ -437,9 +469,17 @@ class MusicService : Service() {
         if (playlist.isEmpty()) return
         if (shuffleEnabled && shuffledIndices.isNotEmpty()) {
             val pos = shuffledIndices.indexOf(currentIndex)
-            currentIndex = shuffledIndices[(pos - 1 + shuffledIndices.size) % shuffledIndices.size]
+            if (pos > 0) {
+                currentIndex = shuffledIndices[pos - 1]
+            } else if (repeatMode != REPEAT_NONE) {
+                currentIndex = shuffledIndices[shuffledIndices.size - 1]
+            }
         } else {
-            currentIndex = (currentIndex - 1 + playlist.size) % playlist.size
+            if (currentIndex > 0) {
+                currentIndex--
+            } else if (repeatMode != REPEAT_NONE) {
+                currentIndex = playlist.size - 1
+            }
         }
     }
 
@@ -814,6 +854,7 @@ class MusicService : Service() {
         repeatMode = mode
         com.mochimochi.clawmikiacrazy.MusicVaultApp.instance.prefs.edit()
             .putInt(com.mochimochi.clawmikiacrazy.MusicVaultApp.KEY_REPEAT_MODE, mode).apply()
+        repeatModeCallbacks.forEach { it(mode) }
     }
 
     fun toggleShuffle() {
@@ -821,6 +862,7 @@ class MusicService : Service() {
         com.mochimochi.clawmikiacrazy.MusicVaultApp.instance.prefs.edit()
             .putBoolean(com.mochimochi.clawmikiacrazy.MusicVaultApp.KEY_SHUFFLE_ON, shuffleEnabled)
             .apply()
+        shuffleCallbacks.forEach { it(shuffleEnabled) }
     }
 
     fun isShuffleEnabled(): Boolean = shuffleEnabled

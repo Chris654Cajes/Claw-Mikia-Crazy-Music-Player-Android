@@ -1,1 +1,44 @@
-{"entries":[{"timestamp":"2026-06-29T22:25:28.224055900+00:00","input_summary":"","output_summary":"Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","success":false,"failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."},{"timestamp":"2026-07-02T19:23:23.706147800+00:00","input_summary":"","output_summary":"Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","success":false,"failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."},{"timestamp":"2026-07-12T19:14:31.374577400+00:00","input_summary":"","output_summary":"Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","success":false,"failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."},{"timestamp":"2026-07-13T18:00:31.284601200+00:00","input_summary":"","output_summary":"Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","success":false,"failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."}]}
+{
+  "entries": [
+    {
+      "timestamp": "2026-06-29T22:25:28.224055900+00:00",
+      "input_summary": "",
+      "output_summary": "Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+      "success": false,
+      "failure_category": "unknown",
+      "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
+    },
+    {
+      "timestamp": "2026-07-02T19:23:23.706147800+00:00",
+      "input_summary": "",
+      "output_summary": "Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+      "success": false,
+      "failure_category": "unknown",
+      "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
+    },
+    {
+      "timestamp": "2026-07-12T19:14:31.374577400+00:00",
+      "input_summary": "",
+      "output_summary": "Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+      "success": false,
+      "failure_category": "unknown",
+      "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
+    },
+    {
+      "timestamp": "2026-07-13T18:00:31.284601200+00:00",
+      "input_summary": "",
+      "output_summary": "Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+      "success": false,
+      "failure_category": "unknown",
+      "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
+    },
+    {
+      "timestamp": "2026-07-15T19:16:19.739302300+00:00",
+      "input_summary": "",
+      "output_summary": "Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+      "success": false,
+      "failure_category": "unknown",
+      "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
+    }
+  ]
+}

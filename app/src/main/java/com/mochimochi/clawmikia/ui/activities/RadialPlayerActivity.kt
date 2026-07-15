@@ -72,6 +72,13 @@ class RadialPlayerActivity : AppCompatActivity() {
     private var isAbRepeatEnabled = false
     private var isTrimDragging = false
 
+    private val volumeObserver =
+        object : android.database.ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                syncVolumeSeekBar()
+            }
+        }
+
     private var selectedArtUri: Uri? = null
 
     private var lastTouchAngle = 0f
@@ -94,12 +101,22 @@ class RadialPlayerActivity : AppCompatActivity() {
     private val progressHandler = Handler(Looper.getMainLooper())
     private var progressRunnable: Runnable? = null
 
+    private val repeatModeCallback: (Int) -> Unit = { mode ->
+        runOnUiThread {
+            currentRepeatMode = mode
+            updateRepeatButton()
+        }
+    }
+
+    private val shuffleCallback: (Boolean) -> Unit = { _ ->
+        runOnUiThread {
+            updateShuffleButton()
+        }
+    }
+
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             musicService = (service as MusicService.MusicBinder).getService()
-            currentRepeatMode = musicService?.getRepeatMode() ?: MusicService.REPEAT_NONE
-            updateRepeatButton()
-            updateShuffleButton()
             registerCallbacks()
             syncNow()
             startProgressUpdates()
@@ -171,6 +188,11 @@ class RadialPlayerActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        contentResolver.registerContentObserver(
+            android.provider.Settings.System.CONTENT_URI,
+            true,
+            volumeObserver
+        )
         musicService?.let {
             registerCallbacks()
             syncNow()
@@ -185,6 +207,7 @@ class RadialPlayerActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause(); stopProgressUpdates()
+        contentResolver.unregisterContentObserver(volumeObserver)
     }
 
     override fun onDestroy() {
@@ -192,6 +215,8 @@ class RadialPlayerActivity : AppCompatActivity() {
         musicService?.let { service ->
             service.removeSongChangedCallback(songChangedCallback)
             service.removePlayStateCallback(playStateCallback)
+            service.removeRepeatModeCallback(repeatModeCallback)
+            service.removeShuffleCallback(shuffleCallback)
         }
         unbindService(serviceConnection)
         super.onDestroy()
@@ -359,8 +384,12 @@ class RadialPlayerActivity : AppCompatActivity() {
         musicService?.let { service ->
             service.removeSongChangedCallback(songChangedCallback)
             service.removePlayStateCallback(playStateCallback)
+            service.removeRepeatModeCallback(repeatModeCallback)
+            service.removeShuffleCallback(shuffleCallback)
             service.addSongChangedCallback(songChangedCallback)
             service.addPlayStateCallback(playStateCallback)
+            service.addRepeatModeCallback(repeatModeCallback)
+            service.addShuffleCallback(shuffleCallback)
         }
     }
 

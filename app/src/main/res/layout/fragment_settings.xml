@@ -179,29 +179,6 @@
             </RadioGroup>
         </HorizontalScrollView>
 
-        <!-- Volume Step -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="VOLUME STEP (%)"
-            android:fontFamily="@font/orbitron_bold"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp" />
-
-        <EditText
-            android:id="@+id/etVolumeStep"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:hint="e.g. 0.05"
-            android:textColorHint="@color/text_hint"
-            android:textColor="@color/neon_cyan"
-            android:background="@drawable/bg_search_field"
-            android:padding="12dp"
-            android:layout_marginBottom="24dp"
-            android:autofillHints="none" />
-
         <!-- Pitch Step -->
         <TextView
             android:layout_width="wrap_content"
@@ -311,37 +288,6 @@
             android:layout_marginBottom="24dp"
             android:background="@drawable/bg_search_field"
             android:padding="12dp" />
-
-        <!-- Volume Level -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:fontFamily="@font/orbitron_bold"
-            android:text="VOLUME LEVEL"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp" />
-
-        <SeekBar
-            android:id="@+id/seekVolume"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:max="200"
-            android:progress="70"
-            android:progressTint="@color/neon_pink"
-            android:thumbTint="@color/neon_pink" />
-
-        <TextView
-            android:id="@+id/tvVolumeCaution"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:fontFamily="@font/orbitron_regular"
-            android:text="Caution: Listening at high volumes may damage your hearing."
-            android:textColor="@color/neon_red"
-            android:textSize="11sp"
-            android:visibility="gone" />
 
         <!-- Metadata Update -->
         <TextView

@@ -82,6 +82,13 @@ class CoverFlowActivity : AppCompatActivity() {
     private var isAbRepeatEnabled: Boolean = false
     private var isTrimDragging: Boolean = false
 
+    private val volumeObserver =
+        object : android.database.ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                syncVolumeSeekBar()
+            }
+        }
+
     private val songChangedCallback: (Song) -> Unit = { s ->
         song = s
         songId = s.id
@@ -93,6 +100,19 @@ class CoverFlowActivity : AppCompatActivity() {
         viewModel.setPlaying(playing)
         updatePlayButton(playing)
         if (playing) startProgressUpdates() else stopProgressUpdates()
+    }
+
+    private val repeatModeCallback: (Int) -> Unit = { mode ->
+        runOnUiThread {
+            currentRepeatMode = mode
+            updateRepeatButton()
+        }
+    }
+
+    private val shuffleCallback: (Boolean) -> Unit = { _ ->
+        runOnUiThread {
+            updateShuffleButton()
+        }
     }
 
     private val serviceConnection = object : ServiceConnection {
@@ -157,6 +177,11 @@ class CoverFlowActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        contentResolver.registerContentObserver(
+            android.provider.Settings.System.CONTENT_URI,
+            true,
+            volumeObserver
+        )
         if (musicService?.isPlaying() == true) {
             startProgressUpdates()
         }
@@ -166,6 +191,7 @@ class CoverFlowActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         stopProgressUpdates()
+        contentResolver.unregisterContentObserver(volumeObserver)
     }
 
     private fun setupViewPager() {
@@ -198,10 +224,10 @@ class CoverFlowActivity : AppCompatActivity() {
             }
         }
         binding.btnPrev.setOnClickListener {
-            val current = binding.viewPagerCovers.currentItem
-            if (current > 0) {
-                binding.viewPagerCovers.setCurrentItem(current - 1, true)
-            }
+            // Immediate UI feedback for replay
+            binding.seekPlayback.progress = 0
+            binding.tvCurrentTime.text = formatDuration(0)
+            musicService?.skipPrev()
         }
 
         binding.btnRepeat.setOnClickListener {
@@ -684,15 +710,23 @@ class CoverFlowActivity : AppCompatActivity() {
     }
 
     private fun registerCallbacks() {
-        musicService?.addSongChangedCallback(songChangedCallback)
-        musicService?.addPlayStateCallback(playStateCallback)
-        musicService?.getQueue()?.let {
-            songs = it
-            adapter = CoverFlowAdapter(it)
-            binding.viewPagerCovers.adapter = adapter
-            val cur = musicService?.getCurrentSong()
-            val idx = it.indexOfFirst { s -> s.id == cur?.id }
-            if (idx != -1) binding.viewPagerCovers.setCurrentItem(idx, false)
+        musicService?.let { service ->
+            service.removeSongChangedCallback(songChangedCallback)
+            service.removePlayStateCallback(playStateCallback)
+            service.removeRepeatModeCallback(repeatModeCallback)
+            service.removeShuffleCallback(shuffleCallback)
+            service.addSongChangedCallback(songChangedCallback)
+            service.addPlayStateCallback(playStateCallback)
+            service.addRepeatModeCallback(repeatModeCallback)
+            service.addShuffleCallback(shuffleCallback)
+            service.getQueue()?.let {
+                songs = it
+                adapter = CoverFlowAdapter(it)
+                binding.viewPagerCovers.adapter = adapter
+                val cur = service.getCurrentSong()
+                val idx = it.indexOfFirst { s -> s.id == cur?.id }
+                if (idx != -1) binding.viewPagerCovers.setCurrentItem(idx, false)
+            }
         }
     }
 
@@ -1019,8 +1053,12 @@ class CoverFlowActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopProgressUpdates()
-        musicService?.removeSongChangedCallback(songChangedCallback)
-        musicService?.removePlayStateCallback(playStateCallback)
+        musicService?.let { service ->
+            service.removeSongChangedCallback(songChangedCallback)
+            service.removePlayStateCallback(playStateCallback)
+            service.removeRepeatModeCallback(repeatModeCallback)
+            service.removeShuffleCallback(shuffleCallback)
+        }
         unbindService(serviceConnection)
     }
 

@@ -49,14 +49,12 @@ class SettingsFragment : Fragment() {
         settingsRepo = SettingsRepository(requireContext())
 
         setupFavoriteIconGroup()
-        setupVolumeStep()
         setupPitchStep()
         setupSpeedStep()
         setupTrimStep()
         setupSkipStep()
         setupNowPlayingView()
         setupEnvironmentSpinner()
-        setupVolumeControl()
         setupMetadataUpdateButton()
         setupResetButton()
         observeSettings()
@@ -113,62 +111,6 @@ class SettingsFragment : Fragment() {
                 override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
             }
     }
-
-    // ── Volume Control ───────────────────────────────────────────────────────
-
-    private fun setupVolumeControl() {
-        val audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-
-        // Sync UI: 0-100 is system volume, 101-200 is boost
-        val currentBoost = settingsRepo.getVolumeBoost() // 0 to 1000 mB
-        val systemPct = ((currentVolume.toFloat() / maxVolume) * 100).toInt()
-
-        val initialProgress = if (currentBoost > 0) {
-            100 + (currentBoost / 10)
-        } else {
-            systemPct
-        }
-
-        binding.seekVolume.progress = initialProgress
-        updateVolumeCaution(initialProgress)
-
-        binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    if (progress <= 100) {
-                        val targetVol = (progress.toFloat() / 100f * maxVolume).toInt()
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVol, 0)
-                        settingsRepo.setVolumeBoost(0)
-                        settingsRepo.setVolumeLevel(progress)
-                    } else {
-                        // Max out system volume and add boost
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-                        val boostMb = (progress - 100) * 10
-                        settingsRepo.setVolumeBoost(boostMb)
-                        settingsRepo.setVolumeLevel(progress)
-                    }
-                    updateVolumeCaution(progress)
-                }
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
-    }
-
-    private fun updateVolumeCaution(progress: Int) {
-        binding.tvVolumeCaution.visibility = if (progress > 85) View.VISIBLE else View.GONE
-        if (progress > 100) {
-            binding.tvVolumeCaution.text =
-                "CAUTION: VOLUME BOOST ACTIVE ($progress%). May distort audio or damage hearing."
-        } else {
-            binding.tvVolumeCaution.text =
-                "Caution: Listening at high volumes may damage your hearing."
-        }
-    }
-
 
     // ── Metadata Update ──────────────────────────────────────────────────────
 
@@ -242,33 +184,7 @@ class SettingsFragment : Fragment() {
     // ── Volume Step ────────────────────────────────────────────────────────────
 
     private fun setupVolumeStep() {
-        val et = binding.etVolumeStep
-        et.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-
-        et.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                if (suppressWatcher) return
-                val raw = s.toString().trim()
-                if (raw.isEmpty()) return
-                val value = raw.toFloatOrNull() ?: return
-                settingsRepo.setVolumeStep(value)
-            }
-        })
-
-        et.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                val raw = et.text.toString().trim()
-                val value = raw.toFloatOrNull() ?: SettingsRepository.DEFAULT_VOLUME_STEP
-                val clamped = value.coerceIn(1f, 50f)
-                suppressWatcher = true
-                et.setText(formatFloat(clamped))
-                et.setSelection(et.text.length)
-                suppressWatcher = false
-                settingsRepo.setVolumeStep(clamped)
-            }
-        }
+        // Removed as per request
     }
 
     // ── Pitch Step ─────────────────────────────────────────────────────────────
@@ -412,23 +328,12 @@ class SettingsFragment : Fragment() {
                     settingsRepo.resetAll()
                     // Refresh all EditTexts with defaults
                     suppressWatcher = true
-                    binding.etVolumeStep.setText(formatFloat(SettingsRepository.DEFAULT_VOLUME_STEP))
                     binding.etPitchStep.setText(formatDecimal1(SettingsRepository.DEFAULT_PITCH_STEP))
                     binding.etSpeedStep.setText(SettingsRepository.DEFAULT_SPEED_STEP.toString())
                     binding.etTrimStep.setText(formatDecimal1(SettingsRepository.DEFAULT_TRIM_STEP))
                     binding.etSkipStep.setText(SettingsRepository.DEFAULT_SKIP_STEP.toString())
 
                     binding.spinnerEnvironment.setSelection(0)
-
-                    val audioManager =
-                        requireContext().getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                    val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                    val targetVol =
-                        (SettingsRepository.DEFAULT_VOLUME_LEVEL.toFloat() / 100f * maxVolume).toInt()
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVol, 0)
-
-                    binding.seekVolume.progress = SettingsRepository.DEFAULT_VOLUME_LEVEL
-                    updateVolumeCaution(SettingsRepository.DEFAULT_VOLUME_LEVEL)
 
                     suppressWatcher = false
                     Toast.makeText(
@@ -452,11 +357,6 @@ class SettingsFragment : Fragment() {
         }
 
         // Only populate initial values if EditText is empty (first load).
-        // Avoid resetting text while the user is typing.
-        val vol = settingsRepo.getVolumeStep()
-        if (binding.etVolumeStep.text.isNullOrEmpty()) {
-            binding.etVolumeStep.setText(formatFloat(vol))
-        }
 
         val pitch = settingsRepo.getPitchStep()
         if (binding.etPitchStep.text.isNullOrEmpty()) {
