@@ -174,7 +174,23 @@
                     android:id="@+id/rbVuMeter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:paddingEnd="12dp"
                     android:text="VU Meter"
+                    android:textColor="@color/text_secondary" />
+
+                <RadioButton
+                    android:id="@+id/rbCircular"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingEnd="12dp"
+                    android:text="Circular"
+                    android:textColor="@color/text_secondary" />
+
+                <RadioButton
+                    android:id="@+id/rbCards"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cards"
                     android:textColor="@color/text_secondary" />
             </RadioGroup>
         </HorizontalScrollView>

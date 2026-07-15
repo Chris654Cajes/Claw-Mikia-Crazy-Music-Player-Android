@@ -71,4 +71,6 @@
     <string name="bpm_format">%1$d BPM</string>
     <string name="key_format">Key: %1$s</string>
     <string name="clear_search">Clear search</string>
+    <string name="back">Back</string>
+    <string name="shuffle">Shuffle</string>
 </resources>

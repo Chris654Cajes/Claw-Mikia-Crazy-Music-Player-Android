@@ -69,6 +69,8 @@ class SettingsFragment : Fragment() {
                 R.id.rbCoverFlow -> "coverflow"
                 R.id.rbRadial -> "radial"
                 R.id.rbVuMeter -> "vumeter"
+                R.id.rbCircular -> "circular"
+                R.id.rbCards -> "cards"
                 else -> "standard"
             }
             settingsRepo.setNowPlayingView(viewType)
@@ -80,6 +82,8 @@ class SettingsFragment : Fragment() {
             "coverflow" -> binding.rgNowPlayingView.check(R.id.rbCoverFlow)
             "radial" -> binding.rgNowPlayingView.check(R.id.rbRadial)
             "vumeter" -> binding.rgNowPlayingView.check(R.id.rbVuMeter)
+            "circular" -> binding.rgNowPlayingView.check(R.id.rbCircular)
+            "cards" -> binding.rgNowPlayingView.check(R.id.rbCards)
             else -> binding.rgNowPlayingView.check(R.id.rbStandard)
         }
     }

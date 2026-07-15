@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp"
+        app:cardBackgroundColor="@color/bg_card"
+        app:cardCornerRadius="24dp"
+        app:strokeColor="@color/neon_red"
+        app:strokeWidth="2dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:contentDescription="Trim Icon"
+                android:src="@drawable/ic_trim"
+                app:tint="@color/neon_red" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/orbitron_bold"
+                android:text="TIMELINE TRIM"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+
+            <SeekBar
+                android:id="@+id/seekTrimStart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:progressTint="@color/neon_light_blue"
+                android:thumb="@drawable/seekbar_thumb_blue" />
+
+            <TextView
+                android:id="@+id/tvTrimStart"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start: 0:00"
+                android:textColor="@color/neon_light_blue"
+                android:textSize="12sp" />
+
+            <SeekBar
+                android:id="@+id/seekTrimEnd"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:progressTint="@color/neon_red"
+                android:thumb="@drawable/seekbar_thumb_red" />
+
+            <TextView
+                android:id="@+id/tvTrimEnd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="End: 0:00"
+                android:textColor="@color/neon_red"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</FrameLayout>

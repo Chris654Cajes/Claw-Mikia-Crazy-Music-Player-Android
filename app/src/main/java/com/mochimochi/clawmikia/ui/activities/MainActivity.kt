@@ -48,9 +48,11 @@ import com.mochimochi.clawmikiacrazy.ui.fragments.LibraryFragment
 import com.mochimochi.clawmikiacrazy.ui.fragments.PlaylistsFragment
 import com.mochimochi.clawmikiacrazy.ui.fragments.SettingsFragment
 import com.mochimochi.clawmikiacrazy.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
+import com.mochimochi.clawmikiacrazy.ui.activities.CircularPlayerActivity
+import com.mochimochi.clawmikiacrazy.ui.activities.CardsPlayerActivity
 import com.mochimochi.clawmikiacrazy.ui.viewmodels.AdvancedFilter
 import com.mochimochi.clawmikiacrazy.ui.viewmodels.TriState
-import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
 import com.mochimochi.clawmikiacrazy.utils.FavoriteIconHelper
 import com.mochimochi.clawmikiacrazy.utils.formatDuration
 import kotlinx.coroutines.Dispatchers
@@ -364,6 +366,8 @@ class MainActivity : AppCompatActivity() {
             "coverflow" -> CoverFlowActivity.start(this, songId)
             "radial" -> RadialPlayerActivity.start(this, songId)
             "vumeter" -> VuMeterPlayerActivity.start(this, songId)
+            "circular" -> CircularPlayerActivity.start(this, songId)
+            "cards" -> CardsPlayerActivity.start(this, songId)
             else -> NowPlayingActivity.start(this, songId)
         }
     }
