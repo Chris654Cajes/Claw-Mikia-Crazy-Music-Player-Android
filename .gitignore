@@ -1,20 +1,56 @@
-# Built variants
+# ===========================
+# Android & Gradle
+# ===========================
+
+# Built application files
 *.apk
 *.aar
 *.ap_
 *.aab
+*.aab.apks
 
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Gradle files
+.gradle/
+build/
+app/build/
+*/build/
+
+# Gradle wrapper
+gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration
+local.properties
+secrets.properties
+
+# Proguard/R8
+proguard/
+mapping.txt
+**/proguard/mapping.txt
+
+# ===========================
 # Android Studio / IntelliJ
+# ===========================
+
 .idea/
 *.iml
 *.iws
-.project
-.settings
-.classpath
+*.ipr
 .navigation/
 captures/
-.externalNativeBuild
-.cxx
+.externalNativeBuild/
+.cxx/
 vcs.xml
 lint/
 *.hprof
@@ -22,40 +58,74 @@ lint/
 .idea/tasks.xml
 .idea/gradle.xml
 .idea/assetWizardSettings.xml
-.idea/dictionaries
-.idea/libraries
-.idea/caches
+.idea/dictionaries/
+.idea/libraries/
+.idea/caches/
 .idea/modules.xml
 .idea/navEditor.xml
 .idea/deploymentTargetSelector.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/jps-blacklist.xml
 
-# Gradle
-.gradle/
-build/
-app/build/
-
-# Local configuration
-local.properties
-secrets.properties
-
-# Keystore
+# Keystore files
 *.jks
 *.keystore
 *.p12
 
-# Google Services
-google-services.json
+# Google Services (uncomment if using Firebase/Google APIs)
+# google-services.json
 
-# OS generated
+# ===========================
+# Kotlin / JVM
+# ===========================
+
+*.kotlin_module
+kotlin/kotlin.daemon.jvm.args
+
+# ===========================
+# Signing
+# ===========================
+
+*.jks
+*.keystore
+signing.properties
+
+# ===========================
+# OS Generated
+# ===========================
+
+# macOS
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
-Thumbs.db
+.applesetup
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
 
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.Trash-*
+.nfs*
+
+# ===========================
 # Temporary / Backup
+# ===========================
+
 *.tmp
 *.temp
 *.swp
@@ -64,24 +134,96 @@ Thumbs.db
 *.bak
 *.backup
 *.orig
+*.old
 *.log
 
+# ===========================
 # Databases
+# ===========================
+
 *.db
 *.sqlite
 *.sqlite3
 *.db-journal
 *.db-shm
 *.db-wal
+*.db-wal2
 
-# Kotlin / Java
-*.kotlin_module
-*.class
-R.txt
+# ===========================
+# Test / Coverage
+# ===========================
 
-# Test
 test-results/
 androidTest-results/
 coverage/
 *.coverage
 *.lcov
+jacoco.exec
+*.exec
+*.ec
+test_output/
+
+# ===========================
+# Node.js (if applicable)
+# ===========================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ===========================
+# Python (if applicable)
+# ===========================
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+ENV/
+
+# ===========================
+# Environment / Config
+# ===========================
+
+.env
+.env.local
+.env.*.local
+*.env
+config.json
+config.local.json
+
+# ===========================
+# Misc
+# ===========================
+
+*.map
+*.map.json
+*.min.js
+*.min.css
+*.css.map
+*.js.map
+*.tsbuildinfo
+*.code-workspace
+.vscode/
+.vs/
+
+# Docker (if applicable)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Android Studio AI
+*.ai
+
+# Generated resources
+**/generated/
+**/res/generated/
