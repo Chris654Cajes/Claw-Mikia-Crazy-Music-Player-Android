@@ -10,8 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.view.LayoutInflater
-import android.view.ViewGroup
+import android.view.View
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -19,7 +18,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -54,6 +52,12 @@ class CardsPlayerActivity : AppCompatActivity() {
     private var song: Song? = null
     private var songId: Long = -1
     private var currentRepeatMode = MusicService.REPEAT_NONE
+    private var maxVolume = 0
+    private var lastVolumeBeforeMute = -1
+
+    private var pointA: Long = -1L
+    private var pointB: Long = -1L
+    private var isAbRepeatEnabled = false
 
     private val progressHandler = Handler(Looper.getMainLooper())
     private var progressRunnable: Runnable? = null
@@ -77,7 +81,6 @@ class CardsPlayerActivity : AppCompatActivity() {
             syncNow()
             startProgressUpdates()
         }
-
         override fun onServiceDisconnected(name: ComponentName?) {
             musicService = null
         }
@@ -104,15 +107,17 @@ class CardsPlayerActivity : AppCompatActivity() {
         profileRepo = ProfileRepository(applicationContext)
         viewModel = ViewModelProvider(this)[NowPlayingViewModel::class.java]
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
+        maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
 
         setupControls()
-        setupViewPager()
+        setupFunctionalCards()
         observeViewModel()
 
         songId = intent.getLongExtra(EXTRA_SONG_ID, -1)
         if (songId != -1L) {
             activityScope.launch {
                 repository.getSongById(songId)?.let { s ->
+                    song = s
                     populate(s)
                     viewModel.setSong(s, false)
                 }
@@ -128,18 +133,32 @@ class CardsPlayerActivity : AppCompatActivity() {
         binding.btnNext.setOnClickListener { musicService?.skipNext() }
         binding.btnPrev.setOnClickListener { musicService?.skipPrev() }
         binding.btnRewind.setOnClickListener {
-            musicService?.seekTo(
-                (musicService?.getPosition() ?: 0) - 5000
-            )
+            val svc = musicService ?: return@setOnClickListener
+            val skipMs = settingsRepo.getSkipStep() * 1000
+            svc.seekTo((svc.getPosition() - skipMs).coerceAtLeast(0))
         }
         binding.btnForward.setOnClickListener {
-            musicService?.seekTo(
-                (musicService?.getPosition() ?: 0) + 5000
-            )
+            val svc = musicService ?: return@setOnClickListener
+            val skipMs = settingsRepo.getSkipStep() * 1000
+            svc.seekTo((svc.getPosition() + skipMs).coerceAtMost(svc.getDuration()))
         }
 
-        binding.btnShuffle.setOnClickListener { musicService?.toggleShuffle(); updateShuffleButton() }
-        binding.btnRepeat.setOnClickListener { toggleRepeat() }
+        binding.btnShuffle.setOnClickListener {
+            musicService?.toggleShuffle()
+            updateShuffleButton()
+        }
+
+        binding.btnRepeat.setOnClickListener {
+            currentRepeatMode = when (currentRepeatMode) {
+                MusicService.REPEAT_NONE -> MusicService.REPEAT_ALL
+                MusicService.REPEAT_ALL -> MusicService.REPEAT_ONE
+                MusicService.REPEAT_ONE -> MusicService.REPEAT_AUTO
+                else -> MusicService.REPEAT_NONE
+            }
+            musicService?.setRepeatMode(currentRepeatMode)
+            updateRepeatButton()
+        }
+
         binding.btnFavorite.setOnClickListener { toggleFavorite() }
         binding.btnProfiles.setOnClickListener {
             ProfilesFragment().show(
@@ -151,10 +170,6 @@ class CardsPlayerActivity : AppCompatActivity() {
         binding.btnDelete.setOnClickListener { showDeleteConfirmDialog() }
         binding.btnResetAllStates.setOnClickListener { resetAllStates() }
 
-        binding.switchSwipeEnabled.setOnCheckedChangeListener { _, isChecked ->
-            binding.viewPagerSections.isUserInputEnabled = isChecked
-        }
-
         binding.seekPlayback.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
                 if (fromUser) {
@@ -162,15 +177,152 @@ class CardsPlayerActivity : AppCompatActivity() {
                     musicService?.seekTo((p / 100f * duration).toInt())
                 }
             }
-
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {}
         })
     }
 
-    private fun setupViewPager() {
-        binding.viewPagerSections.adapter = SectionsAdapter()
-        binding.viewPagerSections.offscreenPageLimit = 8
+    private fun setupFunctionalCards() {
+        // Volume
+        binding.cardVolume.seekVolume.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    audioManager.setStreamVolume(
+                        AudioManager.STREAM_MUSIC,
+                        (p / 100f * maxVolume).toInt(),
+                        0
+                    )
+                    settingsRepo.setVolumeBoost(0)
+                }
+                binding.cardVolume.tvVolumeValue.text = p.toString()
+            }
+
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {}
+        })
+        binding.cardVolume.btnVolumeDown.setOnClickListener { adjustVolume(-1) }
+        binding.cardVolume.btnVolumeUp.setOnClickListener { adjustVolume(1) }
+        binding.cardVolume.btnVolumeMute.setOnClickListener { toggleMute() }
+        binding.cardVolume.btnVolumeReset.setOnClickListener { resetVolume() }
+
+        // Pitch
+        binding.cardPitch.seekPitch.max = 120
+        binding.cardPitch.seekPitch.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
+                val st = (p - 60) / 10.0f
+                binding.cardPitch.tvPitchValue.text = pitchLabel(st)
+                if (fromUser) musicService?.applyPitchToCurrentSong(st)
+            }
+
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {
+                val st = (sb.progress - 60) / 10.0f
+                activityScope.launch { repository.updatePitchAndSyncProfile(songId, st) }
+            }
+        })
+        binding.cardPitch.btnPitchDown.setOnClickListener { adjustPitch(-1) }
+        binding.cardPitch.btnPitchUp.setOnClickListener { adjustPitch(1) }
+        binding.cardPitch.btnPitchReset.setOnClickListener { resetPitch() }
+
+        // Speed
+        binding.cardSpeed.seekSpeed.max = 50
+        binding.cardSpeed.seekSpeed.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
+                val sp = 0.5f + p * 0.05f
+                binding.cardSpeed.tvSpeedValue.text = speedLabel(sp)
+                if (fromUser) musicService?.applySpeedToCurrentSong(sp)
+            }
+
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {
+                val sp = 0.5f + sb.progress * 0.05f
+                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, sp) }
+            }
+        })
+        binding.cardSpeed.btnSpeedDown.setOnClickListener { adjustSpeed(-1) }
+        binding.cardSpeed.btnSpeedUp.setOnClickListener { adjustSpeed(1) }
+        binding.cardSpeed.btnSpeedReset.setOnClickListener { resetSpeed() }
+
+        // Trim
+        binding.cardTrim.seekTrimStart.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, p: Int, f: Boolean) {
+                if (f) updateTrimLabels()
+            }
+
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {
+                saveTrim()
+            }
+        })
+        binding.cardTrim.seekTrimEnd.setOnSeekBarChangeListener(object :
+            SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar, p: Int, f: Boolean) {
+                if (f) updateTrimLabels()
+            }
+
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar) {
+                saveTrim()
+            }
+        })
+        binding.cardTrim.btnTrimStartMinus.setOnClickListener { adjustTrim(true, -1) }
+        binding.cardTrim.btnTrimStartPlus.setOnClickListener { adjustTrim(true, 1) }
+        binding.cardTrim.btnTrimEndMinus.setOnClickListener { adjustTrim(false, -1) }
+        binding.cardTrim.btnTrimEndPlus.setOnClickListener { adjustTrim(false, 1) }
+        binding.cardTrim.btnTrimReset.setOnClickListener { resetTrim() }
+
+        // A-B Repeat
+        binding.cardAbRepeat.btnSetPointA.setOnClickListener { setPointA() }
+        binding.cardAbRepeat.btnSetPointB.setOnClickListener { setPointB() }
+        binding.cardAbRepeat.btnResetAb.setOnClickListener { resetAb() }
+        binding.cardAbRepeat.switchAbRepeat.setOnCheckedChangeListener { _, checked ->
+            isAbRepeatEnabled = checked
+            if (checked && pointA >= 0 && pointB > pointA) applyAbRepeat()
+            else musicService?.applyAbRepeatToCurrentSong(-1, -1, false)
+            saveAbRepeat()
+        }
+        binding.cardAbRepeat.switchLoop.setOnCheckedChangeListener { _, checked ->
+            val s = song ?: return@setOnCheckedChangeListener
+            musicService?.applyLoopToCurrentSong(
+                s.trimStart,
+                if (s.trimEnd > 0) s.trimEnd else s.duration,
+                checked
+            )
+            viewModel.activeProfile.value?.let {
+                viewModel.updateLoop(
+                    it.id,
+                    it.loopStart,
+                    it.loopEnd,
+                    checked
+                )
+            }
+        }
+
+        // Profiles
+        binding.cardProfiles.btnProfilePrev.setOnClickListener { viewModel.switchToPreviousProfile() }
+        binding.cardProfiles.btnProfileNext.setOnClickListener { viewModel.switchToNextProfile() }
+        binding.cardProfiles.btnProfileDefault.setOnClickListener { viewModel.switchToDefaultProfile() }
+
+        // Skip
+        binding.cardSkipSections.btnAddSkipSection.setOnClickListener {
+            val pos = musicService?.getPosition()?.toLong() ?: 0L
+            viewModel.addSkipRegion(
+                songId,
+                "",
+                pos,
+                (pos + 30000).coerceAtMost(song?.duration ?: pos)
+            )
+        }
+
+        // State Toggle
+        binding.cardStateToggle.switchPlaybackState.setOnCheckedChangeListener { _, checked ->
+            musicService?.setBypassProfiles(!checked)
+            updateStateLabels(checked)
+        }
     }
 
     private fun observeViewModel() {
@@ -180,9 +332,20 @@ class CardsPlayerActivity : AppCompatActivity() {
                 binding.tvKey.text = getString(R.string.key_format, analysis.key)
             }
         }
-        viewModel.skipRegions.observe(this) { regions ->
-            // Update UI for skip sections adapter if visible
+        viewModel.activeProfile.observe(this) { profile ->
+            profile?.let {
+                pointA = it.abRepeatA
+                pointB = it.abRepeatB
+                isAbRepeatEnabled = it.abRepeatEnabled
+                binding.cardAbRepeat.tvPointA.text =
+                    if (pointA >= 0) "A: ${formatDuration(pointA)}" else "A: --:--"
+                binding.cardAbRepeat.tvPointB.text =
+                    if (pointB >= 0) "B: ${formatDuration(pointB)}" else "B: --:--"
+                binding.cardAbRepeat.switchAbRepeat.isChecked = isAbRepeatEnabled
+                binding.cardAbRepeat.switchLoop.isChecked = it.loopEnabled
+            }
         }
+        viewModel.skipRegions.observe(this) { updateSkipRegionsUI(it) }
     }
 
     private fun populate(s: Song) {
@@ -210,8 +373,21 @@ class CardsPlayerActivity : AppCompatActivity() {
                 FavoriteIconHelper.colorRes(favIcon)
             )
         )
-        updateShuffleButton()
-        updateRepeatButton()
+
+        binding.cardPitch.seekPitch.progress =
+            ((s.pitchSemitones + 6) * 10).toInt().coerceIn(0, 120)
+        binding.cardPitch.tvPitchValue.text = pitchLabel(s.pitchSemitones)
+
+        binding.cardSpeed.seekSpeed.progress =
+            ((s.playbackSpeed - 0.5f) / 0.05f).toInt().coerceIn(0, 50)
+        binding.cardSpeed.tvSpeedValue.text = speedLabel(s.playbackSpeed)
+
+        val total = if (s.duration > 0) s.duration else musicService?.getDuration()?.toLong() ?: 0L
+        binding.cardTrim.seekTrimStart.max = total.toInt()
+        binding.cardTrim.seekTrimEnd.max = total.toInt()
+        binding.cardTrim.seekTrimStart.progress = s.trimStart.toInt()
+        binding.cardTrim.seekTrimEnd.progress = (if (s.trimEnd > 0) s.trimEnd else total).toInt()
+        updateTrimLabels()
     }
 
     private fun registerCallbacks() {
@@ -221,7 +397,12 @@ class CardsPlayerActivity : AppCompatActivity() {
         }
     }
 
-    private val songChangedCallback: (Song) -> Unit = { s -> runOnUiThread { populate(s) } }
+    private val songChangedCallback: (Song) -> Unit = { s ->
+        runOnUiThread {
+            song = s
+            populate(s)
+        }
+    }
     private val playStateCallback: (Boolean) -> Unit = { playing ->
         runOnUiThread { binding.btnPlayPause.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play) }
     }
@@ -229,9 +410,15 @@ class CardsPlayerActivity : AppCompatActivity() {
     private fun syncNow() {
         val svc = musicService ?: return
         binding.btnPlayPause.setImageResource(if (svc.isPlaying()) R.drawable.ic_pause else R.drawable.ic_play)
-        svc.getCurrentSong()?.let { populate(it) }
+        svc.getCurrentSong()?.let {
+            song = it
+            populate(it)
+        }
         updateShuffleButton()
         updateRepeatButton()
+        updateStateLabels(!svc.isBypassingProfiles())
+        binding.cardStateToggle.switchPlaybackState.isChecked = !svc.isBypassingProfiles()
+        syncVolumeSeekBar()
     }
 
     private fun startProgressUpdates() {
@@ -255,29 +442,49 @@ class CardsPlayerActivity : AppCompatActivity() {
         song?.let { s ->
             activityScope.launch {
                 repository.toggleFavorite(s)
-                repository.getSongById(s.id)?.let { populate(it) }
+                repository.getSongById(s.id)?.let { fresh ->
+                    song = fresh
+                    runOnUiThread { populate(fresh) }
+                }
             }
         }
     }
 
-    private fun toggleRepeat() {
-        currentRepeatMode = when (currentRepeatMode) {
-            MusicService.REPEAT_NONE -> MusicService.REPEAT_ALL
-            MusicService.REPEAT_ALL -> MusicService.REPEAT_ONE
-            else -> MusicService.REPEAT_NONE
-        }
-        musicService?.setRepeatMode(currentRepeatMode)
-        updateRepeatButton()
-    }
-
     private fun updateShuffleButton() {
         val on = musicService?.isShuffleEnabled() ?: false
-        binding.btnShuffle.alpha = if (on) 1.0f else 0.5f
+        if (on) {
+            binding.btnShuffle.setImageResource(R.drawable.ic_shuffle_on)
+            binding.btnShuffle.setColorFilter(ContextCompat.getColor(this, R.color.neon_cyan))
+        } else {
+            binding.btnShuffle.setImageResource(R.drawable.ic_shuffle)
+            binding.btnShuffle.setColorFilter(ContextCompat.getColor(this, R.color.text_hint))
+        }
     }
 
     private fun updateRepeatButton() {
         val mode = musicService?.getRepeatMode() ?: MusicService.REPEAT_NONE
-        binding.btnRepeat.alpha = if (mode != MusicService.REPEAT_NONE) 1.0f else 0.5f
+        currentRepeatMode = mode
+        when (mode) {
+            MusicService.REPEAT_ALL -> {
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
+                binding.btnRepeat.setColorFilter(ContextCompat.getColor(this, R.color.neon_cyan))
+            }
+
+            MusicService.REPEAT_ONE -> {
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat_one)
+                binding.btnRepeat.setColorFilter(ContextCompat.getColor(this, R.color.neon_pink))
+            }
+
+            MusicService.REPEAT_AUTO -> {
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
+                binding.btnRepeat.setColorFilter(ContextCompat.getColor(this, R.color.neon_purple))
+            }
+
+            else -> {
+                binding.btnRepeat.setImageResource(R.drawable.ic_repeat)
+                binding.btnRepeat.setColorFilter(ContextCompat.getColor(this, R.color.text_hint))
+            }
+        }
     }
 
     private fun resetAllStates() {
@@ -286,7 +493,7 @@ class CardsPlayerActivity : AppCompatActivity() {
                 activityScope.launch {
                     repository.updatePitchAndSyncProfile(songId, 0f)
                     repository.updateSpeedAndSyncProfile(songId, 1.0f)
-                    repository.updateTrimAndSyncProfile(songId, 0, -1)
+                    repository.updateTrimAndSyncProfile(songId, 0L, -1L)
                     profileRepo.deleteAllSkipRegions(songId)
                     runOnUiThread { syncNow() }
                 }
@@ -315,7 +522,15 @@ class CardsPlayerActivity : AppCompatActivity() {
                     dlgBinding.etAlbum.text.toString(),
                     artUrl
                 )
-                runOnUiThread { dialog.dismiss(); populate(s.copy(title = dlgBinding.etTitle.text.toString())) }
+                runOnUiThread {
+                    dialog.dismiss()
+                    activityScope.launch {
+                        repository.getSongById(s.id)?.let { fresh ->
+                            song = fresh
+                            populate(fresh)
+                        }
+                    }
+                }
             }
         }
         dialog.show()
@@ -329,236 +544,196 @@ class CardsPlayerActivity : AppCompatActivity() {
             }.setNegativeButton("CANCEL", null).show()
     }
 
+    private fun updateSkipRegionsUI(regions: List<SkipRegion>) {
+        binding.cardSkipSections.layoutSkipSections.removeAllViews()
+        binding.cardSkipSections.tvNoSkipSections.visibility =
+            if (regions.isEmpty()) View.VISIBLE else View.GONE
+        regions.forEach { region ->
+            val v = layoutInflater.inflate(
+                R.layout.item_selection_dialog,
+                binding.cardSkipSections.layoutSkipSections,
+                false
+            )
+            v.findViewById<android.widget.TextView>(R.id.tvItemName).text =
+                "${formatDuration(region.startMs)} -> ${formatDuration(region.endMs)}"
+            v.setOnClickListener { activityScope.launch { profileRepo.toggleSkipRegion(region) } }
+            binding.cardSkipSections.layoutSkipSections.addView(v)
+        }
+    }
+
+    private fun adjustVolume(delta: Int) {
+        val cur = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        audioManager.setStreamVolume(
+            AudioManager.STREAM_MUSIC,
+            (cur + delta).coerceIn(0, maxVolume),
+            0
+        )
+        syncVolumeSeekBar()
+    }
+
+    private fun toggleMute() {
+        val cur = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        if (cur > 0) {
+            lastVolumeBeforeMute = cur; audioManager.setStreamVolume(
+                AudioManager.STREAM_MUSIC,
+                0,
+                0
+            )
+        } else audioManager.setStreamVolume(
+            AudioManager.STREAM_MUSIC,
+            if (lastVolumeBeforeMute > 0) lastVolumeBeforeMute else maxVolume / 2,
+            0
+        )
+        syncVolumeSeekBar()
+    }
+
+    private fun resetVolume() {
+        audioManager.setStreamVolume(
+            AudioManager.STREAM_MUSIC,
+            maxVolume,
+            0
+        ); settingsRepo.setVolumeBoost(0); syncVolumeSeekBar()
+    }
+
+    private fun syncVolumeSeekBar() {
+        val cur = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        val pct = (cur.toFloat() / maxVolume * 100).toInt()
+        binding.cardVolume.seekVolume.progress = pct
+        binding.cardVolume.tvVolumeValue.text = pct.toString()
+    }
+
+    private fun adjustPitch(delta: Int) {
+        val step = (settingsRepo.getPitchStep() * 10).toInt().coerceAtLeast(1)
+        val cur = binding.cardPitch.seekPitch.progress
+        binding.cardPitch.seekPitch.progress = (cur + delta * step).coerceIn(0, 120)
+        val st = (binding.cardPitch.seekPitch.progress - 60) / 10.0f
+        musicService?.applyPitchToCurrentSong(st)
+        activityScope.launch { repository.updatePitchAndSyncProfile(songId, st) }
+    }
+
+    private fun resetPitch() {
+        binding.cardPitch.seekPitch.progress = 60
+        binding.cardPitch.tvPitchValue.text = "0.0"
+        musicService?.applyPitchToCurrentSong(0f)
+        activityScope.launch { repository.updatePitchAndSyncProfile(songId, 0f) }
+    }
+
+    private fun adjustSpeed(delta: Int) {
+        val step = settingsRepo.getSpeedStep()
+        val cur = binding.cardSpeed.seekSpeed.progress
+        binding.cardSpeed.seekSpeed.progress = (cur + delta * step).coerceIn(0, 50)
+        val sp = 0.5f + binding.cardSpeed.seekSpeed.progress * 0.05f
+        musicService?.applySpeedToCurrentSong(sp)
+        activityScope.launch { repository.updateSpeedAndSyncProfile(songId, sp) }
+    }
+
+    private fun resetSpeed() {
+        binding.cardSpeed.seekSpeed.progress = 10
+        binding.cardSpeed.tvSpeedValue.text = "1.0"
+        musicService?.applySpeedToCurrentSong(1.0f)
+        activityScope.launch { repository.updateSpeedAndSyncProfile(songId, 1.0f) }
+    }
+
+    private fun adjustTrim(start: Boolean, delta: Int) {
+        val step = (settingsRepo.getTrimStep() * 1000).toInt()
+        if (start) {
+            val cur = binding.cardTrim.seekTrimStart.progress
+            binding.cardTrim.seekTrimStart.progress =
+                (cur + delta * step).coerceIn(0, binding.cardTrim.seekTrimEnd.progress - 1000)
+        } else {
+            val cur = binding.cardTrim.seekTrimEnd.progress
+            binding.cardTrim.seekTrimEnd.progress = (cur + delta * step).coerceIn(
+                binding.cardTrim.seekTrimStart.progress + 1000,
+                binding.cardTrim.seekTrimEnd.max
+            )
+        }
+        updateTrimLabels()
+        saveTrim()
+    }
+
+    private fun resetTrim() {
+        val total = musicService?.getDuration() ?: 0
+        binding.cardTrim.seekTrimStart.progress = 0
+        binding.cardTrim.seekTrimEnd.progress = total
+        updateTrimLabels()
+        saveTrim()
+    }
+
+    private fun saveTrim() {
+        val s = binding.cardTrim.seekTrimStart.progress.toLong()
+        val e = binding.cardTrim.seekTrimEnd.progress.toLong()
+        musicService?.applyTrimToCurrentSong(s, e)
+        activityScope.launch { repository.updateTrimAndSyncProfile(songId, s, e) }
+    }
+
+    private fun updateTrimLabels() {
+        binding.cardTrim.tvTrimStart.text =
+            "Start: ${formatDuration(binding.cardTrim.seekTrimStart.progress.toLong())}"
+        binding.cardTrim.tvTrimEnd.text =
+            "End: ${formatDuration(binding.cardTrim.seekTrimEnd.progress.toLong())}"
+    }
+
+    private fun setPointA() {
+        pointA = musicService?.getPosition()?.toLong() ?: 0L
+        binding.cardAbRepeat.tvPointA.text = "A: ${formatDuration(pointA)}"
+        saveAbRepeat()
+    }
+
+    private fun setPointB() {
+        pointB = musicService?.getPosition()?.toLong() ?: 0L
+        binding.cardAbRepeat.tvPointB.text = "B: ${formatDuration(pointB)}"
+        saveAbRepeat()
+    }
+
+    private fun resetAb() {
+        pointA = -1; pointB = -1; isAbRepeatEnabled = false
+        binding.cardAbRepeat.tvPointA.text = "A: --:--"; binding.cardAbRepeat.tvPointB.text =
+            "B: --:--"
+        binding.cardAbRepeat.switchAbRepeat.isChecked = false
+        musicService?.applyAbRepeatToCurrentSong(-1, -1, false)
+        saveAbRepeat()
+    }
+
+    private fun applyAbRepeat() {
+        if (pointA >= 0 && pointB > pointA) musicService?.applyAbRepeatToCurrentSong(
+            pointA,
+            pointB,
+            true
+        )
+    }
+
+    private fun saveAbRepeat() {
+        viewModel.activeProfile.value?.let {
+            viewModel.updateAbRepeat(
+                it.id,
+                pointA,
+                pointB,
+                isAbRepeatEnabled
+            )
+        }
+    }
+
+    private fun updateStateLabels(isUpdated: Boolean) {
+        binding.cardStateToggle.tvStateUpdated.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (isUpdated) R.color.neon_cyan else R.color.text_hint
+            )
+        )
+        binding.cardStateToggle.tvStateOriginal.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (isUpdated) R.color.text_hint else R.color.neon_pink
+            )
+        )
+    }
+
+    private fun pitchLabel(s: Float) = if (s > 0) "+%.1f".format(s) else "%.1f".format(s)
+    private fun speedLabel(s: Float) = "%.2f".format(s).trimEnd('0').trimEnd('.')
+
     override fun onDestroy() {
         progressRunnable?.let { progressHandler.removeCallbacks(it) }
         unbindService(serviceConnection)
         super.onDestroy()
     }
-
-    inner class SectionsAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-        override fun getItemViewType(position: Int): Int = position
-        override fun getItemCount(): Int = 8
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-            val inflater = LayoutInflater.from(parent.context)
-            return when (viewType) {
-                0 -> VolumeViewHolder(ItemNowPlayingVolumeBinding.inflate(inflater, parent, false))
-                1 -> PitchViewHolder(ItemNowPlayingPitchBinding.inflate(inflater, parent, false))
-                2 -> SpeedViewHolder(ItemNowPlayingSpeedBinding.inflate(inflater, parent, false))
-                3 -> AbRepeatViewHolder(
-                    ItemNowPlayingAbRepeatBinding.inflate(
-                        inflater,
-                        parent,
-                        false
-                    )
-                )
-
-                4 -> TrimViewHolder(ItemNowPlayingTrimBinding.inflate(inflater, parent, false))
-                5 -> ProfilesViewHolder(
-                    ItemNowPlayingProfilesBinding.inflate(
-                        inflater,
-                        parent,
-                        false
-                    )
-                )
-
-                6 -> SkipViewHolder(
-                    ItemNowPlayingSkipSectionsBinding.inflate(
-                        inflater,
-                        parent,
-                        false
-                    )
-                )
-
-                else -> StateViewHolder(
-                    ItemNowPlayingStateToggleBinding.inflate(
-                        inflater,
-                        parent,
-                        false
-                    )
-                )
-            }
-        }
-
-        override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            val s = song ?: return
-            when (holder) {
-                is VolumeViewHolder -> {
-                    val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                    val cur = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    holder.binding.seekVolume.progress = (cur.toFloat() / max * 100).toInt()
-                    holder.binding.tvVolumeValue.text = "${holder.binding.seekVolume.progress}%"
-                    holder.binding.seekVolume.setOnSeekBarChangeListener(object :
-                        SeekBar.OnSeekBarChangeListener {
-                        override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
-                            if (fromUser) {
-                                audioManager.setStreamVolume(
-                                    AudioManager.STREAM_MUSIC,
-                                    (p / 100f * max).toInt(),
-                                    0
-                                )
-                                holder.binding.tvVolumeValue.text = "$p%"
-                            }
-                        }
-
-                        override fun onStartTrackingTouch(sb: SeekBar) {}
-                        override fun onStopTrackingTouch(sb: SeekBar) {}
-                    })
-                }
-
-                is PitchViewHolder -> {
-                    holder.binding.seekPitch.progress = ((s.pitchSemitones + 6) * 10).toInt()
-                    holder.binding.tvPitchValue.text = "%.1f".format(s.pitchSemitones)
-                    holder.binding.seekPitch.setOnSeekBarChangeListener(object :
-                        SeekBar.OnSeekBarChangeListener {
-                        override fun onProgressChanged(sb: SeekBar, p: Int, f: Boolean) {
-                            val st = (p - 60) / 10f
-                            holder.binding.tvPitchValue.text = "%.1f".format(st)
-                            if (f) musicService?.applyPitchToCurrentSong(st)
-                        }
-
-                        override fun onStartTrackingTouch(sb: SeekBar) {}
-                        override fun onStopTrackingTouch(sb: SeekBar) {
-                            val st = (sb.progress - 60) / 10f
-                            activityScope.launch {
-                                repository.updatePitchAndSyncProfile(
-                                    songId,
-                                    st
-                                )
-                            }
-                        }
-                    })
-                }
-
-                is SpeedViewHolder -> {
-                    holder.binding.seekSpeed.progress = ((s.playbackSpeed - 0.5f) / 0.05f).toInt()
-                    holder.binding.tvSpeedValue.text = "%.2fx".format(s.playbackSpeed)
-                    holder.binding.seekSpeed.setOnSeekBarChangeListener(object :
-                        SeekBar.OnSeekBarChangeListener {
-                        override fun onProgressChanged(sb: SeekBar, p: Int, f: Boolean) {
-                            val sp = 0.5f + p * 0.05f
-                            holder.binding.tvSpeedValue.text = "%.2fx".format(sp)
-                            if (f) musicService?.applySpeedToCurrentSong(sp)
-                        }
-
-                        override fun onStartTrackingTouch(sb: SeekBar) {}
-                        override fun onStopTrackingTouch(sb: SeekBar) {
-                            val sp = 0.5f + sb.progress * 0.05f
-                            activityScope.launch {
-                                repository.updateSpeedAndSyncProfile(
-                                    songId,
-                                    sp
-                                )
-                            }
-                        }
-                    })
-                }
-
-                is AbRepeatViewHolder -> {
-                    holder.binding.btnSetPointA.setOnClickListener {
-                        val pos = musicService?.getPosition()?.toLong() ?: 0L
-                        viewModel.activeProfile.value?.let {
-                            viewModel.updateAbRepeat(
-                                it.id,
-                                pos,
-                                it.abRepeatB,
-                                it.abRepeatEnabled
-                            )
-                        }
-                    }
-                    holder.binding.btnSetPointB.setOnClickListener {
-                        val pos = musicService?.getPosition()?.toLong() ?: 0L
-                        viewModel.activeProfile.value?.let {
-                            viewModel.updateAbRepeat(
-                                it.id,
-                                it.abRepeatA,
-                                pos,
-                                it.abRepeatEnabled
-                            )
-                        }
-                    }
-                    holder.binding.switchAbRepeat.setOnCheckedChangeListener { _, checked ->
-                        viewModel.activeProfile.value?.let {
-                            viewModel.updateAbRepeat(
-                                it.id,
-                                it.abRepeatA,
-                                it.abRepeatB,
-                                checked
-                            )
-                        }
-                    }
-                }
-
-                is TrimViewHolder -> {
-                    val total = musicService?.getDuration() ?: 0
-                    holder.binding.seekTrimStart.max = total
-                    holder.binding.seekTrimEnd.max = total
-                    holder.binding.seekTrimStart.progress = s.trimStart.toInt()
-                    holder.binding.seekTrimEnd.progress =
-                        (if (s.trimEnd > 0) s.trimEnd else total.toLong()).toInt()
-                    holder.binding.tvTrimStart.text = "Start: ${formatDuration(s.trimStart)}"
-                    holder.binding.tvTrimEnd.text =
-                        "End: ${formatDuration(if (s.trimEnd > 0) s.trimEnd else total.toLong())}"
-
-                    holder.binding.seekTrimStart.setOnSeekBarChangeListener(object :
-                        SeekBar.OnSeekBarChangeListener {
-                        override fun onProgressChanged(sb: SeekBar, p: Int, f: Boolean) {
-                            if (f) holder.binding.tvTrimStart.text =
-                                "Start: ${formatDuration(p.toLong())}"
-                        }
-
-                        override fun onStartTrackingTouch(sb: SeekBar) {}
-                        override fun onStopTrackingTouch(sb: SeekBar) {
-                            activityScope.launch {
-                                repository.updateTrimAndSyncProfile(
-                                    songId,
-                                    sb.progress.toLong(),
-                                    s.trimEnd
-                                )
-                            }
-                        }
-                    })
-                }
-
-                is ProfilesViewHolder -> {
-                    holder.binding.btnProfilePrev.setOnClickListener { viewModel.switchToPreviousProfile() }
-                    holder.binding.btnProfileNext.setOnClickListener { viewModel.switchToNextProfile() }
-                    holder.binding.btnProfileDefault.setOnClickListener { viewModel.switchToDefaultProfile() }
-                }
-
-                is StateViewHolder -> {
-                    holder.binding.switchPlaybackState.isChecked =
-                        !(musicService?.isBypassingProfiles() ?: true)
-                    holder.binding.switchPlaybackState.setOnCheckedChangeListener { _, checked ->
-                        musicService?.setBypassProfiles(
-                            !checked
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    class VolumeViewHolder(val binding: ItemNowPlayingVolumeBinding) :
-        RecyclerView.ViewHolder(binding.root)
-
-    class PitchViewHolder(val binding: ItemNowPlayingPitchBinding) :
-        RecyclerView.ViewHolder(binding.root)
-
-    class SpeedViewHolder(val binding: ItemNowPlayingSpeedBinding) :
-        RecyclerView.ViewHolder(binding.root)
-
-    class AbRepeatViewHolder(val binding: ItemNowPlayingAbRepeatBinding) :
-        RecyclerView.ViewHolder(binding.root)
-
-    class TrimViewHolder(val binding: ItemNowPlayingTrimBinding) :
-        RecyclerView.ViewHolder(binding.root)
-
-    class ProfilesViewHolder(val binding: ItemNowPlayingProfilesBinding) :
-        RecyclerView.ViewHolder(binding.root)
-
-    class SkipViewHolder(val binding: ItemNowPlayingSkipSectionsBinding) :
-        RecyclerView.ViewHolder(binding.root)
-
-    class StateViewHolder(val binding: ItemNowPlayingStateToggleBinding) :
-        RecyclerView.ViewHolder(binding.root)
 }

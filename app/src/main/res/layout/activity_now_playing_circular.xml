@@ -245,6 +245,64 @@
             android:textColor="@color/text_hint"
             android:textSize="10sp" />
 
+        <!-- Playback seekbar Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPlayback"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="16dp"
+            app:cardBackgroundColor="@color/bg_card"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/text_hint"
+            app:strokeWidth="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <SeekBar
+                    android:id="@+id/seekPlayback"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:progressBackgroundTint="@color/seekbar_bg"
+                    android:progressTint="@color/neon_pink"
+                    android:thumb="@drawable/seekbar_thumb" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvCurrentTimeStandard"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0:00"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/tvTotalTimeStandard"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0:00"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Playback controls -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -333,45 +391,85 @@
 
         </LinearLayout>
 
-        <!-- Functional Cards -->
+        <!-- Vertical Cards Stack -->
         <include
             android:id="@+id/cardVolume"
-            layout="@layout/card_now_playing_volume" />
+            layout="@layout/card_now_playing_volume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp" />
 
         <include
             android:id="@+id/cardPitch"
-            layout="@layout/card_now_playing_pitch" />
+            layout="@layout/card_now_playing_pitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginEnd="16dp" />
 
         <include
             android:id="@+id/cardSpeed"
-            layout="@layout/card_now_playing_speed" />
+            layout="@layout/card_now_playing_speed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginEnd="16dp" />
 
         <include
             android:id="@+id/cardAbRepeat"
-            layout="@layout/card_now_playing_ab_repeat" />
+            layout="@layout/card_now_playing_ab_repeat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginEnd="16dp" />
 
         <include
             android:id="@+id/cardTrim"
-            layout="@layout/card_now_playing_trim" />
+            layout="@layout/card_now_playing_trim"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginEnd="16dp" />
 
         <include
             android:id="@+id/cardSkipSections"
-            layout="@layout/card_now_playing_skip_sections" />
+            layout="@layout/card_now_playing_skip_sections"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginEnd="16dp" />
 
         <include
             android:id="@+id/cardProfiles"
-            layout="@layout/card_now_playing_profiles" />
+            layout="@layout/card_now_playing_profiles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginEnd="16dp" />
 
         <include
             android:id="@+id/cardStateToggle"
-            layout="@layout/card_now_playing_state_toggle" />
+            layout="@layout/card_now_playing_state_toggle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginEnd="16dp" />
 
         <!-- RESET ALL STATES BUTTON -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="24dp"
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="24dp"
             android:orientation="vertical">

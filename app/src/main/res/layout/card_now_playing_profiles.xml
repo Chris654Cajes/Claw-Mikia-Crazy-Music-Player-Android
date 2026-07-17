@@ -1,121 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardSwitchProfile"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:layout_marginTop="14dp"
-    android:layout_marginEnd="16dp"
     app:cardBackgroundColor="@color/bg_card"
     app:cardCornerRadius="16dp"
-    app:cardElevation="0dp">
+    app:cardElevation="0dp"
+    app:strokeColor="@color/neon_teal"
+    app:strokeWidth="2dp">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_layers"
-                app:tint="@color/neon_teal" />
-
-            <TextView
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/orbitron_bold"
-                android:letterSpacing="0.14"
-                android:paddingStart="8dp"
-                android:text="SWITCH PROFILE"
-                android:textColor="@color/text_primary"
-                android:textSize="11sp" />
+                android:layout_marginBottom="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_layers"
+                    app:tint="@color/neon_teal" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:letterSpacing="0.14"
+                    android:paddingStart="8dp"
+                    android:text="SWITCH PROFILE"
+                    android:textColor="@color/text_primary"
+                    android:textSize="11sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnProfilePrev"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="Prev"
+                    android:textAllCaps="false"
+                    android:textColor="@color/neon_teal"
+                    android:textSize="10sp"
+                    app:backgroundTint="@color/neon_teal_20"
+                    app:cornerRadius="8dp"
+                    app:rippleColor="@color/neon_teal"
+                    app:strokeColor="@color/neon_teal"
+                    app:strokeWidth="1dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnProfileDefault"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="Default"
+                    android:textAllCaps="false"
+                    android:textColor="@color/neon_teal"
+                    android:textSize="10sp"
+                    app:backgroundTint="@color/neon_teal_20"
+                    app:cornerRadius="8dp"
+                    app:rippleColor="@color/neon_teal"
+                    app:strokeColor="@color/neon_teal"
+                    app:strokeWidth="1dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnProfileNext"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:text="Next"
+                    android:textAllCaps="false"
+                    android:textColor="@color/neon_teal"
+                    android:textSize="10sp"
+                    app:backgroundTint="@color/neon_teal_20"
+                    app:cornerRadius="8dp"
+                    app:rippleColor="@color/neon_teal"
+                    app:strokeColor="@color/neon_teal"
+                    app:strokeWidth="1dp" />
+
+            </LinearLayout>
 
         </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="36dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnProfilePrev"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/orbitron_bold"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:text="Previous"
-                android:textAllCaps="false"
-                android:textColor="@color/neon_teal"
-                android:textSize="10sp"
-                app:backgroundTint="@color/neon_teal_20"
-                app:cornerRadius="8dp"
-                app:rippleColor="@color/neon_teal"
-                app:strokeColor="@color/neon_teal"
-                app:strokeWidth="1dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnProfileDefault"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="10dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/orbitron_bold"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:text="Default"
-                android:textAllCaps="false"
-                android:textColor="@color/neon_teal"
-                android:textSize="10sp"
-                app:backgroundTint="@color/neon_teal_20"
-                app:cornerRadius="8dp"
-                app:rippleColor="@color/neon_teal"
-                app:strokeColor="@color/neon_teal"
-                app:strokeWidth="1dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnProfileNext"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="10dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/orbitron_bold"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:text="Next"
-                android:textAllCaps="false"
-                android:textColor="@color/neon_teal"
-                android:textSize="10sp"
-                app:backgroundTint="@color/neon_teal_20"
-                app:cornerRadius="8dp"
-                app:rippleColor="@color/neon_teal"
-                app:strokeColor="@color/neon_teal"
-                app:strokeWidth="1dp" />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

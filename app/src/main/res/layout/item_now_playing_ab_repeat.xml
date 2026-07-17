@@ -23,23 +23,23 @@
             <ImageView
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:contentDescription="AB Icon"
+                android:contentDescription="AB Repeat"
                 android:src="@drawable/ic_repeat"
                 app:tint="@color/neon_purple" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:fontFamily="@font/orbitron_bold"
-                android:text="A-B REPEAT"
+                android:text="A-B REPEAT / LOOP"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
+                android:layout_marginTop="24dp"
                 android:gravity="center"
                 android:orientation="horizontal">
 
@@ -50,11 +50,18 @@
                     android:layout_weight="1"
                     android:background="@drawable/bg_button_outline_purple"
                     android:text="SET A"
-                    android:textColor="@color/neon_purple" />
+                    android:textColor="@color/neon_purple"
+                    android:textSize="12sp" />
 
-                <View
-                    android:layout_width="16dp"
-                    android:layout_height="1dp" />
+                <TextView
+                    android:id="@+id/tvPointA"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:text="--:--"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
 
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btnSetPointB"
@@ -63,7 +70,17 @@
                     android:layout_weight="1"
                     android:background="@drawable/bg_button_outline_purple"
                     android:text="SET B"
-                    android:textColor="@color/neon_purple" />
+                    android:textColor="@color/neon_purple"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvPointB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="--:--"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
 
             </LinearLayout>
 
@@ -72,8 +89,30 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Enable A-B"
-                android:textColor="@color/text_secondary" />
+                android:fontFamily="@font/orbitron_bold"
+                android:text="ENABLE A-B"
+                android:textColor="@color/text_primary" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchLoop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/orbitron_bold"
+                android:text="LOOP MODE"
+                android:textColor="@color/text_primary" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnResetAb"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_button_outline_purple"
+                android:paddingStart="24dp"
+                android:paddingEnd="24dp"
+                android:text="RESET ALL"
+                android:textColor="@color/neon_purple"
+                android:textSize="10sp" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

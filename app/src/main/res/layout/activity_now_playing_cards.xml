@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/bg_primary">
 
-    <!-- Header row (Matched with Standard Layout) -->
+    <!-- Header row -->
     <LinearLayout
         android:id="@+id/headerLayout"
         android:layout_width="match_parent"
@@ -168,83 +168,171 @@
                     android:textSize="9sp" />
             </LinearLayout>
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchSwipeEnabled"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:scaleX="0.7"
-                android:scaleY="0.7"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="SWIPE"
-                android:textColor="@color/text_hint"
-                android:textSize="8sp"
-                app:layout_constraintBottom_toBottomOf="@id/switchSwipeEnabled"
-                app:layout_constraintEnd_toStartOf="@id/switchSwipeEnabled"
-                app:layout_constraintTop_toTopOf="@id/switchSwipeEnabled" />
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Swipable Sections ViewPager -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPagerSections"
+    <!-- Swipable Sections Container -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollSections"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/cardControls"
-        app:layout_constraintTop_toBottomOf="@id/cardSongInfo" />
-
-    <!-- Playback seekbar -->
-    <LinearLayout
-        android:id="@+id/playbackLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        app:layout_constraintBottom_toTopOf="@id/cardControls">
-
-        <SeekBar
-            android:id="@+id/seekPlayback"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:progressTint="@color/neon_pink"
-            android:thumb="@drawable/seekbar_thumb" />
+        app:layout_constraintBottom_toTopOf="@id/cardPlayback"
+        app:layout_constraintTop_toBottomOf="@id/cardSongInfo">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvCurrentTime"
-                android:layout_width="wrap_content"
+            <!-- ROW 1: Volume, Pitch, Speed -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="0:00"
-                android:textColor="@color/text_secondary"
-                android:textSize="10sp" />
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:scrollbars="none">
 
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tvTotalTime"
-                android:layout_width="wrap_content"
+                    <include
+                        android:id="@+id/cardVolume"
+                        layout="@layout/card_now_playing_volume"
+                        android:layout_width="340dp"
+                        android:layout_height="160dp"
+                        android:layout_marginEnd="16dp" />
+
+                    <include
+                        android:id="@+id/cardPitch"
+                        layout="@layout/card_now_playing_pitch"
+                        android:layout_width="340dp"
+                        android:layout_height="160dp"
+                        android:layout_marginEnd="16dp" />
+
+                    <include
+                        android:id="@+id/cardSpeed"
+                        layout="@layout/card_now_playing_speed"
+                        android:layout_width="340dp"
+                        android:layout_height="160dp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- ROW 2: AB-Repeat, Trim, Skip, Profiles, State -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="0:00"
-                android:textColor="@color/text_secondary"
-                android:textSize="10sp" />
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="12dp"
+                android:clipToPadding="false"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <include
+                        android:id="@+id/cardAbRepeat"
+                        layout="@layout/card_now_playing_ab_repeat"
+                        android:layout_width="340dp"
+                        android:layout_height="160dp"
+                        android:layout_marginEnd="16dp" />
+
+                    <include
+                        android:id="@+id/cardTrim"
+                        layout="@layout/card_now_playing_trim"
+                        android:layout_width="340dp"
+                        android:layout_height="160dp"
+                        android:layout_marginEnd="16dp" />
+
+                    <include
+                        android:id="@+id/cardSkipSections"
+                        layout="@layout/card_now_playing_skip_sections"
+                        android:layout_width="340dp"
+                        android:layout_height="160dp"
+                        android:layout_marginEnd="16dp" />
+
+                    <include
+                        android:id="@+id/cardProfiles"
+                        layout="@layout/card_now_playing_profiles"
+                        android:layout_width="340dp"
+                        android:layout_height="160dp"
+                        android:layout_marginEnd="16dp" />
+
+                    <include
+                        android:id="@+id/cardStateToggle"
+                        layout="@layout/card_now_playing_state_toggle"
+                        android:layout_width="340dp"
+                        android:layout_height="160dp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
         </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-    </LinearLayout>
+    <!-- Playback seekbar Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardPlayback"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:cardBackgroundColor="@color/bg_card"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
+        app:strokeColor="@color/text_hint"
+        app:strokeWidth="2dp"
+        app:layout_constraintBottom_toTopOf="@id/cardControls">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <SeekBar
+                android:id="@+id/seekPlayback"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progressTint="@color/neon_pink"
+                android:thumb="@drawable/seekbar_thumb" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvCurrentTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0:00"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tvTotalTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0:00"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <!-- Controls Card -->
     <com.google.android.material.card.MaterialCardView

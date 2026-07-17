@@ -21,16 +21,16 @@
             android:padding="24dp">
 
             <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:contentDescription="Trim Icon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="Trim"
                 android:src="@drawable/ic_trim"
                 app:tint="@color/neon_red" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:fontFamily="@font/orbitron_bold"
                 android:text="TIMELINE TRIM"
                 android:textColor="@color/text_primary"
@@ -44,29 +44,97 @@
                 android:progressTint="@color/neon_light_blue"
                 android:thumb="@drawable/seekbar_thumb_blue" />
 
-            <TextView
-                android:id="@+id/tvTrimStart"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Start: 0:00"
-                android:textColor="@color/neon_light_blue"
-                android:textSize="12sp" />
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnTrimStartMinus"
+                    android:layout_width="44dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_button_outline_blue"
+                    android:text="-10s"
+                    android:textColor="@color/neon_light_blue"
+                    android:textSize="8sp" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnTrimStartPlus"
+                    android:layout_width="44dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_button_outline_blue"
+                    android:text="+10s"
+                    android:textColor="@color/neon_light_blue"
+                    android:textSize="8sp" />
+
+                <TextView
+                    android:id="@+id/tvTrimStart"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="Start: 0:00"
+                    android:textColor="@color/neon_light_blue"
+                    android:textSize="11sp" />
+            </LinearLayout>
 
             <SeekBar
                 android:id="@+id/seekTrimEnd"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="32dp"
                 android:progressTint="@color/neon_red"
                 android:thumb="@drawable/seekbar_thumb_red" />
 
-            <TextView
-                android:id="@+id/tvTrimEnd"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="End: 0:00"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnTrimEndMinus"
+                    android:layout_width="44dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/bg_button_outline_red"
+                    android:text="-10s"
+                    android:textColor="@color/neon_red"
+                    android:textSize="8sp" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnTrimEndPlus"
+                    android:layout_width="44dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_button_outline_red"
+                    android:text="+10s"
+                    android:textColor="@color/neon_red"
+                    android:textSize="8sp" />
+
+                <TextView
+                    android:id="@+id/tvTrimEnd"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="End: 0:00"
+                    android:textColor="@color/neon_red"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnTrimReset"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_marginTop="32dp"
+                android:background="@drawable/bg_button_outline_red"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="RESET TRIM"
                 android:textColor="@color/neon_red"
-                android:textSize="12sp" />
+                android:textSize="10sp" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

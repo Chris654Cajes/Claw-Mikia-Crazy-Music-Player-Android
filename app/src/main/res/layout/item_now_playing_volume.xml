@@ -23,27 +23,18 @@
             <ImageView
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:contentDescription="Volume Icon"
+                android:contentDescription="Volume"
                 android:src="@drawable/ic_volume"
                 app:tint="@color/neon_cyan" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:fontFamily="@font/orbitron_bold"
                 android:text="VOLUME"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp" />
-
-            <SeekBar
-                android:id="@+id/seekVolume"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:max="100"
-                android:progressTint="@color/neon_cyan"
-                android:thumb="@drawable/seekbar_thumb" />
 
             <TextView
                 android:id="@+id/tvVolumeValue"
@@ -51,9 +42,69 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:fontFamily="@font/orbitron_bold"
-                android:text="100%"
+                android:text="100"
                 android:textColor="@color/neon_cyan"
-                android:textSize="28sp" />
+                android:textSize="36sp" />
+
+            <SeekBar
+                android:id="@+id/seekVolume"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:max="100"
+                android:progressTint="@color/neon_cyan"
+                android:thumb="@drawable/seekbar_thumb" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/btnVolumeDown"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_button_outline_cyan"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_volume_down"
+                    app:tint="@color/neon_cyan" />
+
+                <ImageButton
+                    android:id="@+id/btnVolumeUp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@drawable/bg_button_outline_cyan"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_volume_up"
+                    app:tint="@color/neon_cyan" />
+
+                <ImageButton
+                    android:id="@+id/btnVolumeMute"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@drawable/bg_button_outline_cyan"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_volume_off"
+                    app:tint="@color/neon_cyan" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnVolumeReset"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@drawable/bg_button_outline_cyan"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:text="RESET"
+                    android:textColor="@color/neon_cyan"
+                    android:textSize="10sp" />
+
+            </LinearLayout>
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

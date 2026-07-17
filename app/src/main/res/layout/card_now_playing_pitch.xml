@@ -1,205 +1,210 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardPitch"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:layout_marginTop="14dp"
-    android:layout_marginEnd="16dp"
     app:cardBackgroundColor="@color/bg_card"
     app:cardCornerRadius="16dp"
-    app:cardElevation="0dp">
+    app:cardElevation="0dp"
+    app:strokeColor="@color/neon_green"
+    app:strokeWidth="2dp">
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_pitch"
-                app:tint="@color/neon_green" />
-
-            <TextView
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/orbitron_bold"
-                android:letterSpacing="0.14"
-                android:paddingStart="8dp"
-                android:text="PITCH / KEY"
-                android:textColor="@color/text_primary"
-                android:textSize="11sp" />
+                android:layout_marginBottom="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tvPitchValue"
-                android:layout_width="wrap_content"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_pitch"
+                    app:tint="@color/neon_green" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:letterSpacing="0.14"
+                    android:paddingStart="8dp"
+                    android:text="PITCH / KEY"
+                    android:textColor="@color/text_primary"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/tvPitchValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:text="0"
+                    android:textColor="@color/neon_green"
+                    android:textSize="22sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:text=" st"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/orbitron_bold"
-                android:text="0"
-                android:textColor="@color/neon_green"
-                android:textSize="22sp" />
+                android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="wrap_content"
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:text="-6"
+                    android:textColor="@color/text_hint"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:gravity="center"
+                    android:text="-3"
+                    android:textColor="@color/text_hint"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:gravity="center"
+                    android:text="0"
+                    android:textColor="@color/neon_green"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:gravity="center"
+                    android:text="+3"
+                    android:textColor="@color/text_hint"
+                    android:textSize="9sp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/orbitron_regular"
+                    android:gravity="end"
+                    android:text="+6"
+                    android:textColor="@color/text_hint"
+                    android:textSize="9sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/orbitron_regular"
-                android:text=" st"
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp" />
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-        </LinearLayout>
+                <SeekBar
+                    android:id="@+id/seekPitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:max="120"
+                    android:progress="60"
+                    android:progressBackgroundTint="@color/seekbar_bg"
+                    android:progressTint="@color/neon_green"
+                    android:thumb="@drawable/seekbar_thumb" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            </LinearLayout>
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/orbitron_regular"
-                android:text="-6"
-                android:textColor="@color/text_hint"
-                android:textSize="9sp" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/orbitron_regular"
-                android:gravity="center"
-                android:text="-3"
-                android:textColor="@color/text_hint"
-                android:textSize="9sp" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/orbitron_bold"
-                android:gravity="center"
-                android:text="0"
-                android:textColor="@color/neon_green"
-                android:textSize="9sp" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/orbitron_regular"
-                android:gravity="center"
-                android:text="+3"
-                android:textColor="@color/text_hint"
-                android:textSize="9sp" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/orbitron_regular"
-                android:gravity="end"
-                android:text="+6"
-                android:textColor="@color/text_hint"
-                android:textSize="9sp" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <SeekBar
-                android:id="@+id/seekPitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:max="12"
-                android:progress="6"
-                android:progressBackgroundTint="@color/seekbar_bg"
-                android:progressTint="@color/neon_green"
-                android:thumb="@drawable/seekbar_thumb" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="36dp"
-            android:layout_marginTop="16dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnPitchDown"
-                android:layout_width="36dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="36dp"
-                android:background="@drawable/bg_button_outline_green"
-                android:fontFamily="@font/orbitron_bold"
-                android:gravity="center"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:padding="0dp"
-                android:stateListAnimator="@null"
-                android:text="−"
-                android:textColor="@color/neon_green"
-                android:textSize="18sp" />
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnPitchUp"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="10dp"
-                android:background="@drawable/bg_button_outline_green"
-                android:fontFamily="@font/orbitron_bold"
-                android:gravity="center"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:padding="0dp"
-                android:stateListAnimator="@null"
-                android:text="+"
-                android:textColor="@color/neon_green"
-                android:textSize="18sp" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnPitchDown"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_button_outline_green"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:gravity="center"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:stateListAnimator="@null"
+                    android:text="−"
+                    android:textColor="@color/neon_green"
+                    android:textSize="18sp" />
 
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnPitchUp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_button_outline_green"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:gravity="center"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:padding="0dp"
+                    android:stateListAnimator="@null"
+                    android:text="+"
+                    android:textColor="@color/neon_green"
+                    android:textSize="18sp" />
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/btnPitchReset"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:background="@drawable/bg_button_outline_green"
-                android:fontFamily="@font/orbitron_bold"
-                android:gravity="center"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:stateListAnimator="@null"
-                android:text="Reset to 0"
-                android:textAllCaps="false"
-                android:textColor="@color/neon_green"
-                android:textSize="10sp" />
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnPitchReset"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_button_outline_green"
+                    android:fontFamily="@font/orbitron_bold"
+                    android:gravity="center"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:stateListAnimator="@null"
+                    android:text="Reset"
+                    android:textAllCaps="false"
+                    android:textColor="@color/neon_green"
+                    android:textSize="10sp" />
+
+            </LinearLayout>
 
         </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-    </LinearLayout>
-
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>
