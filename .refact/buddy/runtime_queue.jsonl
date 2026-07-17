@@ -10,7 +10,7 @@
     "progress": null,
     "dedupe_key": "health_models",
     "priority": "high",
-    "created_at": "2026-07-17T06:48:43.189609500+00:00",
+    "created_at": "2026-07-17T07:04:05.458940600+00:00",
     "ttl_ms": null,
     "speech_text": null,
     "scene": null,
@@ -25,7 +25,31 @@
 {"kind":"event","event":{"id":"b068598b-4bd5-4ad2-a11b-ec85b70e3d69","signal_type":"buddy_dependency_radar_failed","title":"buddy_dependency_radar failed: Workflow failed","description":"Buddy model required by subagent 'buddy_dependency_radar' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_dependency_radar' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_dependency_radar:unknown","priority":"normal","created_at":"2026-06-29T22:24:26.315107500+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_dependency_radar' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
 {"kind":"event","event":{"id":"32b20b6d-eaff-40c8-99b8-4a658a0ca73f","signal_type":"buddy_architecture_drift_watcher_failed","title":"buddy_architecture_drift_watcher failed: Workflow failed","description":"Buddy model required by subagent 'buddy_architecture_drift_watcher' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_architecture_drift_watcher' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_architecture_drift_watcher:unknown","priority":"normal","created_at":"2026-07-17T06:09:45.919168800+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_architecture_drift_watcher' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
 {"kind":"event","event":{"id":"70c63f98-ac0d-42ac-a86e-b964b106d264","signal_type":"buddy_setup_coach_failed","title":"buddy_setup_coach failed: Workflow failed","description":"Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_setup_coach:unknown","priority":"normal","created_at":"2026-07-17T06:09:15.060549800+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
-{"kind":"event","event":{"id":"17cb4e2d-4130-4fe4-a364-126d5c686a19","signal_type":"buddy_docs_gardener_failed","title":"buddy_docs_gardener failed: Workflow failed","description":"Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_docs_gardener:unknown","priority":"normal","created_at":"2026-07-17T04:09:04.462098800+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
+{
+  "kind": "event",
+  "event": {
+    "id": "17cb4e2d-4130-4fe4-a364-126d5c686a19",
+    "signal_type": "buddy_docs_gardener_failed",
+    "title": "buddy_docs_gardener failed: Workflow failed",
+    "description": "Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "source": "buddy",
+    "status": "failed",
+    "failure_category": "unknown",
+    "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "progress": null,
+    "dedupe_key": "workflow_failure:buddy_docs_gardener:unknown",
+    "priority": "normal",
+    "created_at": "2026-07-17T07:09:12.484729700+00:00",
+    "ttl_ms": null,
+    "bubble_policy": "durable",
+    "speech_text": "Workflow failed. Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+    "scene": "alert",
+    "duration_hint": 12,
+    "persistent": true,
+    "controls": [],
+    "dismissed": false
+  }
+}
 {"kind":"event","event":{"id":"42088bfa-ebc7-4673-bd2c-4730730fc46e","signal_type":"buddy_pr_issue_matchmaker_failed","title":"buddy_pr_issue_matchmaker failed: Workflow failed","description":"Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_pr_issue_matchmaker:unknown","priority":"normal","created_at":"2026-07-17T06:11:17.412615800+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_pr_issue_matchmaker' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
 {"kind":"event","event":{"id":"ac31f29f-87f6-4c82-b670-6641d63c89eb","signal_type":"refact_self_critic_failed","title":"refact_self_critic failed: Workflow failed","description":"Buddy model required by subagent 'refact_self_critic' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'refact_self_critic' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:refact_self_critic:unknown","priority":"normal","created_at":"2026-07-16T22:10:30.706818500+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'refact_self_critic' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
 {
@@ -33,14 +57,14 @@
   "event": {
     "id": "ab675218-d55d-4d19-8b5f-404b39fb9a2b",
     "signal_type": "ast_parsing",
-    "title": "AST complete: 128 files, 3098 symbols in 2079.7s",
+    "title": "AST complete: 128 files, 3098 symbols in 3103.4s",
     "description": null,
     "source": "indexer",
     "status": "completed",
     "progress": null,
     "dedupe_key": "ast",
     "priority": "normal",
-    "created_at": "2026-07-17T06:56:11.641179200+00:00",
+    "created_at": "2026-07-17T07:13:15.245839600+00:00",
     "ttl_ms": null,
     "speech_text": null,
     "scene": null,
@@ -71,116 +95,6 @@
     "scene": "alert",
     "duration_hint": 12,
     "persistent": true,
-    "controls": [],
-    "dismissed": false
-  }
-}
-{
-  "kind": "event",
-  "event": {
-    "id": "ab675218-d55d-4d19-8b5f-404b39fb9a2b",
-    "signal_type": "ast_parsing",
-    "title": "AST complete: 128 files, 3098 symbols in 2318.9s",
-    "description": null,
-    "source": "indexer",
-    "status": "completed",
-    "progress": null,
-    "dedupe_key": "ast",
-    "priority": "normal",
-    "created_at": "2026-07-17T07:00:10.838250300+00:00",
-    "ttl_ms": null,
-    "speech_text": null,
-    "scene": null,
-    "duration_hint": null,
-    "persistent": false,
-    "controls": [],
-    "dismissed": false
-  }
-}
-{
-  "kind": "event",
-  "event": {
-    "id": "ab675218-d55d-4d19-8b5f-404b39fb9a2b",
-    "signal_type": "ast_parsing",
-    "title": "AST complete: 128 files, 3098 symbols in 2327.2s",
-    "description": null,
-    "source": "indexer",
-    "status": "completed",
-    "progress": null,
-    "dedupe_key": "ast",
-    "priority": "normal",
-    "created_at": "2026-07-17T07:00:19.112286600+00:00",
-    "ttl_ms": null,
-    "speech_text": null,
-    "scene": null,
-    "duration_hint": null,
-    "persistent": false,
-    "controls": [],
-    "dismissed": false
-  }
-}
-{
-  "kind": "event",
-  "event": {
-    "id": "ab675218-d55d-4d19-8b5f-404b39fb9a2b",
-    "signal_type": "ast_parsing",
-    "title": "AST complete: 128 files, 3098 symbols in 2332.0s",
-    "description": null,
-    "source": "indexer",
-    "status": "completed",
-    "progress": null,
-    "dedupe_key": "ast",
-    "priority": "normal",
-    "created_at": "2026-07-17T07:00:23.873754700+00:00",
-    "ttl_ms": null,
-    "speech_text": null,
-    "scene": null,
-    "duration_hint": null,
-    "persistent": false,
-    "controls": [],
-    "dismissed": false
-  }
-}
-{
-  "kind": "event",
-  "event": {
-    "id": "ab675218-d55d-4d19-8b5f-404b39fb9a2b",
-    "signal_type": "ast_parsing",
-    "title": "AST complete: 128 files, 3098 symbols in 2333.2s",
-    "description": null,
-    "source": "indexer",
-    "status": "completed",
-    "progress": null,
-    "dedupe_key": "ast",
-    "priority": "normal",
-    "created_at": "2026-07-17T07:00:25.074879400+00:00",
-    "ttl_ms": null,
-    "speech_text": null,
-    "scene": null,
-    "duration_hint": null,
-    "persistent": false,
-    "controls": [],
-    "dismissed": false
-  }
-}
-{
-  "kind": "event",
-  "event": {
-    "id": "ab675218-d55d-4d19-8b5f-404b39fb9a2b",
-    "signal_type": "ast_parsing",
-    "title": "AST complete: 128 files, 3098 symbols in 2333.7s",
-    "description": null,
-    "source": "indexer",
-    "status": "completed",
-    "progress": null,
-    "dedupe_key": "ast",
-    "priority": "normal",
-    "created_at": "2026-07-17T07:00:25.586465300+00:00",
-    "ttl_ms": null,
-    "speech_text": null,
-    "scene": null,
-    "duration_hint": null,
-    "persistent": false,
     "controls": [],
     "dismissed": false
   }
