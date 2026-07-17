@@ -434,7 +434,7 @@ class RadialPlayerActivity : AppCompatActivity() {
         }
         binding.tvPitchValue.text = pitchLabel(s.pitchSemitones)
         binding.seekPitch.progress = ((s.pitchSemitones + 6) * 10).toInt().coerceIn(0, 120)
-        val speedProgress = ((s.playbackSpeed.coerceIn(0.5f, 2.0f) - 0.5f) / 0.05f).toInt()
+        val speedProgress = ((s.playbackSpeed.coerceIn(0.5f, 3.0f) - 0.5f) / 0.05f).toInt()
         binding.seekSpeed.progress = speedProgress
         binding.tvSpeedValue.text = speedLabel(s.playbackSpeed)
         val totalMs =

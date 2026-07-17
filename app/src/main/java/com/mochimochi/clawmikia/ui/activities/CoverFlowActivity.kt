@@ -82,6 +82,18 @@ class CoverFlowActivity : AppCompatActivity() {
     private var isAbRepeatEnabled: Boolean = false
     private var isTrimDragging: Boolean = false
 
+    private var selectedArtUri: Uri? = null
+    private val pickArtLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                selectedArtUri = it
+                editDialogBinding?.let { dlgBinding ->
+                    Glide.with(this).load(it).into(dlgBinding.ivEditAlbumArt)
+                }
+            }
+        }
+    private var editDialogBinding: DialogEditSongBinding? = null
+
     private val volumeObserver =
         object : android.database.ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) {
@@ -255,6 +267,12 @@ class CoverFlowActivity : AppCompatActivity() {
             )
             viewModel.activeProfile.value?.let { profile ->
                 viewModel.updateLoop(profile.id, profile.loopStart, profile.loopEnd, checked)
+            }
+            activityScope.launch {
+                repository.updateRepeatModeAndSyncProfile(
+                    s.id,
+                    if (checked) 1 else 0
+                )
             }
         }
 
@@ -575,6 +593,7 @@ class CoverFlowActivity : AppCompatActivity() {
         binding.switchPlaybackState.setOnCheckedChangeListener { _, checked ->
             musicService?.setBypassProfiles(!checked)
             viewModel.setOriginalState(!checked)
+            updateStateLabels(checked)
         }
     }
 
@@ -669,7 +688,7 @@ class CoverFlowActivity : AppCompatActivity() {
     private fun populate(s: Song) {
         binding.tvTitle.text = s.title
         binding.tvArtist.text = s.artist
-        binding.tvFolder.text = s.folderName
+        binding.tvFolder.text = s.albumName.ifBlank { s.folderName }
 
         binding.ivManualIndicator.visibility = if (s.isManuallyEdited) View.VISIBLE else View.GONE
 
@@ -818,16 +837,17 @@ class CoverFlowActivity : AppCompatActivity() {
                 binding.layoutSkipSections,
                 false
             )
-            v.findViewById<TextView>(R.id.tvItemName).text =
-                "${formatDuration(r.startMs)} ➔ ${formatDuration(r.endMs)}"
-            v.findViewById<ImageView>(R.id.ivItemIcon)
-                .setOnClickListener { viewModel.deleteSkipRegion(r) }
-
-            v.setOnClickListener {
-                activityScope.launch { profileRepo.toggleSkipRegion(r) }
+            v.findViewById<TextView>(R.id.tvItemName).apply {
+                text = "${formatDuration(r.startMs)} ➔ ${formatDuration(r.endMs)}"
+                setTextColor(ContextCompat.getColor(this@CoverFlowActivity, R.color.neon_yellow))
             }
+            v.findViewById<ImageView>(R.id.ivItemIcon).apply {
+                setImageResource(R.drawable.ic_close)
+                setColorFilter(ContextCompat.getColor(this@CoverFlowActivity, R.color.neon_red))
+                setOnClickListener { viewModel.deleteSkipRegion(r) }
+            }
+            v.setOnClickListener { activityScope.launch { profileRepo.toggleSkipRegion(r) } }
             v.alpha = if (r.isEnabled) 1.0f else 0.5f
-
             binding.layoutSkipSections.addView(v)
         }
     }
@@ -939,6 +959,7 @@ class CoverFlowActivity : AppCompatActivity() {
     private fun showEditDialog() {
         val s = song ?: return
         val dlgBinding = DialogEditSongBinding.inflate(layoutInflater)
+        editDialogBinding = dlgBinding
         dlgBinding.etTitle.setText(s.title)
         dlgBinding.etArtist.setText(s.artist)
         dlgBinding.etAlbum.setText(s.albumName)
@@ -948,10 +969,12 @@ class CoverFlowActivity : AppCompatActivity() {
                 .into(dlgBinding.ivEditAlbumArt)
         }
 
+        dlgBinding.btnChangeArt.setOnClickListener { pickArtLauncher.launch("image/*") }
         val dialog = MaterialAlertDialogBuilder(this).setView(dlgBinding.root).create()
         dlgBinding.btnCancel.setOnClickListener { dialog.dismiss() }
         dlgBinding.btnSave.setOnClickListener {
             val title = dlgBinding.etTitle.text.toString().trim()
+            val artUrl = selectedArtUri?.toString() ?: s.albumArtUrl
             if (title.isNotEmpty()) {
                 activityScope.launch {
                     repository.updateSongDetailsManual(
@@ -959,13 +982,14 @@ class CoverFlowActivity : AppCompatActivity() {
                         title,
                         dlgBinding.etArtist.text.toString().trim(),
                         dlgBinding.etAlbum.text.toString().trim(),
-                        s.albumArtUrl
+                        artUrl
                     )
                     runOnUiThread { syncNow(); dialog.dismiss() }
                 }
             }
         }
         dialog.show()
+        dialog.setOnDismissListener { editDialogBinding = null }
     }
 
     private fun showDeleteConfirmDialog() {
@@ -1016,6 +1040,20 @@ class CoverFlowActivity : AppCompatActivity() {
             binding.btnProfilePrev.alpha = if (hasPrev) 1.0f else 0.5f
             binding.btnProfileNext.alpha = if (hasNext) 1.0f else 0.5f
             binding.btnProfileDefault.alpha = if (hasMultipleProfiles) 1.0f else 0.5f
+        }
+    }
+
+    private fun updateStateLabels(isUpdated: Boolean) {
+        if (isUpdated) {
+            binding.switchPlaybackState.setTextColor(
+                ContextCompat.getColor(this, R.color.neon_cyan)
+            )
+            binding.switchPlaybackState.text = "UPDATED STATE"
+        } else {
+            binding.switchPlaybackState.setTextColor(
+                ContextCompat.getColor(this, R.color.neon_pink)
+            )
+            binding.switchPlaybackState.text = "ORIGINAL STATE"
         }
     }
 
