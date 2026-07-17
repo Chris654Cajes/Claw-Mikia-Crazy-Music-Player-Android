@@ -6,9 +6,7 @@
     android:layout_height="wrap_content"
     app:cardBackgroundColor="@color/bg_card"
     app:cardCornerRadius="16dp"
-    app:cardElevation="0dp"
-    app:strokeColor="@color/neon_teal"
-    app:strokeWidth="2dp">
+    app:cardElevation="0dp">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -70,9 +68,7 @@
                     android:textSize="10sp"
                     app:backgroundTint="@color/neon_teal_20"
                     app:cornerRadius="8dp"
-                    app:rippleColor="@color/neon_teal"
-                    app:strokeColor="@color/neon_teal"
-                    app:strokeWidth="1dp" />
+                    app:rippleColor="@color/neon_teal" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnProfileDefault"
@@ -92,9 +88,7 @@
                     android:textSize="10sp"
                     app:backgroundTint="@color/neon_teal_20"
                     app:cornerRadius="8dp"
-                    app:rippleColor="@color/neon_teal"
-                    app:strokeColor="@color/neon_teal"
-                    app:strokeWidth="1dp" />
+                    app:rippleColor="@color/neon_teal" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnProfileNext"
@@ -114,9 +108,7 @@
                     android:textSize="10sp"
                     app:backgroundTint="@color/neon_teal_20"
                     app:cornerRadius="8dp"
-                    app:rippleColor="@color/neon_teal"
-                    app:strokeColor="@color/neon_teal"
-                    app:strokeWidth="1dp" />
+                    app:rippleColor="@color/neon_teal" />
 
             </LinearLayout>
 
