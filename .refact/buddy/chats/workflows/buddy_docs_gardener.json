@@ -231,6 +231,14 @@
       "success": false,
       "failure_category": "unknown",
       "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
+    },
+    {
+      "timestamp": "2026-07-29T12:33:39.983732300+00:00",
+      "input_summary": "",
+      "output_summary": "Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
+      "success": false,
+      "failure_category": "unknown",
+      "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_docs_gardener' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model."
     }
   ]
 }

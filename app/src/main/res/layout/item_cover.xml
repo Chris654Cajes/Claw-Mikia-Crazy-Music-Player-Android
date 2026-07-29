@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,13 +8,18 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardVinyl"
-        android:layout_width="260dp"
-        android:layout_height="260dp"
-        android:layout_gravity="center"
-        android:layout_marginStart="40dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="48dp"
         android:backgroundTint="#111111"
-        app:cardCornerRadius="130dp"
-        app:cardElevation="4dp">
+        android:visibility="visible"
+        app:cardCornerRadius="999dp"
+        app:cardElevation="4dp"
+        app:layout_constraintBottom_toBottomOf="@id/cardCover"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="@id/cardCover"
+        app:layout_constraintStart_toStartOf="@id/cardCover"
+        app:layout_constraintTop_toTopOf="@id/cardCover">
 
         <ImageView
             android:layout_width="match_parent"
@@ -26,12 +31,18 @@
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardCover"
-        android:layout_width="280dp"
-        android:layout_height="280dp"
-        android:layout_gravity="center"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:backgroundTint="@color/bg_card"
+        android:maxWidth="320dp"
+        android:maxHeight="320dp"
         app:cardCornerRadius="24dp"
         app:cardElevation="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:strokeColor="@color/neon_cyan"
         app:strokeWidth="3dp">
 
@@ -47,7 +58,6 @@
                 android:contentDescription="Album Art"
                 android:scaleType="centerCrop" />
 
-            <!-- Favorite Indicator -->
             <ImageView
                 android:id="@+id/ivFavoriteIndicator"
                 android:layout_width="28dp"
@@ -58,7 +68,6 @@
                 android:visibility="gone"
                 app:tint="@color/neon_pink" />
 
-            <!-- Edited Indicator -->
             <ImageView
                 android:id="@+id/ivEditedIndicator"
                 android:layout_width="20dp"
@@ -69,14 +78,12 @@
                 android:visibility="gone"
                 app:tint="@color/neon_green" />
 
-            <!-- Bottom Gradient Overlay -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:layout_gravity="bottom"
                 android:background="@drawable/bg_gradient_bottom_black" />
 
-            <!-- Song Info Pill (Bottom) -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -111,4 +118,4 @@
         </FrameLayout>
     </com.google.android.material.card.MaterialCardView>
 
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

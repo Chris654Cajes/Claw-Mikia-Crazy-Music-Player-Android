@@ -2,6 +2,9 @@
 # Android & Gradle
 # ===========================
 
+# Refact files and folders
+.refact/
+
 # Built application files
 *.apk
 *.aar

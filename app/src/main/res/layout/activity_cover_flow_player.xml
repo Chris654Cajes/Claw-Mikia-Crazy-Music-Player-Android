@@ -112,8 +112,8 @@
                 android:layout_height="520dp"
                 android:clipChildren="false"
                 android:clipToPadding="false"
-                android:paddingStart="80dp"
-                android:paddingEnd="80dp" />
+                android:paddingStart="48dp"
+                android:paddingEnd="48dp" />
 
             <!-- Song info -->
             <LinearLayout
