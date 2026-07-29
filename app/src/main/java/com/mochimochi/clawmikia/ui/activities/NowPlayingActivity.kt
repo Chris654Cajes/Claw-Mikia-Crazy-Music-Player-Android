@@ -1150,24 +1150,26 @@ class NowPlayingActivity : AppCompatActivity() {
         stopProgressUpdates()
         progressRunnable = object : Runnable {
             override fun run() {
-                val svc = musicService ?: return
-                val s = song ?: return
-                val full = svc.getDuration().toLong()
-                val tStart = s.trimStart
-                val tEnd = if (s.trimEnd > 0) s.trimEnd else full
-                val eff = (tEnd - tStart).coerceAtLeast(0L)
-                val abs = svc.getPosition().toLong()
-                val rel = (abs - tStart).coerceAtLeast(0L)
-                if (full > 0) {
-                    if (eff > 0) {
-                        binding.seekPlayback.progress = ((rel.toFloat() / eff) * 100).toInt()
-                            .coerceIn(0, 100); binding.tvCurrentTime.text =
-                            formatDuration(rel); binding.tvTotalTime.text = formatDuration(eff)
-                    } else {
-                        binding.seekPlayback.progress = 0; binding.tvCurrentTime.text =
-                            formatDuration(rel); binding.tvTotalTime.text = formatDuration(full)
+                val svc = musicService
+                val s = song
+                if (svc != null && s != null) {
+                    val full = svc.getDuration().toLong()
+                    val tStart = s.trimStart
+                    val tEnd = if (s.trimEnd > 0) s.trimEnd else full
+                    val eff = (tEnd - tStart).coerceAtLeast(0L)
+                    val abs = svc.getPosition().toLong()
+                    val rel = (abs - tStart).coerceAtLeast(0L)
+                    if (full > 0) {
+                        if (eff > 0) {
+                            binding.seekPlayback.progress = ((rel.toFloat() / eff) * 100).toInt()
+                                .coerceIn(0, 100); binding.tvCurrentTime.text =
+                                formatDuration(rel); binding.tvTotalTime.text = formatDuration(eff)
+                        } else {
+                            binding.seekPlayback.progress = 0; binding.tvCurrentTime.text =
+                                formatDuration(rel); binding.tvTotalTime.text = formatDuration(full)
+                        }
+                        viewModel.onLyricsPositionChanged(abs)
                     }
-                    viewModel.onLyricsPositionChanged(abs)
                 }
                 progressHandler.postDelayed(this, 200)
             }

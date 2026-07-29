@@ -964,33 +964,35 @@ class MainActivity : AppCompatActivity() {
         stopProgressUpdates()
         progressRunnable = object : Runnable {
             override fun run() {
-                val svc = musicService ?: return
-                val s = viewModel.currentSong.value ?: return
+                val svc = musicService
+                val s = viewModel.currentSong.value
+                if (svc != null && s != null) {
+                    val fullDur = svc.getDuration().toLong()
+                    val trimStart = s.trimStart
+                    val trimEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
+                    val effectiveDur = (trimEnd - trimStart).coerceAtLeast(0L)
 
-                val fullDur = svc.getDuration().toLong()
-                val trimStart = s.trimStart
-                val trimEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
-                val effectiveDur = (trimEnd - trimStart).coerceAtLeast(0L)
+                    val absolutePos = svc.getPosition().toLong()
+                    val relativePos = (absolutePos - trimStart).coerceAtLeast(0L)
 
-                val absolutePos = svc.getPosition().toLong()
-                val relativePos = (absolutePos - trimStart).coerceAtLeast(0L)
-
-                if (fullDur > 0) {
-                    if (effectiveDur > 0) {
-                        binding.musicPanel.seekBar.progress =
-                            ((relativePos.toFloat() / effectiveDur) * 100).toInt().coerceIn(0, 100)
-                        binding.musicPanel.tvProgress.text = getString(
-                            R.string.progress_format,
-                            formatDuration(relativePos),
-                            formatDuration(effectiveDur),
-                        )
-                    } else {
-                        binding.musicPanel.seekBar.progress = 0
-                        binding.musicPanel.tvProgress.text = getString(
-                            R.string.progress_format,
-                            "0:00",
-                            formatDuration(fullDur),
-                        )
+                    if (fullDur > 0) {
+                        if (effectiveDur > 0) {
+                            binding.musicPanel.seekBar.progress =
+                                ((relativePos.toFloat() / effectiveDur) * 100).toInt()
+                                    .coerceIn(0, 100)
+                            binding.musicPanel.tvProgress.text = getString(
+                                R.string.progress_format,
+                                formatDuration(relativePos),
+                                formatDuration(effectiveDur),
+                            )
+                        } else {
+                            binding.musicPanel.seekBar.progress = 0
+                            binding.musicPanel.tvProgress.text = getString(
+                                R.string.progress_format,
+                                "0:00",
+                                formatDuration(fullDur),
+                            )
+                        }
                     }
                 }
                 progressHandler.postDelayed(this, 500)

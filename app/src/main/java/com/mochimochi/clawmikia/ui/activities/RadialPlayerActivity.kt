@@ -1153,21 +1153,24 @@ class RadialPlayerActivity : AppCompatActivity() {
         stopProgressUpdates()
         progressRunnable = object : Runnable {
             override fun run() {
-                val svc = musicService ?: return
-                val s = song ?: return
-                val fullDur = svc.getDuration().toLong()
-                val tStart = s.trimStart
-                val tEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
-                val effDur = (tEnd - tStart).coerceAtLeast(0L)
-                val absPos = svc.getPosition().toLong()
-                val relPos = (absPos - tStart).coerceAtLeast(0L)
-                if (fullDur > 0) {
-                    binding.seekPlayback.progress =
-                        if (effDur > 0) ((relPos.toFloat() / effDur) * 100).toInt()
-                            .coerceIn(0, 100) else 0
-                    binding.tvCurrentTime.text = formatDuration(relPos); binding.tvTotalTime.text =
-                        formatDuration(if (effDur > 0) effDur else fullDur)
-                    viewModel.onLyricsPositionChanged(absPos)
+                val svc = musicService
+                val s = song
+                if (svc != null && s != null) {
+                    val fullDur = svc.getDuration().toLong()
+                    val tStart = s.trimStart
+                    val tEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
+                    val effDur = (tEnd - tStart).coerceAtLeast(0L)
+                    val absPos = svc.getPosition().toLong()
+                    val relPos = (absPos - tStart).coerceAtLeast(0L)
+                    if (fullDur > 0) {
+                        binding.seekPlayback.progress =
+                            if (effDur > 0) ((relPos.toFloat() / effDur) * 100).toInt()
+                                .coerceIn(0, 100) else 0
+                        binding.tvCurrentTime.text =
+                            formatDuration(relPos); binding.tvTotalTime.text =
+                            formatDuration(if (effDur > 0) effDur else fullDur)
+                        viewModel.onLyricsPositionChanged(absPos)
+                    }
                 }
                 progressHandler.postDelayed(this, 200)
             }

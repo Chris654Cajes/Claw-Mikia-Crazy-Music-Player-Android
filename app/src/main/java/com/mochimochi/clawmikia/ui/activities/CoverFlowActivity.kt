@@ -1070,14 +1070,19 @@ class CoverFlowActivity : AppCompatActivity() {
         stopProgressUpdates()
         progressRunnable = object : Runnable {
             override fun run() {
-                val svc = musicService ?: return
-                val s = song ?: return
-                val dur = svc.getDuration().toLong()
-                val rel = (svc.getPosition() - s.trimStart).coerceAtLeast(0L)
-                val eff = ((if (s.trimEnd > 0) s.trimEnd else dur) - s.trimStart).coerceAtLeast(1L)
-                binding.seekPlayback.progress = (rel.toFloat() / eff * 100).toInt()
-                binding.tvCurrentTime.text = formatDuration(rel)
-                binding.tvTotalTime.text = formatDuration(eff)
+                val svc = musicService
+                val s = song
+                if (svc != null && s != null) {
+                    val dur = svc.getDuration().toLong()
+                    if (dur > 0) {
+                        val rel = (svc.getPosition() - s.trimStart).coerceAtLeast(0L)
+                        val eff =
+                            ((if (s.trimEnd > 0) s.trimEnd else dur) - s.trimStart).coerceAtLeast(1L)
+                        binding.seekPlayback.progress = (rel.toFloat() / eff * 100).toInt()
+                        binding.tvCurrentTime.text = formatDuration(rel)
+                        binding.tvTotalTime.text = formatDuration(eff)
+                    }
+                }
                 progressHandler.postDelayed(this, 500)
             }
         }
