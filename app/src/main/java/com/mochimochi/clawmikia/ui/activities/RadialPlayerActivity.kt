@@ -315,20 +315,12 @@ class RadialPlayerActivity : AppCompatActivity() {
     }
 
     private fun setupVolumeSeekBar() {
-        binding.seekVolume.max = maxVolume * 2
+        binding.seekVolume.max = maxVolume
         syncVolumeSeekBar()
         binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    if (progress <= maxVolume) {
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0)
-                        settingsRepo.setVolumeBoost(0)
-                    } else {
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-                        val boostPercent =
-                            ((progress - maxVolume).toFloat() / maxVolume * 100).toInt()
-                        settingsRepo.setVolumeBoost(boostPercent * 10)
-                    }
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0)
                 }
                 binding.tvVolumeValue.text =
                     ((progress.toFloat() / maxVolume) * 100).toInt().toString()
@@ -341,11 +333,9 @@ class RadialPlayerActivity : AppCompatActivity() {
 
     private fun syncVolumeSeekBar() {
         val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        val boostMb = settingsRepo.getVolumeBoost()
-        val boostProgress = (boostMb / 10f / 100f * maxVolume).toInt()
-        binding.seekVolume.progress = current + boostProgress
+        binding.seekVolume.progress = current
         binding.tvVolumeValue.text =
-            ((binding.seekVolume.progress.toFloat() / maxVolume) * 100).toInt().toString()
+            ((current.toFloat() / maxVolume) * 100).toInt().toString()
         binding.btnVolumeMute.setImageResource(if (current == 0) R.drawable.ic_volume_off else R.drawable.ic_speaker)
     }
 
@@ -680,7 +670,7 @@ class RadialPlayerActivity : AppCompatActivity() {
                 AudioManager.STREAM_MUSIC,
                 maxVolume,
                 0
-            ); settingsRepo.setVolumeBoost(0); syncVolumeSeekBar()
+            ); syncVolumeSeekBar()
         }
         binding.btnVolumeMute.setOnClickListener {
             val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
@@ -840,20 +830,12 @@ class RadialPlayerActivity : AppCompatActivity() {
     private fun adjustVolume(up: Boolean) {
         val step = maxOf(1, (maxVolume * settingsRepo.getVolumeStep() / 100f).toInt())
         val newProgress =
-            (binding.seekVolume.progress + (if (up) step else -step)).coerceIn(0, maxVolume * 2)
-        if (newProgress <= maxVolume) {
-            audioManager.setStreamVolume(
-                AudioManager.STREAM_MUSIC,
-                newProgress,
-                0
-            ); settingsRepo.setVolumeBoost(0)
-        } else {
-            audioManager.setStreamVolume(
-                AudioManager.STREAM_MUSIC,
-                maxVolume,
-                0
-            ); settingsRepo.setVolumeBoost(((newProgress - maxVolume).toFloat() / maxVolume * 100).toInt() * 10)
-        }
+            (binding.seekVolume.progress + (if (up) step else -step)).coerceIn(0, maxVolume)
+        audioManager.setStreamVolume(
+            AudioManager.STREAM_MUSIC,
+            newProgress,
+            0
+        )
         syncVolumeSeekBar()
     }
 

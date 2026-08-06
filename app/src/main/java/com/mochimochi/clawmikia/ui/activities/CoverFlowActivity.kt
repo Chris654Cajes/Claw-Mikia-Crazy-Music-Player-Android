@@ -378,17 +378,11 @@ class CoverFlowActivity : AppCompatActivity() {
         }
 
         // Volume
-        binding.seekVolume.max = maxVolume * 2
+        binding.seekVolume.max = maxVolume
         binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    if (p <= maxVolume) {
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, p, 0)
-                        settingsRepo.setVolumeBoost(0)
-                    } else {
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-                        settingsRepo.setVolumeBoost((p - maxVolume) * 10)
-                    }
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, p, 0)
                     syncVolumeSeekBar()
                 }
             }
@@ -399,31 +393,18 @@ class CoverFlowActivity : AppCompatActivity() {
 
         binding.btnVolumeUp.setOnClickListener {
             val step = maxOf(1, (maxVolume * settingsRepo.getVolumeStep() / 100f).toInt())
-            val p = (binding.seekVolume.progress + step).coerceAtMost(maxVolume * 2)
-            if (p <= maxVolume) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, p, 0)
-                settingsRepo.setVolumeBoost(0)
-            } else {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-                settingsRepo.setVolumeBoost((p - maxVolume) * 10)
-            }
+            val p = (binding.seekVolume.progress + step).coerceAtMost(maxVolume)
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, p, 0)
             syncVolumeSeekBar()
         }
         binding.btnVolumeDown.setOnClickListener {
             val step = maxOf(1, (maxVolume * settingsRepo.getVolumeStep() / 100f).toInt())
             val p = (binding.seekVolume.progress - step).coerceAtLeast(0)
-            if (p <= maxVolume) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, p, 0)
-                settingsRepo.setVolumeBoost(0)
-            } else {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-                settingsRepo.setVolumeBoost((p - maxVolume) * 10)
-            }
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, p, 0)
             syncVolumeSeekBar()
         }
         binding.btnVolumeReset.setOnClickListener {
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-            settingsRepo.setVolumeBoost(0)
             syncVolumeSeekBar()
         }
         binding.btnVolumeMute.setOnClickListener {
@@ -763,10 +744,8 @@ class CoverFlowActivity : AppCompatActivity() {
 
     private fun syncVolumeSeekBar() {
         val curVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        val boost = settingsRepo.getVolumeBoost()
-        val progress = if (boost > 0) maxVolume + (boost / 10) else curVol
-        binding.seekVolume.progress = progress
-        binding.tvVolumeValue.text = ((progress.toFloat() / maxVolume) * 100).toInt().toString()
+        binding.seekVolume.progress = curVol
+        binding.tvVolumeValue.text = ((curVol.toFloat() / maxVolume) * 100).toInt().toString()
     }
 
     private fun updatePlayButton(p: Boolean) {

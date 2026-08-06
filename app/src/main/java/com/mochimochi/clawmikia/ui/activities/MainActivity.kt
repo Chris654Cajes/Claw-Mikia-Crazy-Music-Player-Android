@@ -397,6 +397,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Rewind / Fast-forward by the configured skip step (seconds)
+        binding.musicPanel.btnRewind.setOnClickListener {
+            val svc = musicService ?: return@setOnClickListener
+            val s = viewModel.currentSong.value ?: return@setOnClickListener
+            val skipMs = SettingsRepository(this).getSkipStep() * 1000
+            val tStart = s.trimStart
+            svc.seekTo((svc.getPosition() - skipMs).coerceAtLeast(tStart.toInt()))
+        }
+        binding.musicPanel.btnForward.setOnClickListener {
+            val svc = musicService ?: return@setOnClickListener
+            val s = viewModel.currentSong.value ?: return@setOnClickListener
+            val skipMs = SettingsRepository(this).getSkipStep() * 1000
+            val tEnd = if (s.trimEnd > 0L) s.trimEnd.toInt() else svc.getDuration()
+            svc.seekTo((svc.getPosition() + skipMs).coerceAtMost(tEnd))
+        }
+
         // Seekbar scrubbing
         binding.musicPanel.seekBar.setOnSeekBarChangeListener(
             object : SeekBar.OnSeekBarChangeListener {
@@ -1031,6 +1047,10 @@ class MainActivity : AppCompatActivity() {
                 if (playing) startProgressUpdates() else stopProgressUpdates()
             }
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
     }
 
     override fun onStop() {

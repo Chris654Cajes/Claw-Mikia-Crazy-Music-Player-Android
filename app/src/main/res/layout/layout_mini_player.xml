@@ -104,7 +104,16 @@
 
         </LinearLayout>
 
-        <!-- Prev / Play / Next -->
+        <!-- Rewind / Prev / Play / Next / Forward -->
+        <ImageButton
+            android:id="@+id/btnRewind"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Rewind"
+            android:src="@drawable/ic_replay_5"
+            android:tint="@color/neon_cyan" />
+
         <ImageButton
             android:id="@+id/btnPrev"
             android:layout_width="38dp"
@@ -133,6 +142,15 @@
             android:tint="@color/neon_pink"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Next" />
+
+        <ImageButton
+            android:id="@+id/btnForward"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Fast Forward"
+            android:src="@drawable/ic_forward_5"
+            android:tint="@color/neon_cyan" />
 
     </LinearLayout>
 

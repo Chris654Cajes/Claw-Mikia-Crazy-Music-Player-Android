@@ -20,7 +20,6 @@ class SettingsRepository(context: Context) {
         private const val KEY_SKIP_STEP = "skip_step_seconds"
         private const val KEY_SOUND_ENVIRONMENT = "sound_environment"
         private const val KEY_VOLUME_LEVEL = "volume_level"
-        private const val KEY_VOLUME_BOOST = "volume_boost"
         private const val KEY_NOW_PLAYING_VIEW = "now_playing_view_type"
 
         // Default values
@@ -32,7 +31,6 @@ class SettingsRepository(context: Context) {
         const val DEFAULT_SKIP_STEP = 5          // 5 seconds
         const val DEFAULT_SOUND_ENVIRONMENT = "Default"
         const val DEFAULT_VOLUME_LEVEL = 70      // 70%
-        const val DEFAULT_VOLUME_BOOST = 0       // 0 milliBels
         const val DEFAULT_NOW_PLAYING_VIEW = "standard"
     }
 
@@ -46,9 +44,6 @@ class SettingsRepository(context: Context) {
 
     val volumeLevelLive: LiveData<Int> =
         SharedPrefIntLiveData(prefs, KEY_VOLUME_LEVEL, DEFAULT_VOLUME_LEVEL)
-
-    val volumeBoostLive: LiveData<Int> =
-        SharedPrefIntLiveData(prefs, KEY_VOLUME_BOOST, DEFAULT_VOLUME_BOOST)
 
     val nowPlayingViewLive: LiveData<String> =
         SharedPrefStringLiveData(prefs, KEY_NOW_PLAYING_VIEW, DEFAULT_NOW_PLAYING_VIEW)
@@ -69,7 +64,6 @@ class SettingsRepository(context: Context) {
             ?: DEFAULT_SOUND_ENVIRONMENT
 
     fun getVolumeLevel(): Int = prefs.getInt(KEY_VOLUME_LEVEL, DEFAULT_VOLUME_LEVEL)
-    fun getVolumeBoost(): Int = prefs.getInt(KEY_VOLUME_BOOST, DEFAULT_VOLUME_BOOST)
 
     fun getNowPlayingView(): String =
         prefs.getString(KEY_NOW_PLAYING_VIEW, DEFAULT_NOW_PLAYING_VIEW) ?: DEFAULT_NOW_PLAYING_VIEW
@@ -108,10 +102,6 @@ class SettingsRepository(context: Context) {
         prefs.edit().putInt(KEY_VOLUME_LEVEL, level).apply()
     }
 
-    fun setVolumeBoost(boostMb: Int) {
-        prefs.edit().putInt(KEY_VOLUME_BOOST, boostMb).apply()
-    }
-
     fun setNowPlayingView(viewType: String) {
         prefs.edit().putString(KEY_NOW_PLAYING_VIEW, viewType).apply()
     }
@@ -128,7 +118,6 @@ class SettingsRepository(context: Context) {
             .putInt(KEY_SKIP_STEP, DEFAULT_SKIP_STEP)
             .putString(KEY_SOUND_ENVIRONMENT, DEFAULT_SOUND_ENVIRONMENT)
             .putInt(KEY_VOLUME_LEVEL, DEFAULT_VOLUME_LEVEL)
-            .putInt(KEY_VOLUME_BOOST, DEFAULT_VOLUME_BOOST)
             .putString(KEY_NOW_PLAYING_VIEW, DEFAULT_NOW_PLAYING_VIEW)
             .apply()
     }

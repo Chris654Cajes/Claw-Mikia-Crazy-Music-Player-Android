@@ -37,7 +37,6 @@ import com.mochimochi.clawmikiacrazy.data.model.SkipRegion
 import com.mochimochi.clawmikiacrazy.data.model.Song
 import com.mochimochi.clawmikiacrazy.data.repository.PlaylistRepository
 import com.mochimochi.clawmikiacrazy.data.repository.ProfileRepository
-import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
 import com.mochimochi.clawmikiacrazy.data.repository.SongRepository
 import com.mochimochi.clawmikiacrazy.lyrics.LyricsManager
 import com.mochimochi.clawmikiacrazy.ui.activities.MainActivity
@@ -80,7 +79,6 @@ class MusicService : Service() {
     private lateinit var repository: SongRepository
     private lateinit var profileRepository: ProfileRepository
     private lateinit var playlistRepository: PlaylistRepository
-    private lateinit var settingsRepository: SettingsRepository
     private lateinit var lyricsManager: LyricsManager
     private lateinit var analysisEngine: AnalysisEngine
     private var dspProcessor: DSPProcessor? = null
@@ -138,7 +136,6 @@ class MusicService : Service() {
         repository = SongRepository(applicationContext)
         profileRepository = ProfileRepository(applicationContext)
         playlistRepository = PlaylistRepository(applicationContext)
-        settingsRepository = SettingsRepository(applicationContext)
         lyricsManager = LyricsManager(applicationContext)
         analysisEngine = AnalysisEngine(applicationContext)
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
@@ -161,10 +158,6 @@ class MusicService : Service() {
             filter,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) RECEIVER_NOT_EXPORTED else 0
         )
-
-        settingsRepository.volumeBoostLive.observeForever {
-            applyVolumeInternal(activeProfile ?: return@observeForever)
-        }
     }
 
     fun addPlayStateCallback(cb: (Boolean) -> Unit) {
@@ -631,13 +624,9 @@ class MusicService : Service() {
         }
         runCatching { mp.setVolume(finalVol, finalVol) }
 
-        // Apply global + profile volume boost via LoudnessEnhancer
-        val globalBoost = settingsRepository.getVolumeBoost()
-        val totalBoost =
-            if (profile.loudnessEnabled) profile.loudnessGain + globalBoost else globalBoost
-
-        if (totalBoost > 0) {
-            dspProcessor?.applyLoudnessEnhancer(totalBoost, true)
+        // Apply per-profile loudness boost via LoudnessEnhancer (if enabled)
+        if (profile.loudnessEnabled) {
+            dspProcessor?.applyLoudnessEnhancer(profile.loudnessGain, true)
         } else {
             dspProcessor?.applyLoudnessEnhancer(0, false)
         }

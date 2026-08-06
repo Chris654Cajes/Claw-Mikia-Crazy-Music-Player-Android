@@ -536,20 +536,13 @@ class CircularPlayerActivity : AppCompatActivity() {
     }
 
     private fun setupVolumeSeekBar() {
-        binding.cardVolume.seekVolume.max = maxVolume * 2
+        binding.cardVolume.seekVolume.max = maxVolume
         syncVolumeSeekBar()
         binding.cardVolume.seekVolume.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, p: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    if (p <= maxVolume) {
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, p, 0)
-                        settingsRepo.setVolumeBoost(0)
-                    } else {
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-                        val boostPercent = ((p - maxVolume).toFloat() / maxVolume * 100).toInt()
-                        settingsRepo.setVolumeBoost(boostPercent * 10)
-                    }
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, p, 0)
                 }
                 val pct = ((p.toFloat() / maxVolume) * 100).toInt()
                 binding.cardVolume.tvVolumeValue.text = pct.toString()
@@ -811,15 +804,8 @@ class CircularPlayerActivity : AppCompatActivity() {
     private fun adjustVolume(delta: Int) {
         val step = maxOf(1, (maxVolume * settingsRepo.getVolumeStep() / 100f).toInt())
         val current = binding.cardVolume.seekVolume.progress
-        val newProgress = (current + delta * step).coerceIn(0, maxVolume * 2)
-        if (newProgress <= maxVolume) {
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newProgress, 0)
-            settingsRepo.setVolumeBoost(0)
-        } else {
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-            val boostPercent = ((newProgress - maxVolume).toFloat() / maxVolume * 100).toInt()
-            settingsRepo.setVolumeBoost(boostPercent * 10)
-        }
+        val newProgress = (current + delta * step).coerceIn(0, maxVolume)
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newProgress, 0)
         syncVolumeSeekBar()
     }
 
@@ -840,16 +826,13 @@ class CircularPlayerActivity : AppCompatActivity() {
 
     private fun resetVolume() {
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-        settingsRepo.setVolumeBoost(0)
         syncVolumeSeekBar()
     }
 
     private fun syncVolumeSeekBar() {
         val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        val boostMb = settingsRepo.getVolumeBoost()
-        val boostProgress = (boostMb / 10f / 100f * maxVolume).toInt()
-        binding.cardVolume.seekVolume.progress = current + boostProgress
-        val pct = ((binding.cardVolume.seekVolume.progress.toFloat() / maxVolume) * 100).toInt()
+        binding.cardVolume.seekVolume.progress = current
+        val pct = ((current.toFloat() / maxVolume) * 100).toInt()
         binding.cardVolume.tvVolumeValue.text = pct.toString()
         binding.cardVolume.ivVolumeIcon.setImageResource(
             if (current == 0) R.drawable.ic_volume_off else R.drawable.ic_volume

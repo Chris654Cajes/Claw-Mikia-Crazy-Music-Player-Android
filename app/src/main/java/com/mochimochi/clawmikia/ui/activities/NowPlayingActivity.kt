@@ -310,21 +310,13 @@ class NowPlayingActivity : AppCompatActivity() {
     }
 
     private fun setupVolumeSeekBar() {
-        binding.cardVolume.seekVolume.max = maxVolume * 2
+        binding.cardVolume.seekVolume.max = maxVolume
         syncVolumeSeekBar()
         binding.cardVolume.seekVolume.setOnSeekBarChangeListener(object :
             SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    if (progress <= maxVolume) {
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0)
-                        settingsRepo.setVolumeBoost(0)
-                    } else {
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-                        val boostPercent =
-                            ((progress - maxVolume).toFloat() / maxVolume * 100).toInt()
-                        settingsRepo.setVolumeBoost(boostPercent * 10)
-                    }
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0)
                 }
                 val pct = ((progress.toFloat() / maxVolume) * 100).toInt()
                 binding.cardVolume.tvVolumeValue.text = pct.toString()
@@ -337,10 +329,8 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private fun syncVolumeSeekBar() {
         val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        val boostMb = settingsRepo.getVolumeBoost()
-        val boostProgress = (boostMb / 10f / 100f * maxVolume).toInt()
-        binding.cardVolume.seekVolume.progress = current + boostProgress
-        val pct = ((binding.cardVolume.seekVolume.progress.toFloat() / maxVolume) * 100).toInt()
+        binding.cardVolume.seekVolume.progress = current
+        val pct = ((current.toFloat() / maxVolume) * 100).toInt()
         binding.cardVolume.tvVolumeValue.text = pct.toString()
         binding.cardVolume.ivVolumeIcon.setImageResource(if (current == 0) R.drawable.ic_volume_off else R.drawable.ic_volume)
     }
@@ -707,15 +697,8 @@ class NowPlayingActivity : AppCompatActivity() {
             val currentProgress = binding.cardVolume.seekVolume.progress
             val volStepPercent = settingsRepo.getVolumeStep()
             val step = maxOf(1, (maxVolume * volStepPercent / 100f).toInt())
-            val newProgress = (currentProgress + step).coerceAtMost(maxVolume * 2)
-            if (newProgress <= maxVolume) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newProgress, 0)
-                settingsRepo.setVolumeBoost(0)
-            } else {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-                val boostPercent = ((newProgress - maxVolume).toFloat() / maxVolume * 100).toInt()
-                settingsRepo.setVolumeBoost(boostPercent * 10)
-            }
+            val newProgress = (currentProgress + step).coerceAtMost(maxVolume)
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newProgress, 0)
             syncVolumeSeekBar()
         }
 
@@ -724,20 +707,12 @@ class NowPlayingActivity : AppCompatActivity() {
             val volStepPercent = settingsRepo.getVolumeStep()
             val step = maxOf(1, (maxVolume * volStepPercent / 100f).toInt())
             val newProgress = (currentProgress - step).coerceAtLeast(0)
-            if (newProgress <= maxVolume) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newProgress, 0)
-                settingsRepo.setVolumeBoost(0)
-            } else {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-                val boostPercent = ((newProgress - maxVolume).toFloat() / maxVolume * 100).toInt()
-                settingsRepo.setVolumeBoost(boostPercent * 10)
-            }
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newProgress, 0)
             syncVolumeSeekBar()
         }
 
         binding.cardVolume.btnVolumeReset.setOnClickListener {
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0)
-            settingsRepo.setVolumeBoost(0)
             syncVolumeSeekBar()
         }
 
