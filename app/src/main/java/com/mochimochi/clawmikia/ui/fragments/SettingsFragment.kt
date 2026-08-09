@@ -2,6 +2,7 @@ package com.mochimochi.clawmikiacrazy.ui.fragments
 
 import android.content.Context
 import android.media.AudioManager
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
@@ -10,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import android.widget.ArrayAdapter
 import android.widget.RadioButton
@@ -21,10 +23,15 @@ import androidx.lifecycle.lifecycleScope
 import com.mochimochi.clawmikiacrazy.R
 import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
 import com.mochimochi.clawmikiacrazy.databinding.FragmentSettingsBinding
+import com.mochimochi.clawmikiacrazy.ui.activities.MainActivity
 import com.mochimochi.clawmikiacrazy.ui.viewmodels.MainViewModel
 import com.mochimochi.clawmikiacrazy.utils.MetadataFetcher
+import com.mochimochi.clawmikiacrazy.utils.ProfileBackup
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
+import java.io.File
 
 class SettingsFragment : Fragment() {
 
@@ -33,6 +40,18 @@ class SettingsFragment : Fragment() {
 
     private lateinit var settingsRepo: SettingsRepository
     private val mainViewModel: MainViewModel by activityViewModels()
+
+    private val exportProfilesLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let { exportProfilesTo(it) }
+    }
+
+    private val importProfilesLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { importProfilesFrom(it) }
+    }
 
     // Suppress TextWatcher feedback loop when we programmatically set text
     private var suppressWatcher = false
@@ -56,6 +75,7 @@ class SettingsFragment : Fragment() {
         setupNowPlayingView()
         setupEnvironmentSpinner()
         setupMetadataUpdateButton()
+        setupProfileBackup()
         setupResetButton()
         observeSettings()
     }
@@ -140,6 +160,103 @@ class SettingsFragment : Fragment() {
                     .setMessage("Please connect to the internet to update song metadata.")
                     .setPositiveButton("OK", null)
                     .show()
+            }
+        }
+    }
+
+    // ── Profile Backup ────────────────────────────────────────────────────────
+
+    private fun setupProfileBackup() {
+        binding.btnExportProfiles.setOnClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle("EXPORT PROFILES")
+                .setMessage("Export a JSON file containing only songs that have their own profiles with updated states?")
+                .setPositiveButton("EXPORT") { _, _ ->
+                    exportProfilesLauncher.launch("ClawMikia_Profiles.json")
+                }
+                .setNegativeButton("CANCEL", null)
+                .show()
+        }
+
+        binding.btnImportProfiles.setOnClickListener {
+            importProfilesLauncher.launch(arrayOf("application/json"))
+        }
+    }
+
+    private fun exportProfilesTo(uri: Uri) {
+        lifecycleScope.launch {
+            val main = activity as? MainActivity
+            val json = withContext(Dispatchers.IO) {
+                ProfileBackup.buildExportJson(requireContext())
+            }
+            if (json == null) {
+                main?.showAestheticStatusDialog(
+                    success = false,
+                    title = "NO MATCHES",
+                    message = "No songs with their own updated profiles found."
+                )
+                return@launch
+            }
+            val tempFile = File(requireContext().cacheDir, "profiles_export.json")
+            withContext(Dispatchers.IO) {
+                tempFile.writeText(json.toString(2))
+            }
+            try {
+                requireContext().contentResolver.openOutputStream(uri)?.use { output ->
+                    tempFile.inputStream().use { input -> input.copyTo(output) }
+                }
+                val count = json.optJSONArray("songs")?.length() ?: 0
+                main?.showAestheticStatusDialog(
+                    success = true,
+                    title = "EXPORT SUCCESS",
+                    message = "Exported profiles for $count song(s)."
+                )
+            } catch (e: Exception) {
+                main?.showAestheticStatusDialog(
+                    success = false,
+                    title = "SAVE FAILED",
+                    message = "Could not write to the selected location."
+                )
+            }
+        }
+    }
+
+    private fun importProfilesFrom(uri: Uri) {
+        lifecycleScope.launch {
+            val main = activity as? MainActivity
+            val content = withContext(Dispatchers.IO) {
+                runCatching {
+                    requireContext().contentResolver.openInputStream(uri)?.use {
+                        it.readBytes().toString(Charsets.UTF_8)
+                    }
+                }.getOrNull()
+            }
+            if (content.isNullOrBlank()) {
+                main?.showAestheticStatusDialog(
+                    success = false,
+                    title = "READ FAILED",
+                    message = "Could not read the selected JSON file."
+                )
+                return@launch
+            }
+            val result = withContext(Dispatchers.IO) {
+                ProfileBackup.importJson(requireContext(), content)
+            }
+            if (result.songsMatched == 0) {
+                main?.showAestheticStatusDialog(
+                    success = false,
+                    title = "NO MATCHES",
+                    message = "No existing songs matched the imported file."
+                )
+            } else {
+                main?.showAestheticStatusDialog(
+                    success = true,
+                    title = "IMPORT SUCCESS",
+                    message = "Matched ${result.songsMatched} song(s) - " +
+                            "added ${result.profilesAdded}, " +
+                            "updated ${result.profilesUpdated} profile(s), " +
+                            "added ${result.skipRegionsAdded} skip region(s)."
+                )
             }
         }
     }

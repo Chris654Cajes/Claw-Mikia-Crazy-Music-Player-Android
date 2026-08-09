@@ -954,16 +954,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Updates the current playlist in the service without starting playback.
-     * Used to keep the "Now Playing" context in sync with the current layout.
-     */
-    fun updateCurrentPlaylist(playlist: List<Song>) {
-        if (serviceBound) {
-            musicService?.updatePlaylistOnly(playlist)
-        }
-    }
-
     fun showMusicPanel(song: Song) {
         binding.musicPanel.root.visibility = View.VISIBLE
         binding.musicPanel.tvTitle.text = song.title

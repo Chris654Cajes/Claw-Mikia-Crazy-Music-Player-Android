@@ -335,6 +335,47 @@
             android:textColor="@color/text_hint"
             android:textSize="11sp" />
 
+        <!-- Profile Backup -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/orbitron_bold"
+            android:text="PROFILE BACKUP"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExportProfiles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="@color/neon_purple_20"
+            android:fontFamily="@font/orbitron_bold"
+            android:padding="14dp"
+            android:text="EXPORT UPDATED PROFILES"
+            android:textColor="@color/neon_purple" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnImportProfiles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="@color/neon_cyan_20"
+            android:fontFamily="@font/orbitron_bold"
+            android:padding="14dp"
+            android:text="IMPORT PROFILES JSON"
+            android:textColor="@color/neon_cyan" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:fontFamily="@font/orbitron_regular"
+            android:text="Export a JSON file containing only songs that have their own profiles with updated states. Importing the same file automatically adds / updates those profiles on matching songs."
+            android:textColor="@color/text_hint"
+            android:textSize="11sp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

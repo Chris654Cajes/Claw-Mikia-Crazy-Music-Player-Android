@@ -154,7 +154,6 @@ class LibraryFragment : Fragment() {
             adapter.submitSongs(songs)
             binding.tvEmpty.visibility = if (songs.isEmpty()) View.VISIBLE else View.GONE
             binding.tvSongCount.text = "${songs.size} songs"
-            (activity as? MainActivity)?.updateCurrentPlaylist(songs)
         }
 
         viewModel.currentSong.observe(viewLifecycleOwner) { song ->

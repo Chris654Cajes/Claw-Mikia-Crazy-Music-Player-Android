@@ -43,6 +43,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val manuallyEditedCount: LiveData<Int> = repository.manuallyEditedCount
 
     private val _searchQuery = MutableLiveData("")
+    val searchQuery: LiveData<String> = _searchQuery
 
     private val _advancedFilter = MutableLiveData(AdvancedFilter())
     val advancedFilter: LiveData<AdvancedFilter> = _advancedFilter
@@ -72,12 +73,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun applyFilters(query: String, filter: AdvancedFilter, songs: List<Song>): List<Song> {
         return songs.filter { song ->
             // Search query filter
-            val matchesQuery = if (query.isBlank()) true else {
-                song.title.contains(query, ignoreCase = true) ||
-                        song.artist.contains(query, ignoreCase = true) ||
-                        song.albumName.contains(query, ignoreCase = true) ||
-                        song.folderName.contains(query, ignoreCase = true)
-            }
+            val matchesQuery = songsMatchQuery(song, query)
             if (!matchesQuery) return@filter false
 
             // Advanced filters
@@ -129,6 +125,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             TriState.YES -> value
             TriState.NO -> !value
         }
+    }
+
+    /** Shared text-search matcher used by every RecyclerView across the app. */
+    fun songsMatchQuery(song: Song, query: String): Boolean {
+        if (query.isBlank()) return true
+        return song.title.contains(query, ignoreCase = true) ||
+                song.artist.contains(query, ignoreCase = true) ||
+                song.albumName.contains(query, ignoreCase = true) ||
+                song.folderName.contains(query, ignoreCase = true)
     }
 
     fun setAdvancedFilter(filter: AdvancedFilter) {

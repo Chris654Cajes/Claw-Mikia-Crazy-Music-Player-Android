@@ -601,17 +601,6 @@ class MusicService : Service() {
         }
     }
 
-    fun updatePlaylistOnly(newSongs: List<Song>) {
-        if (newSongs.isEmpty()) return
-        val current = currentSong ?: return
-        val newIdx = newSongs.indexOfFirst { it.id == current.id }
-        if (newIdx != -1) {
-            playlist = newSongs
-            currentIndex = newIdx
-            if (shuffleEnabled) rebuildShuffleIndices()
-        }
-    }
-
     private fun applyVolumeInternal(profile: PlaybackProfile) {
         val mp = mediaPlayer ?: return
         if (!isPrepared) return

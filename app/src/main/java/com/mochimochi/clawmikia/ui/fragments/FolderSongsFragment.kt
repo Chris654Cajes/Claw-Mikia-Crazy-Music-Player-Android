@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mochimochi.clawmikiacrazy.R
+import com.mochimochi.clawmikiacrazy.data.model.Song
 import com.mochimochi.clawmikiacrazy.databinding.FragmentLibraryBinding
 import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
 import com.mochimochi.clawmikiacrazy.ui.activities.MainActivity
@@ -141,11 +142,24 @@ class FolderSongsFragment : Fragment() {
 
         updateGroupButton()
 
+        var allSongs: List<Song> = emptyList()
+        var searchQuery: String = ""
+
+        fun refresh() {
+            val filtered = allSongs.filter { viewModel.songsMatchQuery(it, searchQuery) }
+            adapter.submitSongs(filtered)
+            binding.tvEmpty.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
+            binding.tvSongCount.text = "$folderName \u2014 ${filtered.size} songs"
+        }
+
         viewModel.getSongsByFolder(folderPath).observe(viewLifecycleOwner) { songs ->
-            adapter.submitSongs(songs)
-            binding.tvEmpty.visibility = if (songs.isEmpty()) View.VISIBLE else View.GONE
-            binding.tvSongCount.text = "$folderName \u2014 ${songs.size} songs"
-            (activity as? MainActivity)?.updateCurrentPlaylist(songs)
+            allSongs = songs
+            refresh()
+        }
+
+        viewModel.searchQuery.observe(viewLifecycleOwner) { query ->
+            searchQuery = query
+            refresh()
         }
 
         viewModel.currentSong.observe(viewLifecycleOwner) { song ->

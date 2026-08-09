@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.DiffUtil
@@ -36,11 +37,13 @@ class PlaylistsFragment : Fragment() {
     private lateinit var repo: PlaylistRepository
     private lateinit var songRepo: SongRepository
     private lateinit var adapter: PlaylistAdapter
+    private val viewModel: MainViewModel by activityViewModels()
 
     private var allPlaylists: List<Playlist> = emptyList()
     private var songCounts: Map<Long, Int> = emptyMap()
     private var activeFilter: PlaylistFilter = PlaylistFilter.ALL
     private var searchQuery: String = ""
+    private var globalQuery: String = ""
 
     companion object {
         fun newInstance() = PlaylistsFragment()
@@ -76,6 +79,11 @@ class PlaylistsFragment : Fragment() {
 
         setupSearchView(view)
         setupFilterChips(view)
+
+        viewModel.searchQuery.observe(viewLifecycleOwner) { query ->
+            globalQuery = query
+            applyFilterAndSearch(view)
+        }
 
         repo.allPlaylists.observe(viewLifecycleOwner) { playlists ->
             allPlaylists = playlists
@@ -167,8 +175,8 @@ class PlaylistsFragment : Fragment() {
             if (!passesFilter) return@filter false
 
             // 2. Search query — match name, description, song count as string, or smart/manual label
-            if (searchQuery.isBlank()) return@filter true
-            val q = searchQuery.lowercase()
+            if (searchQuery.isBlank() && globalQuery.isBlank()) return@filter true
+            val q = "$searchQuery $globalQuery".trim().lowercase()
             val count = songCounts[pl.id] ?: 0
             val typeLabel = if (pl.isSmartPlaylist) "smart" else "manual"
             pl.name.lowercase().contains(q) ||
@@ -184,14 +192,17 @@ class PlaylistsFragment : Fragment() {
         val tvEmptyHint = view.findViewById<TextView>(R.id.tvEmptyHint)
         emptyState?.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
         tvEmptyHint?.text = when {
-            searchQuery.isNotBlank() -> "No results for \"$searchQuery\""
+            searchQuery.isNotBlank() || globalQuery.isNotBlank() ->
+                "No results for \"${"$searchQuery $globalQuery".trim()}\""
+
             activeFilter != PlaylistFilter.ALL -> "No playlists match this filter"
             else -> "Tap + to create your first playlist"
         }
 
         // Show count label when filtered
         val tvCount = view.findViewById<TextView>(R.id.tvFilterCount)
-        val showCount = searchQuery.isNotBlank() || activeFilter != PlaylistFilter.ALL
+        val showCount = searchQuery.isNotBlank() || globalQuery.isNotBlank() ||
+                activeFilter != PlaylistFilter.ALL
         tvCount?.visibility = if (showCount) View.VISIBLE else View.GONE
         tvCount?.text =
             "${filtered.size} of ${allPlaylists.size} playlist${if (allPlaylists.size != 1) "s" else ""}"
@@ -385,6 +396,7 @@ class PlaylistDetailFragment : Fragment() {
     private lateinit var repo: PlaylistRepository
     private var playlistId: Long = -1
     private var playlistName: String = ""
+    private val viewModel: MainViewModel by activityViewModels()
 
     companion object {
         fun newInstance(id: Long, name: String): PlaylistDetailFragment =
@@ -481,15 +493,27 @@ class PlaylistDetailFragment : Fragment() {
         }
         ItemTouchHelper(swipeHandler).attachToRecyclerView(rv)
 
-        repo.getSongsInPlaylist(playlistId).observe(viewLifecycleOwner) { songs ->
-            adapter.submitList(songs)
-            view.findViewById<View>(R.id.btnPlayAll).setOnClickListener {
-                if (songs.isNotEmpty()) {
-                    (requireActivity() as? MainActivity)?.playSong(songs[0], songs)
+        var allSongs: List<Song> = emptyList()
+        var searchQuery: String = ""
+
+        fun refresh() {
+            val filtered = allSongs.filter { viewModel.songsMatchQuery(it, searchQuery) }
+            adapter.submitList(filtered)
+            view.findViewById<View>(R.id.btnPlayAll)?.setOnClickListener {
+                if (filtered.isNotEmpty()) {
+                    (requireActivity() as? MainActivity)?.playSong(filtered[0], filtered)
                 }
             }
-            // Sync the service playlist if we are in this layout
-            (activity as? MainActivity)?.updateCurrentPlaylist(songs)
+        }
+
+        repo.getSongsInPlaylist(playlistId).observe(viewLifecycleOwner) { songs ->
+            allSongs = songs
+            refresh()
+        }
+
+        viewModel.searchQuery.observe(viewLifecycleOwner) { query ->
+            searchQuery = query
+            refresh()
         }
 
         // Observe favorite icon type setting and refresh adapter
@@ -557,11 +581,16 @@ class SongSelectionFragment : androidx.fragment.app.DialogFragment() {
         val rv = view.findViewById<RecyclerView>(R.id.rvSongs)
         rv.layoutManager = LinearLayoutManager(requireContext())
 
-        repo.allSongs.observe(viewLifecycleOwner) { allSongs ->
+        var allSongs: List<Song> = emptyList()
+        var searchQuery: String = ""
+        val viewModel: MainViewModel by activityViewModels()
+
+        fun refresh() {
+            val filtered = allSongs.filter { viewModel.songsMatchQuery(it, searchQuery) }
             val cbSelectAll = view.findViewById<android.widget.CheckBox>(R.id.cbSelectAll)
             cbSelectAll?.setOnCheckedChangeListener { _, checked ->
                 if (checked) {
-                    allSongs.forEach { selectedSongIds.add(it.id) }
+                    filtered.forEach { selectedSongIds.add(it.id) }
                 } else {
                     selectedSongIds.clear()
                 }
@@ -575,7 +604,7 @@ class SongSelectionFragment : androidx.fragment.app.DialogFragment() {
                 )
 
                 override fun onBindViewHolder(h: SongSelectionViewHolder, p: Int) {
-                    val song = allSongs[p]
+                    val song = filtered[p]
                     h.title.text = song.title
                     h.artist.text = song.artist
                     h.checkBox.setOnCheckedChangeListener(null)
@@ -587,8 +616,18 @@ class SongSelectionFragment : androidx.fragment.app.DialogFragment() {
                     h.itemView.setOnClickListener { h.checkBox.toggle() }
                 }
 
-                override fun getItemCount() = allSongs.size
+                override fun getItemCount() = filtered.size
             }
+        }
+
+        repo.allSongs.observe(viewLifecycleOwner) { songs ->
+            allSongs = songs
+            refresh()
+        }
+
+        viewModel.searchQuery.observe(viewLifecycleOwner) { query ->
+            searchQuery = query
+            refresh()
         }
     }
 

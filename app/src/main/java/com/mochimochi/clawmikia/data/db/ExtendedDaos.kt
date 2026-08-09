@@ -20,10 +20,16 @@ interface PlaybackProfileDao {
     @Query("SELECT * FROM playback_profiles WHERE id = :id LIMIT 1")
     suspend fun getProfileById(id: Long): PlaybackProfile?
 
-    @Query("SELECT * FROM playback_profiles WHERE songId = :songId ORDER BY createdAt")
+    @Query("SELECT * FROM playback_profiles WHERE isDefault = 0")
+    suspend fun getNonDefaultProfiles(): List<PlaybackProfile>
+
+    @Query("SELECT * FROM playback_profiles WHERE songId = :songId AND name = :name COLLATE NOCASE LIMIT 1")
+    suspend fun getProfileByName(songId: Long, name: String): PlaybackProfile?
+
+    @Query("SELECT * FROM playback_profiles WHERE songId = :songId ORDER BY isDefault DESC, createdAt ASC")
     fun getProfilesForSong(songId: Long): LiveData<List<PlaybackProfile>>
 
-    @Query("SELECT * FROM playback_profiles WHERE songId = :songId ORDER BY createdAt")
+    @Query("SELECT * FROM playback_profiles WHERE songId = :songId ORDER BY isDefault DESC, createdAt ASC")
     suspend fun getProfilesForSongSync(songId: Long): List<PlaybackProfile>
 
     @Query("SELECT * FROM playback_profiles WHERE songId = :songId AND isActive = 1 LIMIT 1")
@@ -98,6 +104,9 @@ interface SkipRegionDao {
 
     @Query("SELECT * FROM skip_regions WHERE songId = :songId ORDER BY startMs")
     fun getRegionsForSong(songId: Long): LiveData<List<SkipRegion>>
+
+    @Query("SELECT * FROM skip_regions WHERE songId = :songId ORDER BY startMs")
+    suspend fun getRegionsForSongSync(songId: Long): List<SkipRegion>
 
     @Query("SELECT * FROM skip_regions WHERE songId = :songId AND isEnabled = 1 ORDER BY startMs")
     suspend fun getEnabledRegionsSync(songId: Long): List<SkipRegion>

@@ -48,10 +48,28 @@ class FoldersFragment : Fragment() {
             this.adapter = adapter
         }
 
+        var allFolders: List<com.mochimochi.clawmikiacrazy.data.db.FolderInfo> = emptyList()
+        var searchQuery: String = ""
+
+        fun refresh() {
+            val filtered = allFolders.filter { folder ->
+                searchQuery.isBlank() ||
+                        folder.folderName.contains(searchQuery, ignoreCase = true) ||
+                        folder.folderPath.contains(searchQuery, ignoreCase = true)
+            }
+            adapter.submitList(filtered)
+            binding.tvEmpty.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
+            binding.tvFolderCount.text = "${filtered.size} folders"
+        }
+
         viewModel.folders.observe(viewLifecycleOwner) { folders ->
-            adapter.submitList(folders)
-            binding.tvEmpty.visibility = if (folders.isEmpty()) View.VISIBLE else View.GONE
-            binding.tvFolderCount.text = "${folders.size} folders"
+            allFolders = folders
+            refresh()
+        }
+
+        viewModel.searchQuery.observe(viewLifecycleOwner) { query ->
+            searchQuery = query
+            refresh()
         }
     }
 
