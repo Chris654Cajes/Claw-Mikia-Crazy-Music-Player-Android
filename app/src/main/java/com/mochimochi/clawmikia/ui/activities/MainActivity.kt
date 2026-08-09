@@ -880,6 +880,11 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
 
+                is MainViewModel.ScanStatus.DuplicateConfirmation -> {
+                    binding.scanProgress.visibility = View.GONE
+                    showDuplicateImportDialog(status)
+                }
+
                 is MainViewModel.ScanStatus.Reset -> {
                     binding.scanProgress.visibility = View.GONE
                     // Hide the mini player — no song is loaded any more
@@ -1273,6 +1278,40 @@ class MainActivity : AppCompatActivity() {
 
             override fun getItemCount() = items.size
         }
+
+        dialog.show()
+        val width = (resources.displayMetrics.widthPixels * 0.80).toInt()
+        dialog.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
+    private fun showDuplicateImportDialog(status: MainViewModel.ScanStatus.DuplicateConfirmation) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_duplicate_import, null)
+
+        val message = buildString {
+            append("${status.duplicateCount} of the selected files already exist in your library.")
+            if (status.newCount > 0) append("\n\n${status.newCount} new song(s) will be imported either way.")
+            append("\n\nAdd the duplicates as new entries, or skip them?")
+        }
+        dialogView.findViewById<TextView>(R.id.tvMessage).text = message
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnImportDuplicates)
+            .setOnClickListener {
+                viewModel.resolveDuplicates(keepDuplicates = true)
+                dialog.dismiss()
+            }
+
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.btnSkipDuplicates)
+            .setOnClickListener {
+                viewModel.resolveDuplicates(keepDuplicates = false)
+                dialog.dismiss()
+            }
 
         dialog.show()
         val width = (resources.displayMetrics.widthPixels * 0.80).toInt()

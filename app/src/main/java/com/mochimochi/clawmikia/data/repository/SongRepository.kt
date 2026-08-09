@@ -25,30 +25,90 @@ class SongRepository(private val context: Context) {
 
     fun getSongsByFolder(folder: String): LiveData<List<Song>> = songDao.getSongsByFolder(folder)
 
-    suspend fun scanFolder(treeUri: Uri): Int = withContext(Dispatchers.IO) {
-        val docFile = DocumentFile.fromTreeUri(context, treeUri) ?: return@withContext 0
-        val songs = mutableListOf<Song>()
-        scanDocumentFile(docFile, songs)
-        songDao.insertAll(songs)
-        songs.size
+    data class ImportCandidate(
+        val uri: Uri,
+        val sourceName: String,
+        val folderPath: String,
+        val folderName: String,
+        val title: String,
+        val artist: String,
+        val duration: Long,
+        val fileSize: Long,
+        val dateModified: Long
+    )
+
+    data class ImportPlan(
+        val newSongs: List<ImportCandidate>,
+        val duplicates: List<ImportCandidate>
+    )
+
+    /** Scans a folder tree and builds an import plan, separating brand-new songs from duplicates. */
+    suspend fun buildFolderImportPlan(treeUri: Uri): ImportPlan = withContext(Dispatchers.IO) {
+        val docFile = DocumentFile.fromTreeUri(context, treeUri)
+            ?: return@withContext ImportPlan(emptyList(), emptyList())
+        val candidates = mutableListOf<ImportCandidate>()
+        collectDocumentFile(docFile, candidates)
+        partitionCandidates(candidates)
     }
 
-    suspend fun scanFiles(uris: List<Uri>): Int = withContext(Dispatchers.IO) {
-        val songs = mutableListOf<Song>()
+    /** Scans a list of files and builds an import plan, separating brand-new songs from duplicates. */
+    suspend fun buildFilesImportPlan(uris: List<Uri>): ImportPlan = withContext(Dispatchers.IO) {
+        val candidates = mutableListOf<ImportCandidate>()
         uris.forEach { uri ->
             val docFile = DocumentFile.fromSingleUri(context, uri) ?: return@forEach
             if (docFile.isFile && docFile.name?.lowercase()?.endsWith(".mp3") == true) {
-                val song = extractSongMeta(docFile, "Imported", "Imported")
-                if (song != null) songs.add(song)
+                readMeta(docFile, "Imported", "Imported")?.let { candidates.add(it) }
             }
+        }
+        partitionCandidates(candidates)
+    }
+
+    /** Copies the given candidates into internal storage and inserts them into the library. */
+    suspend fun commitImport(candidates: List<ImportCandidate>): Int = withContext(Dispatchers.IO) {
+        val songs = candidates.mapNotNull { candidate ->
+            // Copy file to internal storage so it remains playable even if deleted from device.
+            // The unique timestamp prefix guarantees duplicates never overwrite existing files.
+            val internalUri = copyToInternalStorage(candidate.uri, candidate.sourceName)
+                ?: return@mapNotNull null
+
+            Song(
+                title = candidate.title,
+                artist = candidate.artist,
+                filePath = internalUri,
+                folderPath = candidate.folderPath,
+                folderName = candidate.folderName,
+                duration = candidate.duration,
+                fileSize = candidate.fileSize,
+                dateModified = candidate.dateModified
+            )
         }
         songDao.insertAll(songs)
         songs.size
     }
 
-    private fun scanDocumentFile(
+    private suspend fun partitionCandidates(candidates: List<ImportCandidate>): ImportPlan {
+        if (candidates.isEmpty()) return ImportPlan(emptyList(), emptyList())
+        val existingKeys = songDao.getAllSongsSync()
+            .map { songKey(it.title, it.artist) }
+            .toHashSet()
+        val newSongs = mutableListOf<ImportCandidate>()
+        val duplicates = mutableListOf<ImportCandidate>()
+        candidates.forEach { candidate ->
+            if (existingKeys.contains(songKey(candidate.title, candidate.artist))) {
+                duplicates.add(candidate)
+            } else {
+                newSongs.add(candidate)
+            }
+        }
+        return ImportPlan(newSongs, duplicates)
+    }
+
+    private fun songKey(title: String, artist: String) =
+        "${title.trim().lowercase()}|${artist.trim().lowercase()}"
+
+    private fun collectDocumentFile(
         dir: DocumentFile,
-        songs: MutableList<Song>,
+        candidates: MutableList<ImportCandidate>,
         parentPath: String = "",
     ) {
         val folderName = dir.name ?: "Unknown"
@@ -56,16 +116,19 @@ class SongRepository(private val context: Context) {
 
         dir.listFiles().forEach { file ->
             when {
-                file.isDirectory -> scanDocumentFile(file, songs, folderPath)
+                file.isDirectory -> collectDocumentFile(file, candidates, folderPath)
                 file.isFile && file.name?.lowercase()?.endsWith(".mp3") == true -> {
-                    val song = extractSongMeta(file, folderPath, folderName)
-                    if (song != null) songs.add(song)
+                    readMeta(file, folderPath, folderName)?.let { candidates.add(it) }
                 }
             }
         }
     }
 
-    private fun extractSongMeta(file: DocumentFile, folderPath: String, folderName: String): Song? {
+    private fun readMeta(
+        file: DocumentFile,
+        folderPath: String,
+        folderName: String
+    ): ImportCandidate? {
         return try {
             val mmr = MediaMetadataRetriever()
             mmr.setDataSource(context, file.uri)
@@ -78,22 +141,19 @@ class SongRepository(private val context: Context) {
                     ?: 0L
             mmr.release()
 
-            // Copy file to internal storage so it remains playable even if deleted from device
-            val internalUri = copyToInternalStorage(file.uri, file.name ?: "$title.mp3")
-                ?: return null
-
-            Song(
-                title = title,
-                artist = artist,
-                filePath = internalUri,
+            ImportCandidate(
+                uri = file.uri,
+                sourceName = file.name ?: "$title.mp3",
                 folderPath = folderPath,
                 folderName = folderName,
+                title = title,
+                artist = artist,
                 duration = duration,
                 fileSize = file.length(),
                 dateModified = file.lastModified()
             )
         } catch (e: Exception) {
-            Log.e("SongRepository", "Error extracting meta or copying file: ${e.message}")
+            Log.e("SongRepository", "Error reading metadata: ${e.message}")
             null
         }
     }

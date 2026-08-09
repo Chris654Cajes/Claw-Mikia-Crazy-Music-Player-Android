@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_aesthetic"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="28dp">
+
+    <ImageView
+        android:id="@+id/ivDuplicateIcon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="Duplicate Icon"
+        android:src="@drawable/ic_layers"
+        app:tint="@color/neon_orange" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/orbitron_bold"
+        android:gravity="center"
+        android:letterSpacing="0.1"
+        android:text="DUPLICATES FOUND"
+        android:textColor="@color/neon_orange"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/tvMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="28dp"
+        android:fontFamily="@font/orbitron_regular"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:text="Some of the selected files already exist in your library."
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnSkipDuplicates"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_button_outline_neutral"
+            android:fontFamily="@font/orbitron_bold"
+            android:minWidth="130dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:stateListAnimator="@null"
+            android:text="SKIP"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnImportDuplicates"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_button_outline_orange"
+            android:fontFamily="@font/orbitron_bold"
+            android:minWidth="150dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:stateListAnimator="@null"
+            android:text="IMPORT AS NEW"
+            android:textColor="@color/neon_orange"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -163,27 +163,61 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         _isPlaying.value = playing
     }
 
+    private var pendingNewSongs: List<SongRepository.ImportCandidate> = emptyList()
+    private var pendingDuplicates: List<SongRepository.ImportCandidate> = emptyList()
+
     fun scanFolder(uri: Uri) {
         viewModelScope.launch {
             _scanStatus.value = ScanStatus.Scanning
-            val count = repository.scanFolder(uri)
-            if (count > 0) {
-                _scanStatus.value = ScanStatus.Success(count)
-            } else {
-                _scanStatus.value = ScanStatus.Empty
-            }
+            val plan = repository.buildFolderImportPlan(uri)
+            handleImportPlan(plan)
         }
     }
 
     fun scanFiles(uris: List<Uri>) {
         viewModelScope.launch {
             _scanStatus.value = ScanStatus.Scanning
-            val count = repository.scanFiles(uris)
-            if (count > 0) {
-                _scanStatus.value = ScanStatus.Success(count)
-            } else {
+            val plan = repository.buildFilesImportPlan(uris)
+            handleImportPlan(plan)
+        }
+    }
+
+    private fun handleImportPlan(plan: SongRepository.ImportPlan) {
+        pendingNewSongs = plan.newSongs
+        pendingDuplicates = plan.duplicates
+
+        if (plan.duplicates.isEmpty()) {
+            pendingDuplicates = emptyList()
+            if (plan.newSongs.isEmpty()) {
                 _scanStatus.value = ScanStatus.Empty
+            } else {
+                viewModelScope.launch {
+                    val count = repository.commitImport(plan.newSongs)
+                    pendingNewSongs = emptyList()
+                    _scanStatus.value =
+                        if (count > 0) ScanStatus.Success(count) else ScanStatus.Empty
+                }
             }
+        } else {
+            _scanStatus.value = ScanStatus.DuplicateConfirmation(
+                newCount = plan.newSongs.size,
+                duplicateCount = plan.duplicates.size
+            )
+        }
+    }
+
+    fun resolveDuplicates(keepDuplicates: Boolean) {
+        val toImport = if (keepDuplicates) pendingNewSongs + pendingDuplicates else pendingNewSongs
+        pendingNewSongs = emptyList()
+        pendingDuplicates = emptyList()
+
+        if (toImport.isEmpty()) {
+            _scanStatus.value = ScanStatus.Empty
+            return
+        }
+        viewModelScope.launch {
+            val count = repository.commitImport(toImport)
+            _scanStatus.value = if (count > 0) ScanStatus.Success(count) else ScanStatus.Empty
         }
     }
 
@@ -247,6 +281,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         object FetchingMetadata : ScanStatus()
         data class Success(val count: Int) : ScanStatus()
         object Empty : ScanStatus()
+
+        /** Emitted when imported files match songs already in the library; the user must choose. */
+        data class DuplicateConfirmation(val newCount: Int, val duplicateCount: Int) : ScanStatus()
 
         /** Emitted after a successful library reset. */
         object Reset : ScanStatus()
