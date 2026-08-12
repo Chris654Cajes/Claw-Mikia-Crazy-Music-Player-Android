@@ -336,6 +336,9 @@ class CardsPlayerActivity : AppCompatActivity() {
             ProfilesFragment().show(supportFragmentManager, "profiles")
         }
         binding.btnEdit.setOnClickListener { showEditDialog() }
+        binding.btnEqualizer.setOnClickListener {
+            startActivity(Intent(this, EqualizerActivity::class.java))
+        }
         binding.btnDelete.setOnClickListener { showDeleteConfirmDialog() }
         binding.btnFavorite.setOnClickListener { toggleFavorite() }
 

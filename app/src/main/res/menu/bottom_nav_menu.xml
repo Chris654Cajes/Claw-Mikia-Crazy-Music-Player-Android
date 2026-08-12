@@ -9,9 +9,9 @@
         android:icon="@drawable/ic_heart_outline"
         android:title="Favorites" />
     <item
-        android:id="@+id/nav_folders"
-        android:icon="@drawable/ic_folder"
-        android:title="Folders" />
+        android:id="@+id/nav_equalizer"
+        android:icon="@drawable/ic_equalizer"
+        android:title="Equalizer" />
     <item
         android:id="@+id/nav_playlists"
         android:icon="@drawable/ic_playlist"

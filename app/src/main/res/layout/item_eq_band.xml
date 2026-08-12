@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="8dp">
+
+    <TextView
+        android:id="@+id/tvFreq"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/orbitron_bold"
+        android:text="31Hz"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
+
+    <SeekBar
+        android:id="@+id/seekBand"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:progressTint="@color/neon_cyan"
+        android:thumbTint="@color/neon_cyan" />
+
+    <TextView
+        android:id="@+id/tvLevel"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/orbitron_regular"
+        android:gravity="end"
+        android:text="0 dB"
+        android:textColor="@color/neon_cyan"
+        android:textSize="11sp" />
+
+</LinearLayout>

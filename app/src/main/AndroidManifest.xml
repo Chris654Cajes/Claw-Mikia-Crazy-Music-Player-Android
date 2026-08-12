@@ -77,6 +77,11 @@
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.activities.EqualizerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MusicVault" />
+
         <service
             android:name=".service.MusicService"
             android:exported="false"

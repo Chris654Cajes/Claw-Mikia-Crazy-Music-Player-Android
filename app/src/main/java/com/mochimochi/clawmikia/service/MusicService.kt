@@ -820,6 +820,8 @@ class MusicService : Service() {
     }
 
     // --- API ---
+    fun getDspProcessor(): DSPProcessor? = dspProcessor
+
     fun getPosition(): Int =
         if (isPrepared) runCatching { mediaPlayer?.currentPosition }.getOrDefault(0) ?: 0 else 0
 

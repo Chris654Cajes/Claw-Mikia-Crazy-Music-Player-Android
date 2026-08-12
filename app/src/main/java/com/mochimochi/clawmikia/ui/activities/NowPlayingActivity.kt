@@ -24,8 +24,17 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import androidx.palette.graphics.Palette
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
+import android.view.animation.AccelerateDecelerateInterpolator
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
+import android.content.res.ColorStateList
+import android.graphics.Color
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.mochimochi.clawmikiacrazy.R
 import com.mochimochi.clawmikiacrazy.data.model.Song
@@ -89,6 +98,7 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private val progressHandler = Handler(Looper.getMainLooper())
     private var progressRunnable: Runnable? = null
+    private var glowAnimator: ObjectAnimator? = null
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -361,7 +371,13 @@ class NowPlayingActivity : AppCompatActivity() {
             if (!isDestroyed) {
                 binding.btnPlayPause.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play)
                 viewModel.setPlaying(playing)
-                if (playing) startProgressUpdates() else stopProgressUpdates()
+                if (playing) {
+                    startProgressUpdates()
+                    startGlowAnimation()
+                } else {
+                    stopProgressUpdates()
+                    stopGlowAnimation()
+                }
             }
         }
     }
@@ -411,12 +427,27 @@ class NowPlayingActivity : AppCompatActivity() {
         )
 
         if (s.albumArtUrl.isNotBlank()) {
-            Glide.with(this).load(s.albumArtUrl)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .placeholder(R.drawable.ic_music_note).error(R.drawable.ic_music_note)
-                .into(binding.ivAlbumArt)
+            Glide.with(this)
+                .asBitmap()
+                .load(s.albumArtUrl)
+                .placeholder(R.drawable.ic_music_note)
+                .error(R.drawable.ic_music_note)
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?
+                    ) {
+                        binding.ivAlbumArt.setImageBitmap(resource)
+                        applyPalette(resource)
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        binding.ivAlbumArt.setImageDrawable(placeholder)
+                    }
+                })
         } else {
             binding.ivAlbumArt.setImageResource(R.drawable.ic_music_note)
+            resetPaletteToDefault()
         }
 
         binding.cardPitch.tvPitchValue.text = pitchLabel(s.pitchSemitones)
@@ -500,6 +531,9 @@ class NowPlayingActivity : AppCompatActivity() {
         }
 
         binding.btnEdit.setOnClickListener { showEditDialog() }
+        binding.btnEqualizer.setOnClickListener {
+            startActivity(Intent(this, EqualizerActivity::class.java))
+        }
         binding.btnDelete.setOnClickListener { showDeleteConfirmDialog() }
         binding.btnProfiles.setOnClickListener {
             ProfilesFragment().show(
@@ -1120,6 +1154,60 @@ class NowPlayingActivity : AppCompatActivity() {
     private fun pitchLabel(s: Float) = if (s > 0) "+%.1f".format(s) else "%.1f".format(s)
     private fun progressToSpeed(p: Int): Float = (0.5f + p * 0.05f).coerceIn(0.5f, 3.0f)
     private fun speedLabel(s: Float): String = "%.2f".format(s).trimEnd('0').trimEnd('.')
+
+    private fun applyPalette(bitmap: Bitmap) {
+        Palette.from(bitmap).generate { palette ->
+            palette?.let {
+                val dominantColor =
+                    it.getDominantColor(ContextCompat.getColor(this, R.color.neon_pink))
+                val vibrantColor =
+                    it.getVibrantColor(ContextCompat.getColor(this, R.color.neon_cyan))
+                it.getMutedColor(ContextCompat.getColor(this, R.color.text_secondary))
+
+                // Apply colors to UI elements
+                binding.tvArtist.setTextColor(vibrantColor)
+                binding.seekPlayback.progressTintList = ColorStateList.valueOf(dominantColor)
+                binding.seekPlayback.thumbTintList = ColorStateList.valueOf(vibrantColor)
+
+                // Update cards stroke if possible or add glow
+                binding.cardPlayback.strokeColor = vibrantColor
+                binding.cardPlayback.strokeWidth = 2
+            }
+        }
+    }
+
+    private fun resetPaletteToDefault() {
+        binding.tvArtist.setTextColor(ContextCompat.getColor(this, R.color.neon_cyan))
+        binding.seekPlayback.progressTintList =
+            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.neon_pink))
+        binding.seekPlayback.thumbTintList = null // Use default thumb
+        binding.cardPlayback.strokeWidth = 0
+    }
+
+    private fun startGlowAnimation() {
+        if (glowAnimator != null) return
+
+        glowAnimator = ObjectAnimator.ofPropertyValuesHolder(
+            binding.ivAlbumArt,
+            PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.08f),
+            PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.08f),
+            PropertyValuesHolder.ofFloat(View.ALPHA, 0.9f, 1.0f)
+        ).apply {
+            duration = 1500
+            repeatCount = ObjectAnimator.INFINITE
+            repeatMode = ObjectAnimator.REVERSE
+            interpolator = AccelerateDecelerateInterpolator()
+            start()
+        }
+    }
+
+    private fun stopGlowAnimation() {
+        glowAnimator?.cancel()
+        glowAnimator = null
+        binding.ivAlbumArt.scaleX = 1f
+        binding.ivAlbumArt.scaleY = 1f
+        binding.ivAlbumArt.alpha = 0.9f
+    }
 
     private fun startProgressUpdates() {
         stopProgressUpdates()

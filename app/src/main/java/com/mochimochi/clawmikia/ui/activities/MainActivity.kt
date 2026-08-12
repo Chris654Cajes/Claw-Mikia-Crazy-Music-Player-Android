@@ -42,6 +42,7 @@ import com.mochimochi.clawmikiacrazy.data.model.Song
 import com.mochimochi.clawmikiacrazy.data.db.FolderInfo
 import com.mochimochi.clawmikiacrazy.databinding.ActivityMainBinding
 import com.mochimochi.clawmikiacrazy.service.MusicService
+import com.mochimochi.clawmikiacrazy.ui.fragments.EqualizerFragment
 import com.mochimochi.clawmikiacrazy.ui.fragments.FavoritesFragment
 import com.mochimochi.clawmikiacrazy.ui.fragments.FoldersFragment
 import com.mochimochi.clawmikiacrazy.ui.fragments.LibraryFragment
@@ -273,12 +274,16 @@ class MainActivity : AppCompatActivity() {
 
     // ─── Navigation ─────────────────────────────────────────────────────────────
 
+    fun selectBottomNavItem(itemId: Int) {
+        binding.bottomNav.selectedItemId = itemId
+    }
+
     private fun setupNavigation() {
         binding.bottomNav.setOnItemSelectedListener { item ->
             val nextIndex = when (item.itemId) {
                 R.id.nav_library -> 0
                 R.id.nav_favorites -> 1
-                R.id.nav_folders -> 2
+                R.id.nav_equalizer -> 2
                 R.id.nav_playlists -> 3
                 R.id.nav_settings -> 4
                 else -> 0
@@ -290,7 +295,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_library -> LibraryFragment()
                 R.id.nav_favorites -> FavoritesFragment()
                 R.id.nav_playlists -> PlaylistsFragment()
-                R.id.nav_folders -> FoldersFragment()
+                R.id.nav_equalizer -> EqualizerFragment()
                 R.id.nav_settings -> SettingsFragment()
                 else -> LibraryFragment()
             }
@@ -300,7 +305,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun showFragment(fragment: Fragment, nextIndex: Int) {
+    fun showFragment(fragment: Fragment, nextIndex: Int) {
         val appBar = binding.appBarLayout
         val contentArea = binding.contentArea
         val layoutParams =

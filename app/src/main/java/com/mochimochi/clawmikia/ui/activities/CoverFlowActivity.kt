@@ -277,6 +277,9 @@ class CoverFlowActivity : AppCompatActivity() {
         }
 
         binding.btnEdit.setOnClickListener { showEditDialog() }
+        binding.btnEqualizer.setOnClickListener {
+            startActivity(Intent(this, EqualizerActivity::class.java))
+        }
         binding.btnDelete.setOnClickListener { showDeleteConfirmDialog() }
         binding.btnProfiles.setOnClickListener {
             ProfilesFragment().show(supportFragmentManager, "profiles")

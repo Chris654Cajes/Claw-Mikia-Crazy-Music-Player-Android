@@ -37,6 +37,15 @@
             android:textSize="11sp" />
 
         <ImageButton
+            android:id="@+id/btnEqualizer"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Equalizer"
+            android:src="@drawable/ic_equalizer"
+            app:tint="@color/neon_cyan" />
+
+        <ImageButton
             android:id="@+id/btnShuffle"
             android:layout_width="40dp"
             android:layout_height="40dp"

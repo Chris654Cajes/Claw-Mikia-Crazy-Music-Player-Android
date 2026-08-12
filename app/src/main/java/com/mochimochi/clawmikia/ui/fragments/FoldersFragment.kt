@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.mochimochi.clawmikiacrazy.databinding.FragmentFoldersBinding
 import com.mochimochi.clawmikiacrazy.ui.adapters.FolderAdapter
 import com.mochimochi.clawmikiacrazy.ui.viewmodels.MainViewModel
+import com.mochimochi.clawmikiacrazy.ui.activities.MainActivity
 
 class FoldersFragment : Fragment() {
 
@@ -42,6 +43,10 @@ class FoldersFragment : Fragment() {
                 showRenameDialog(folder)
             }
         )
+
+        binding.btnBack.setOnClickListener {
+            (activity as? MainActivity)?.selectBottomNavItem(com.mochimochi.clawmikiacrazy.R.id.nav_library)
+        }
 
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(context)

@@ -28,6 +28,12 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import androidx.palette.graphics.Palette
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
+import android.content.res.ColorStateList
 import com.mochimochi.clawmikiacrazy.R
 import com.mochimochi.clawmikiacrazy.data.model.Song
 import com.mochimochi.clawmikiacrazy.data.model.SkipRegion
@@ -365,7 +371,13 @@ class RadialPlayerActivity : AppCompatActivity() {
             if (!isDestroyed) {
                 binding.btnPlayPause.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play)
                 viewModel.setPlaying(playing)
-                if (playing) startProgressUpdates() else stopProgressUpdates()
+                if (playing) {
+                    startProgressUpdates()
+                    startCircularGlowAnimation()
+                } else {
+                    stopProgressUpdates()
+                    stopCircularGlowAnimation()
+                }
             }
         }
     }
@@ -410,17 +422,31 @@ class RadialPlayerActivity : AppCompatActivity() {
             if (s.isManuallyEdited) android.view.View.VISIBLE else android.view.View.GONE
         updateFavoriteIcon(s)
         if (s.albumArtUrl.isNotBlank()) {
-            Glide.with(this).load(s.albumArtUrl)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .placeholder(R.drawable.ic_music_note).error(R.drawable.ic_music_note)
-                .into(binding.ivAlbumArt)
-            Glide.with(this).load(s.albumArtUrl)
-                .transition(DrawableTransitionOptions.withCrossFade()).into(binding.ivBackgroundArt)
+            Glide.with(this)
+                .asBitmap()
+                .load(s.albumArtUrl)
+                .placeholder(R.drawable.ic_music_note)
+                .error(R.drawable.ic_music_note)
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?
+                    ) {
+                        binding.ivAlbumArt.setImageBitmap(resource)
+                        binding.ivBackgroundArt.setImageBitmap(resource)
+                        applyPalette(resource)
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        binding.ivAlbumArt.setImageDrawable(placeholder)
+                    }
+                })
         } else {
             Glide.with(this).clear(binding.ivAlbumArt)
             binding.ivAlbumArt.setImageResource(R.drawable.ic_music_note)
             binding.ivAlbumArt.setColorFilter(ContextCompat.getColor(this, R.color.neon_pink))
             binding.ivBackgroundArt.setImageDrawable(null)
+            resetPaletteToDefault()
         }
         binding.tvPitchValue.text = pitchLabel(s.pitchSemitones)
         binding.seekPitch.progress = ((s.pitchSemitones + 6) * 10).toInt().coerceIn(0, 120)
@@ -501,6 +527,9 @@ class RadialPlayerActivity : AppCompatActivity() {
         }
         binding.btnShuffle.setOnClickListener { musicService?.toggleShuffle(); updateShuffleButton() }
         binding.btnEdit.setOnClickListener { showEditDialog() }
+        binding.btnEqualizer.setOnClickListener {
+            startActivity(Intent(this, EqualizerActivity::class.java))
+        }
         binding.btnDelete.setOnClickListener { showDeleteConfirmDialog() }
         binding.btnProfiles.setOnClickListener {
             ProfilesFragment().show(
@@ -1162,5 +1191,55 @@ class RadialPlayerActivity : AppCompatActivity() {
 
     private fun stopProgressUpdates() {
         progressRunnable?.let { progressHandler.removeCallbacks(it) }; progressRunnable = null
+    }
+
+    private fun applyPalette(bitmap: Bitmap) {
+        Palette.from(bitmap).generate { palette ->
+            palette?.let {
+                val dominantColor =
+                    it.getDominantColor(ContextCompat.getColor(this, R.color.neon_pink))
+                val vibrantColor =
+                    it.getVibrantColor(ContextCompat.getColor(this, R.color.neon_cyan))
+
+                binding.tvArtist.setTextColor(vibrantColor)
+                binding.seekPlayback.progressTintList = ColorStateList.valueOf(dominantColor)
+                binding.ivCircularGlow.backgroundTintList = ColorStateList.valueOf(vibrantColor)
+
+                // Colorize the radial buttons
+                binding.btnPrev.imageTintList = ColorStateList.valueOf(vibrantColor)
+                binding.btnNext.imageTintList = ColorStateList.valueOf(vibrantColor)
+            }
+        }
+    }
+
+    private fun resetPaletteToDefault() {
+        binding.tvArtist.setTextColor(ContextCompat.getColor(this, R.color.neon_cyan))
+        binding.seekPlayback.progressTintList =
+            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.neon_pink))
+        binding.ivCircularGlow.backgroundTintList = null
+        binding.btnPrev.imageTintList =
+            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.neon_cyan))
+        binding.btnNext.imageTintList =
+            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.neon_cyan))
+    }
+
+    private var glowAnimator: android.animation.ObjectAnimator? = null
+
+    private fun startCircularGlowAnimation() {
+        if (glowAnimator != null) return
+        glowAnimator =
+            android.animation.ObjectAnimator.ofFloat(binding.ivCircularGlow, "alpha", 0.4f, 1.0f)
+                .apply {
+                    duration = 2000
+                    repeatCount = ValueAnimator.INFINITE
+                    repeatMode = ValueAnimator.REVERSE
+                    start()
+                }
+    }
+
+    private fun stopCircularGlowAnimation() {
+        glowAnimator?.cancel()
+        glowAnimator = null
+        binding.ivCircularGlow.alpha = 1.0f
     }
 }

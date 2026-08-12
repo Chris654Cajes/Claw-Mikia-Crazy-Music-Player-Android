@@ -24,8 +24,15 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.ViewModelProvider
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import androidx.palette.graphics.Palette
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
+import android.content.res.ColorStateList
+import android.graphics.Color
 import com.mochimochi.clawmikiacrazy.R
 import com.mochimochi.clawmikiacrazy.data.model.Song
 import com.mochimochi.clawmikiacrazy.data.model.SkipRegion
@@ -408,17 +415,31 @@ class VuMeterPlayerActivity : AppCompatActivity() {
             if (s.isManuallyEdited) android.view.View.VISIBLE else android.view.View.GONE
         updateFavoriteIcon(s)
         if (s.albumArtUrl.isNotBlank()) {
-            Glide.with(this).load(s.albumArtUrl)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .placeholder(R.drawable.ic_music_note).error(R.drawable.ic_music_note)
-                .into(binding.ivAlbumArt)
-            Glide.with(this).load(s.albumArtUrl)
-                .transition(DrawableTransitionOptions.withCrossFade()).into(binding.ivBackgroundArt)
+            Glide.with(this)
+                .asBitmap()
+                .load(s.albumArtUrl)
+                .placeholder(R.drawable.ic_music_note)
+                .error(R.drawable.ic_music_note)
+                .into(object : CustomTarget<Bitmap>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?
+                    ) {
+                        binding.ivAlbumArt.setImageBitmap(resource)
+                        binding.ivBackgroundArt.setImageBitmap(resource)
+                        applyPalette(resource)
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        binding.ivAlbumArt.setImageDrawable(placeholder)
+                    }
+                })
         } else {
             Glide.with(this).clear(binding.ivAlbumArt)
             binding.ivAlbumArt.setImageResource(R.drawable.ic_music_note)
             binding.ivAlbumArt.setColorFilter(ContextCompat.getColor(this, R.color.neon_pink))
             binding.ivBackgroundArt.setImageDrawable(null)
+            resetPaletteToDefault()
         }
         binding.tvPitchValue.text = pitchLabel(s.pitchSemitones)
         binding.seekPitch.progress = ((s.pitchSemitones + 6) * 10).toInt().coerceIn(0, 120)
@@ -499,6 +520,9 @@ class VuMeterPlayerActivity : AppCompatActivity() {
         }
         binding.btnShuffle.setOnClickListener { musicService?.toggleShuffle(); updateShuffleButton() }
         binding.btnEdit.setOnClickListener { showEditDialog() }
+        binding.btnEqualizer.setOnClickListener {
+            startActivity(Intent(this, EqualizerActivity::class.java))
+        }
         binding.btnDelete.setOnClickListener { showDeleteConfirmDialog() }
         binding.btnProfiles.setOnClickListener {
             ProfilesFragment().show(
@@ -1086,6 +1110,31 @@ class VuMeterPlayerActivity : AppCompatActivity() {
 
     private fun stopProgressUpdates() {
         progressRunnable?.let { progressHandler.removeCallbacks(it) }; progressRunnable = null
+    }
+
+    private fun applyPalette(bitmap: Bitmap) {
+        Palette.from(bitmap).generate { palette ->
+            palette?.let {
+                val dominantColor =
+                    it.getDominantColor(ContextCompat.getColor(this, R.color.neon_pink))
+                val vibrantColor =
+                    it.getVibrantColor(ContextCompat.getColor(this, R.color.neon_cyan))
+
+                binding.tvArtist.setTextColor(vibrantColor)
+                binding.seekPlayback.progressTintList = ColorStateList.valueOf(dominantColor)
+
+                binding.vuMeterLeft.progressTintList = ColorStateList.valueOf(vibrantColor)
+                binding.vuMeterRight.progressTintList = ColorStateList.valueOf(vibrantColor)
+            }
+        }
+    }
+
+    private fun resetPaletteToDefault() {
+        binding.tvArtist.setTextColor(ContextCompat.getColor(this, R.color.neon_cyan))
+        binding.seekPlayback.progressTintList =
+            ColorStateList.valueOf(ContextCompat.getColor(this, R.color.neon_pink))
+        binding.vuMeterLeft.progressTintList = null
+        binding.vuMeterRight.progressTintList = null
     }
 
     private fun startVuAnimation() {
