@@ -229,8 +229,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun fetchMetadataManual(overwriteManual: Boolean) {
         viewModelScope.launch {
             _scanStatus.value = ScanStatus.FetchingMetadata
-            MetadataFetcher.fetchMissingMetadata(getApplication<Application>(), overwriteManual)
-            _scanStatus.value = ScanStatus.Idle
+            val result =
+                MetadataFetcher.fetchMissingMetadata(getApplication<Application>(), overwriteManual)
+            _scanStatus.value = ScanStatus.MetadataUpdateComplete(
+                updated = result.updated,
+                considered = result.considered
+            )
         }
     }
 
@@ -286,6 +290,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         object FetchingMetadata : ScanStatus()
         data class Success(val count: Int) : ScanStatus()
         object Empty : ScanStatus()
+
+        /** Emitted after an online metadata update run (PROCEED / OVERWRITE ALL) finishes. */
+        data class MetadataUpdateComplete(val updated: Int, val considered: Int) : ScanStatus()
 
         /** Emitted when imported files match songs already in the library; the user must choose. */
         data class DuplicateConfirmation(val newCount: Int, val duplicateCount: Int) : ScanStatus()

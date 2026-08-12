@@ -3,6 +3,7 @@ package com.mochimochi.clawmikiacrazy.utils
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.util.Log
 import com.mochimochi.clawmikiacrazy.data.db.MusicDatabase
 import com.mochimochi.clawmikiacrazy.data.model.Song
 import kotlinx.coroutines.Dispatchers
@@ -16,9 +17,22 @@ import java.net.URLEncoder
 
 object MetadataFetcher {
 
+    private const val TAG = "MetadataFetcher"
     private const val MUSICBRAINZ_BASE = "https://musicbrainz.org/ws/2"
     private const val COVERART_BASE = "https://coverartarchive.org/release"
-    private const val USER_AGENT = "MusicVaultApp/1.0 (android)"
+
+    // MusicBrainz actively throttles/blocks (HTTP 503) requests whose User-Agent doesn't
+    // identify the application + version + a way to contact the maintainer. A generic UA
+    // like "MusicVaultApp/1.0 (android)" gets rate-limited to the "anonymous" tier, which
+    // in practice means almost every lookup silently fails. Replace the contact URL below
+    // with your own repo/website/email if you have one.
+    private const val USER_AGENT = "ClawMikia/1.1 ( https://github.com/clawmikia/clawmikia )"
+
+    /** Simple summary of a batch metadata-update run, surfaced back to the UI. */
+    data class UpdateResult(
+        val considered: Int,
+        val updated: Int
+    )
 
     data class OnlineMetadata(
         val title: String,
@@ -42,25 +56,32 @@ object MetadataFetcher {
      * Original files are never touched.
      * Rate-limited to 1 req/sec to respect MusicBrainz ToS.
      */
-    suspend fun fetchMissingMetadata(context: Context, overwriteManual: Boolean = false) =
+    suspend fun fetchMissingMetadata(
+        context: Context,
+        overwriteManual: Boolean = false
+    ): UpdateResult =
         withContext(Dispatchers.IO) {
-        if (!isOnline(context)) return@withContext
+            if (!isOnline(context)) return@withContext UpdateResult(considered = 0, updated = 0)
         val dao = MusicDatabase.getDatabase(context).songDao()
             val songs = if (overwriteManual) {
                 dao.getAllSongsSync()
             } else {
                 dao.getSongsWithoutMetadata()
             }
-        processSongs(dao, songs)
+            val updated = processSongs(dao, songs)
+            UpdateResult(considered = songs.size, updated = updated)
     }
 
+    /** Returns the number of songs actually updated. */
     private suspend fun processSongs(
         dao: com.mochimochi.clawmikiacrazy.data.db.SongDao,
         songs: List<Song>
-    ) {
+    ): Int {
+        var updatedCount = 0
         for (song in songs) {
             try {
-                fetchForSong(song)?.let { meta ->
+                val meta = fetchForSong(song)
+                if (meta != null) {
                     dao.updateOnlineMetadata(
                         song.id,
                         meta.title,
@@ -68,13 +89,18 @@ object MetadataFetcher {
                         meta.album,
                         meta.artUrl
                     )
+                    updatedCount++
+                } else {
+                    Log.d(TAG, "No online match for \"${song.title}\" by \"${song.artist}\"")
                 }
                 // MusicBrainz rate limit: max 1 request/second
                 delay(1100)
-            } catch (_: Exception) {
-                // Network error or no match — silently skip
+            } catch (e: Exception) {
+                // Network error or no match — log so failures are diagnosable, but keep going
+                Log.e(TAG, "Failed to update metadata for \"${song.title}\": ${e.message}", e)
             }
         }
+        return updatedCount
     }
 
     /**
@@ -100,9 +126,11 @@ object MetadataFetcher {
             .replace(Regex("(?i)\\[.*?\\]"), "")
             .replace(Regex("(?i)\\(.*?\\)"), "")
             .trim()
+            .let(::escapeLucene)
+        val escapedArtist = escapeLucene(song.artist)
 
         val query = if (song.artist.isNotBlank() && song.artist != "Unknown Artist") {
-            "recording:\"$cleanedTitle\" AND artist:\"${song.artist}\""
+            "recording:\"$cleanedTitle\" AND artist:\"$escapedArtist\""
         } else {
             "recording:\"$cleanedTitle\""
         }
@@ -143,6 +171,15 @@ object MetadataFetcher {
         }
         return null
     }
+
+    /**
+     * Escapes characters that are reserved in MusicBrainz's Lucene-based search syntax.
+     * A raw quote or backslash in a title/artist (e.g. Rock "n" Roll) would otherwise break
+     * the quoted phrase and make the whole query invalid — MusicBrainz then returns an
+     * error, which was previously being swallowed as a silent "no match".
+     */
+    private fun escapeLucene(value: String): String =
+        value.replace("\\", "\\\\").replace("\"", "\\\"")
 
     private fun parseArtistCredit(array: JSONArray?): String {
         if (array == null || array.length() == 0) return ""
@@ -186,9 +223,13 @@ object MetadataFetcher {
             setRequestProperty("Accept", "application/json")
         }
         return try {
-            if (conn.responseCode == 200)
+            val code = conn.responseCode
+            if (code == 200) {
                 conn.inputStream.bufferedReader().readText()
-            else null
+            } else {
+                Log.w(TAG, "MusicBrainz request failed (HTTP $code): $urlStr")
+                null
+            }
         } finally {
             conn.disconnect()
         }

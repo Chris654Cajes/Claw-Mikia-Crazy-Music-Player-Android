@@ -440,7 +440,6 @@ class NowPlayingActivity : AppCompatActivity() {
                         binding.ivAlbumArt.setImageBitmap(resource)
                         applyPalette(resource)
                     }
-
                     override fun onLoadCleared(placeholder: Drawable?) {
                         binding.ivAlbumArt.setImageDrawable(placeholder)
                     }

@@ -572,15 +572,10 @@ class MainActivity : AppCompatActivity() {
                 override fun onQueryTextSubmit(q: String?) = true
                 override fun onQueryTextChange(q: String?): Boolean {
                     viewModel.setSearchQuery(q ?: "")
-                    binding.btnClearSearch.visibility =
-                        if (q.isNullOrEmpty()) View.GONE else View.VISIBLE
                     return true
                 }
             },
         )
-        binding.btnClearSearch.setOnClickListener {
-            binding.searchView.setQuery("", false)
-        }
         binding.btnScan.setOnClickListener { folderPickerLauncher.launch(null) }
         binding.btnScanFiles.setOnClickListener { filePickerLauncher.launch(arrayOf("audio/mpeg")) }
         binding.btnExport.setOnClickListener { showExportDialog() }
@@ -883,6 +878,36 @@ class MainActivity : AppCompatActivity() {
                         title = "NO SONGS FOUND",
                         message = "No MP3 files were found in the selected location."
                     )
+                }
+
+                is MainViewModel.ScanStatus.MetadataUpdateComplete -> {
+                    binding.scanProgress.visibility = View.GONE
+                    if (status.considered == 0) {
+                        showAestheticStatusDialog(
+                            success = true,
+                            title = "NOTHING TO UPDATE",
+                            message = "Every song already has metadata, or is manually edited " +
+                                    "and was skipped to preserve your changes."
+                        )
+                    } else if (status.updated > 0) {
+                        showAestheticStatusDialog(
+                            success = true,
+                            title = "METADATA UPDATED",
+                            message = "Updated ${status.updated} of ${status.considered} song(s) " +
+                                    "with online metadata.\n\n" +
+                                    if (status.updated < status.considered)
+                                        "${status.considered - status.updated} had no online match."
+                                    else ""
+                        )
+                    } else {
+                        showAestheticStatusDialog(
+                            success = false,
+                            title = "NO MATCHES FOUND",
+                            message = "Checked ${status.considered} song(s) but found no online " +
+                                    "matches. This can happen if MusicBrainz is unreachable or " +
+                                    "rate-limiting requests right now — try again in a bit."
+                        )
+                    }
                 }
 
                 is MainViewModel.ScanStatus.DuplicateConfirmation -> {

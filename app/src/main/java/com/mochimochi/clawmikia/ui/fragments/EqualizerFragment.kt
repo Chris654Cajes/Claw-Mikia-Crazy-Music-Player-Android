@@ -40,7 +40,6 @@ class EqualizerFragment : Fragment() {
             setupEqualizerUI()
             musicService?.getCurrentSong()?.let { applySongPalette(it) }
         }
-
         override fun onServiceDisconnected(name: ComponentName?) {
             musicService = null
         }
@@ -80,7 +79,6 @@ class EqualizerFragment : Fragment() {
                     }
                 }
             }
-
             override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {}
         })
     }
@@ -147,7 +145,6 @@ class EqualizerFragment : Fragment() {
                         }
                     }
                 }
-
                 override fun onStartTrackingTouch(sBar: SeekBar?) {}
                 override fun onStopTrackingTouch(sBar: SeekBar?) {}
             })
@@ -166,7 +163,6 @@ class EqualizerFragment : Fragment() {
                     sBar?.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                 }
             }
-
             override fun onStartTrackingTouch(sBar: SeekBar?) {}
             override fun onStopTrackingTouch(sBar: SeekBar?) {}
         })
@@ -182,7 +178,6 @@ class EqualizerFragment : Fragment() {
                     sBar?.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                 }
             }
-
             override fun onStartTrackingTouch(sBar: SeekBar?) {}
             override fun onStopTrackingTouch(sBar: SeekBar?) {}
         })

@@ -436,7 +436,6 @@ class RadialPlayerActivity : AppCompatActivity() {
                         binding.ivBackgroundArt.setImageBitmap(resource)
                         applyPalette(resource)
                     }
-
                     override fun onLoadCleared(placeholder: Drawable?) {
                         binding.ivAlbumArt.setImageDrawable(placeholder)
                     }

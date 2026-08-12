@@ -144,19 +144,6 @@
                     app:searchIcon="@drawable/ic_search" />
 
                 <ImageButton
-                    android:id="@+id/btnClearSearch"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_search_field"
-                    android:contentDescription="@string/clear_search"
-                    android:padding="10dp"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/ic_close"
-                    android:tint="@color/neon_red"
-                    android:visibility="gone" />
-
-                <ImageButton
                     android:id="@+id/btnAdvancedFilter"
                     android:layout_width="40dp"
                     android:layout_height="40dp"

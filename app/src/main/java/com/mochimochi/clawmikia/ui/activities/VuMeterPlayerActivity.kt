@@ -429,7 +429,6 @@ class VuMeterPlayerActivity : AppCompatActivity() {
                         binding.ivBackgroundArt.setImageBitmap(resource)
                         applyPalette(resource)
                     }
-
                     override fun onLoadCleared(placeholder: Drawable?) {
                         binding.ivAlbumArt.setImageDrawable(placeholder)
                     }
@@ -1119,7 +1118,7 @@ class VuMeterPlayerActivity : AppCompatActivity() {
                     it.getDominantColor(ContextCompat.getColor(this, R.color.neon_pink))
                 val vibrantColor =
                     it.getVibrantColor(ContextCompat.getColor(this, R.color.neon_cyan))
-
+                
                 binding.tvArtist.setTextColor(vibrantColor)
                 binding.seekPlayback.progressTintList = ColorStateList.valueOf(dominantColor)
 

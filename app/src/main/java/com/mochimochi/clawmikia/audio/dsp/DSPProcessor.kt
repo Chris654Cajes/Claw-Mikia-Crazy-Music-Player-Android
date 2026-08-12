@@ -63,7 +63,7 @@ class DSPProcessor(private val audioSessionId: Int) {
 
     fun applyBassBoost(strength: Int, enabled: Boolean) = synchronized(lock) {
         try {
-            val bb = bassBoost ?: BassBoost(0, audioSessionId).also {
+            val bb = bassBoost ?: BassBoost(0, audioSessionId).also { 
                 it.enabled = true
                 bassBoost = it 
             }
@@ -79,9 +79,9 @@ class DSPProcessor(private val audioSessionId: Int) {
 
     fun applyVirtualizer(strength: Int, enabled: Boolean) = synchronized(lock) {
         try {
-            val v = virtualizer ?: Virtualizer(0, audioSessionId).also {
+            val v = virtualizer ?: Virtualizer(0, audioSessionId).also { 
                 it.enabled = true
-                virtualizer = it
+                virtualizer = it 
             }
             v.enabled = enabled
             if (enabled) {
