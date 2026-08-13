@@ -97,7 +97,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:alpha="0.9"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:text="1 / 10"
                     android:textColor="@color/text_primary"
                     android:textSize="10sp" />
@@ -108,7 +108,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:alpha="0.7"
-                    android:fontFamily="@font/orbitron_regular"
+
                     android:text="MP3 • 320kbps"
                     android:textColor="@color/neon_cyan"
                     android:textSize="8sp" />

@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text="A-B REPEAT / LOOP"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp" />
@@ -89,7 +89,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text="ENABLE A-B"
                 android:textColor="@color/text_primary" />
 
@@ -98,7 +98,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text="LOOP MODE"
                 android:textColor="@color/text_primary" />
 

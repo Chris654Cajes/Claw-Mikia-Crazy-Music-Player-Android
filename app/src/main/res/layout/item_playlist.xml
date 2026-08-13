@@ -42,7 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:maxLines="1"
                 android:text="@string/playlists"
                 android:textColor="@color/text_primary"
@@ -53,7 +53,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:fontFamily="@font/orbitron_regular"
+
                 android:text="@string/tap_to_view_tracks"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />

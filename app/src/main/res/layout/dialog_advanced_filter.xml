@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:gravity="center"
             android:letterSpacing="0.1"
             android:text="@string/advanced_filters_title"
@@ -64,7 +64,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:text="@string/duration_sec"
             android:textColor="@color/text_secondary"
             android:textSize="12sp" />
@@ -112,7 +112,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:text="@string/pitch_range"
             android:textColor="@color/text_secondary"
             android:textSize="12sp" />
@@ -160,7 +160,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:text="@string/speed_range"
             android:textColor="@color/text_secondary"
             android:textSize="12sp" />
@@ -220,7 +220,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:text="@string/added_after"
                     android:textColor="@color/text_secondary"
                     android:textSize="11sp" />
@@ -231,7 +231,7 @@
                     android:layout_height="36dp"
                     android:layout_marginTop="4dp"
                     android:background="@drawable/bg_search_field"
-                    android:fontFamily="@font/orbitron_regular"
+
                     android:text="@string/select_date"
                     android:textAllCaps="false"
                     android:textColor="@color/text_primary"
@@ -251,7 +251,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:text="@string/modified_after"
                     android:textColor="@color/text_secondary"
                     android:textSize="11sp" />
@@ -262,7 +262,7 @@
                     android:layout_height="36dp"
                     android:layout_marginTop="4dp"
                     android:background="@drawable/bg_search_field"
-                    android:fontFamily="@font/orbitron_regular"
+
                     android:text="@string/select_date"
                     android:textAllCaps="false"
                     android:textColor="@color/text_primary"
@@ -284,7 +284,7 @@
                 android:layout_height="40dp"
                 android:layout_marginEnd="12dp"
                 android:background="@drawable/bg_button_outline_neutral"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:paddingStart="16dp"
                 android:paddingEnd="16dp"
                 android:text="@string/reset"
@@ -296,7 +296,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:background="@drawable/bg_button_outline_orange"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"
                 android:text="@string/apply"

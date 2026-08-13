@@ -26,7 +26,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:letterSpacing="0.14"
                 android:text="PLAYBACK STATE"
                 android:textColor="@color/text_primary"
@@ -37,7 +37,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text="ORIGINAL"
                 android:textColor="@color/text_hint"
                 android:textSize="9sp" />
@@ -54,7 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text="UPDATED"
                 android:textColor="@color/neon_cyan"
                 android:textSize="9sp" />

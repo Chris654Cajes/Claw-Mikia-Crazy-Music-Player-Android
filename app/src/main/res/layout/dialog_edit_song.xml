@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:letterSpacing="0.1"
             android:text="EDIT SONG DETAILS"
             android:textColor="@color/text_primary"
@@ -43,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:background="@drawable/bg_button_outline_pink"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text="Change Art"
                 android:textAllCaps="false"
                 android:textColor="@color/neon_pink"
@@ -63,7 +63,7 @@
                 android:id="@+id/etTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/orbitron_regular"
+
                 android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -80,7 +80,7 @@
                 android:id="@+id/etArtist"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/orbitron_regular"
+
                 android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -97,7 +97,7 @@
                 android:id="@+id/etAlbum"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/orbitron_regular"
+
                 android:textColor="@color/text_primary" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -112,7 +112,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="?attr/selectableItemBackground"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text="Cancel"
                 android:textAllCaps="false"
                 android:textColor="@color/text_secondary" />
@@ -123,7 +123,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:background="@drawable/bg_update_song_button"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text="Save"
                 android:textAllCaps="false"
                 android:textColor="@color/bg_primary" />

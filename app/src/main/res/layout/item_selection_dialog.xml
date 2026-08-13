@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_weight="1"
-        android:fontFamily="@font/orbitron_bold"
+        android:textStyle="bold"
         android:text="Item Name"
         android:textColor="@color/text_primary"
         android:textSize="14sp" />

@@ -10,7 +10,7 @@
         android:id="@+id/tvFreq"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/orbitron_bold"
+        android:textStyle="bold"
         android:textColor="@color/text_secondary"
         android:text="31Hz"
         android:textSize="12sp" />
@@ -27,7 +27,7 @@
         android:id="@+id/tvLevel"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/orbitron_regular"
+
         android:textColor="@color/neon_cyan"
         android:gravity="end"
         android:text="0 dB"

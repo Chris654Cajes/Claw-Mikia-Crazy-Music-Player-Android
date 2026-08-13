@@ -77,7 +77,7 @@
                 android:layout_toEndOf="@id/btnBack"
                 android:ellipsize="marquee"
                 android:fadingEdge="horizontal"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:gravity="center"
                 android:marqueeRepeatLimit="marquee_forever"
                 android:maxLines="1"

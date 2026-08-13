@@ -24,7 +24,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:fontFamily="@font/orbitron_regular"
+
             android:includeFontPadding="false"
             android:letterSpacing="0.1"
             android:textColor="@color/text_secondary"
@@ -147,7 +147,7 @@
             android:text="No songs found"
             android:textSize="16sp"
             android:textColor="@color/text_hint"
-            android:fontFamily="@font/orbitron_regular"
+
             android:layout_marginTop="12dp" />
 
         <TextView

@@ -15,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="SETTINGS"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:textColor="@color/neon_pink"
             android:textSize="20sp"
             android:layout_marginBottom="24dp" />
@@ -25,7 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="FAVORITE BUTTON UI"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
@@ -129,7 +129,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:text="NOW PLAYING VIEW STYLE"
             android:textColor="@color/text_primary"
             android:textSize="14sp" />
@@ -200,7 +200,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="PITCH / KEY STEP (1-DIGIT DECIMAL)"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
@@ -223,7 +223,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="PLAYBACK SPEED STEP (INTEGER)"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
@@ -246,7 +246,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="TIMELINE TRIM STEP (1-DIGIT DECIMAL)"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
@@ -269,7 +269,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:text="FF / RW STEP (SECONDS)"
             android:textColor="@color/text_primary"
             android:textSize="14sp" />
@@ -292,7 +292,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:text="SOUND ENVIRONMENT"
             android:textColor="@color/text_primary"
             android:textSize="14sp" />
@@ -310,7 +310,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:text="AUTOMATIC METADATA UPDATE"
             android:textColor="@color/text_primary"
             android:textSize="14sp" />
@@ -321,7 +321,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:backgroundTint="@color/neon_cyan_20"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:padding="14dp"
             android:text="UPDATE ALL SONGS METADATA"
             android:textColor="@color/neon_cyan" />
@@ -330,7 +330,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:fontFamily="@font/orbitron_regular"
+
             android:text="Note: Internet connection is required to update album images and details."
             android:textColor="@color/text_hint"
             android:textSize="11sp" />
@@ -340,7 +340,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:text="PROFILE BACKUP"
             android:textColor="@color/text_primary"
             android:textSize="14sp" />
@@ -351,7 +351,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:backgroundTint="@color/neon_purple_20"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:padding="14dp"
             android:text="EXPORT UPDATED PROFILES"
             android:textColor="@color/neon_purple" />
@@ -362,7 +362,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:backgroundTint="@color/neon_cyan_20"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:padding="14dp"
             android:text="IMPORT PROFILES JSON"
             android:textColor="@color/neon_cyan" />
@@ -371,7 +371,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
-            android:fontFamily="@font/orbitron_regular"
+
             android:text="Export a JSON file containing only songs that have their own profiles with updated states. Importing the same file automatically adds / updates those profiles on matching songs."
             android:textColor="@color/text_hint"
             android:textSize="11sp" />
@@ -380,7 +380,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Settings auto-save on change"
-            android:fontFamily="@font/orbitron_regular"
+
             android:textColor="@color/text_hint"
             android:textSize="11sp"
             android:gravity="center"
@@ -393,7 +393,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="RESET ALL TO DEFAULT"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:textColor="@color/neon_red"
             android:textSize="13sp"
             android:backgroundTint="@color/neon_red_20"

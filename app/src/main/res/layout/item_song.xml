@@ -80,7 +80,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginTop="12dp"
             android:ellipsize="end"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:maxLines="1"
             android:textColor="@color/text_primary"
             android:textSize="14sp"
@@ -97,7 +97,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginTop="1dp"
             android:ellipsize="end"
-            android:fontFamily="@font/orbitron_regular"
+
             android:maxLines="1"
             android:textColor="@color/text_secondary"
             android:textSize="11sp"
@@ -125,7 +125,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:fontFamily="@font/orbitron_regular"
+
                 android:maxWidth="90dp"
                 android:maxLines="1"
                 android:textColor="@color/neon_cyan"
@@ -142,7 +142,7 @@
                 android:id="@+id/tvDuration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/orbitron_regular"
+
                 android:textColor="@color/text_hint"
                 android:textSize="9sp" />
 
@@ -152,7 +152,7 @@
                 android:layout_height="16dp"
                 android:layout_marginStart="6dp"
                 android:background="@drawable/bg_pitch_badge"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:gravity="center"
                 android:paddingStart="5dp"
                 android:paddingEnd="5dp"

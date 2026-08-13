@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text="SPEED"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp" />
@@ -41,7 +41,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text="1.00x"
                 android:textColor="@color/neon_orange"
                 android:textSize="36sp" />
@@ -88,7 +88,7 @@
                     android:layout_height="48dp"
                     android:layout_marginStart="16dp"
                     android:background="@drawable/bg_button_outline_orange"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp"
                     android:text="RESET"

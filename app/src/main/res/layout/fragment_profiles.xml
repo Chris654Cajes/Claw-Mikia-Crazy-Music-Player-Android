@@ -18,7 +18,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:letterSpacing="0.15"
             android:text="PLAYBACK PROFILES"
             android:textColor="@color/neon_pink"

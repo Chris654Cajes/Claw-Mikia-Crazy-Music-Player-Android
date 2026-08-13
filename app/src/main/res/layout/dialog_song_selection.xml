@@ -32,7 +32,7 @@
             android:layout_centerVertical="true"
             android:layout_marginStart="16dp"
             android:layout_toEndOf="@id/btnBack"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:text="@string/select_songs"
             android:textColor="@color/text_primary"
             android:textSize="18sp" />
@@ -44,7 +44,7 @@
             android:layout_centerVertical="true"
             android:layout_marginStart="16dp"
             android:layout_toEndOf="@id/tvTitle"
-            android:fontFamily="@font/orbitron_regular"
+
             android:text="All"
             android:textColor="@color/text_secondary"
             android:textSize="12sp" />
@@ -56,7 +56,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:text="@string/add_to_playlist"
             android:textColor="@color/neon_cyan" />
     </RelativeLayout>

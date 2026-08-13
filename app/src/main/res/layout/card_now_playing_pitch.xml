@@ -38,7 +38,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:letterSpacing="0.14"
                     android:paddingStart="8dp"
                     android:text="PITCH / KEY"
@@ -49,7 +49,7 @@
                     android:id="@+id/tvPitchValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:text="0"
                     android:textColor="@color/neon_green"
                     android:textSize="22sp" />
@@ -57,7 +57,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/orbitron_regular"
+
                     android:text=" st"
                     android:textColor="@color/text_secondary"
                     android:textSize="11sp" />
@@ -73,7 +73,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/orbitron_regular"
+
                     android:text="-6"
                     android:textColor="@color/text_hint"
                     android:textSize="9sp" />
@@ -82,7 +82,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/orbitron_regular"
+
                     android:gravity="center"
                     android:text="-3"
                     android:textColor="@color/text_hint"
@@ -92,7 +92,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:gravity="center"
                     android:text="0"
                     android:textColor="@color/neon_green"
@@ -102,7 +102,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/orbitron_regular"
+
                     android:gravity="center"
                     android:text="+3"
                     android:textColor="@color/text_hint"
@@ -112,7 +112,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/orbitron_regular"
+
                     android:gravity="end"
                     android:text="+6"
                     android:textColor="@color/text_hint"
@@ -154,7 +154,7 @@
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:background="@drawable/bg_button_outline_green"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:gravity="center"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
@@ -170,7 +170,7 @@
                     android:layout_height="36dp"
                     android:layout_marginStart="10dp"
                     android:background="@drawable/bg_button_outline_green"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:gravity="center"
                     android:minWidth="0dp"
                     android:minHeight="0dp"
@@ -190,7 +190,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
                     android:background="@drawable/bg_button_outline_green"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:gravity="center"
                     android:minWidth="0dp"
                     android:minHeight="0dp"

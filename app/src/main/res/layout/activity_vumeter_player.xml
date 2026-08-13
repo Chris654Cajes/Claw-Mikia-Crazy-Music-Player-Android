@@ -48,7 +48,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:gravity="center"
                     android:text="NOW PLAYING"
                     android:textColor="@color/text_primary"
@@ -160,7 +160,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:gravity="center"
                     android:maxLines="2"
                     android:text="Song Title"
@@ -182,7 +182,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:fontFamily="@font/orbitron_regular"
+
                 android:gravity="center"
                 android:text="Artist"
                 android:textColor="@color/neon_cyan"
@@ -200,7 +200,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:alpha="0.8"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:textColor="@color/neon_yellow"
                     android:textSize="10sp" />
 
@@ -210,7 +210,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:alpha="0.8"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:textColor="@color/neon_green"
                     android:textSize="10sp" />
             </LinearLayout>
@@ -220,7 +220,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:fontFamily="@font/orbitron_regular"
+
                 android:gravity="center"
                 android:textColor="@color/text_hint"
                 android:textSize="10sp" />
@@ -264,7 +264,7 @@
                         android:id="@+id/tvCurrentTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/orbitron_regular"
+
                         android:text="0:00"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
@@ -278,7 +278,7 @@
                         android:id="@+id/tvTotalTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/orbitron_regular"
+
                         android:text="0:00"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
@@ -311,7 +311,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:fontFamily="@font/orbitron_bold"
+                        android:textStyle="bold"
                         android:textColor="@color/neon_purple"
                         android:textSize="10sp" />
                 </FrameLayout>
@@ -360,7 +360,7 @@
                     android:id="@+id/tvRepeatLabel"
                     android:layout_width="44dp"
                     android:layout_height="44dp"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:gravity="center"
                     android:textColor="@color/neon_cyan"
                     android:textSize="8sp"
@@ -403,7 +403,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:letterSpacing="0.14"
                             android:paddingStart="8dp"
                             android:text="VOLUME"
@@ -414,7 +414,7 @@
                             android:id="@+id/tvVolumeValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:text="100"
                             android:textColor="@color/neon_cyan"
                             android:textSize="22sp" />
@@ -422,7 +422,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/orbitron_regular"
+
                             android:text=" %"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp" />
@@ -506,7 +506,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="36dp"
                             android:background="@drawable/bg_button_outline_cyan"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:minWidth="0dp"
                             android:minHeight="0dp"
                             android:paddingStart="14dp"
@@ -555,7 +555,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:letterSpacing="0.14"
                             android:paddingStart="8dp"
                             android:text="PITCH / KEY"
@@ -566,7 +566,7 @@
                             android:id="@+id/tvPitchValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:text="0"
                             android:textColor="@color/neon_green"
                             android:textSize="22sp" />
@@ -574,7 +574,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/orbitron_regular"
+
                             android:text=" st"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp" />
@@ -602,7 +602,7 @@
                             android:layout_width="36dp"
                             android:layout_height="36dp"
                             android:background="@drawable/bg_button_outline_green"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:minWidth="0dp"
                             android:minHeight="0dp"
                             android:text="−"
@@ -615,7 +615,7 @@
                             android:layout_height="36dp"
                             android:layout_marginStart="10dp"
                             android:background="@drawable/bg_button_outline_green"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:minWidth="0dp"
                             android:minHeight="0dp"
                             android:text="+"
@@ -632,7 +632,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="36dp"
                             android:background="@drawable/bg_button_outline_green"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:paddingStart="14dp"
                             android:paddingEnd="14dp"
                             android:text="Reset to 0"
@@ -678,7 +678,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:letterSpacing="0.14"
                             android:paddingStart="8dp"
                             android:text="PLAYBACK SPEED"
@@ -689,7 +689,7 @@
                             android:id="@+id/tvSpeedValue"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:text="1.0"
                             android:textColor="@color/neon_orange"
                             android:textSize="22sp" />
@@ -697,7 +697,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/orbitron_regular"
+
                             android:text=" x"
                             android:textColor="@color/text_secondary"
                             android:textSize="11sp" />
@@ -725,7 +725,7 @@
                             android:layout_width="36dp"
                             android:layout_height="36dp"
                             android:background="@drawable/bg_button_outline_orange"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:text="−"
                             android:textColor="@color/neon_orange"
                             android:textSize="18sp" />
@@ -736,7 +736,7 @@
                             android:layout_height="36dp"
                             android:layout_marginStart="10dp"
                             android:background="@drawable/bg_button_outline_orange"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:text="+"
                             android:textColor="@color/neon_orange"
                             android:textSize="18sp" />
@@ -751,7 +751,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="36dp"
                             android:background="@drawable/bg_button_outline_orange"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:paddingStart="14dp"
                             android:paddingEnd="14dp"
                             android:text="Reset to 1.0x"
@@ -797,7 +797,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:letterSpacing="0.14"
                             android:paddingStart="8dp"
                             android:text="A-B REPEAT / LOOP"
@@ -808,7 +808,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="4dp"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:text="LOOP"
                             android:textColor="@color/text_hint"
                             android:textSize="8sp" />
@@ -825,7 +825,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="4dp"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:text="A-B"
                             android:textColor="@color/text_hint"
                             android:textSize="8sp" />
@@ -850,7 +850,7 @@
                             android:layout_height="36dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_button_outline_purple"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:text="Set A"
                             android:textColor="@color/neon_purple"
                             android:textSize="10sp" />
@@ -871,7 +871,7 @@
                             android:layout_height="36dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_button_outline_purple"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:text="Set B"
                             android:textColor="@color/neon_purple"
                             android:textSize="10sp" />
@@ -891,7 +891,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="36dp"
                             android:background="@drawable/bg_button_outline_purple"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:text="Reset"
                             android:textColor="@color/neon_purple"
                             android:textSize="10sp" />
@@ -933,7 +933,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:letterSpacing="0.14"
                             android:paddingStart="8dp"
                             android:text="TIMELINE TRIM"
@@ -945,7 +945,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="2dp"
-                        android:fontFamily="@font/orbitron_regular"
+
                         android:text="START POINT"
                         android:textColor="@color/text_hint"
                         android:textSize="9sp" />
@@ -964,7 +964,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:layout_marginBottom="14dp"
-                        android:fontFamily="@font/orbitron_regular"
+
                         android:text="Start: 0:00"
                         android:textColor="@color/neon_light_blue"
                         android:textSize="11sp" />
@@ -973,7 +973,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="2dp"
-                        android:fontFamily="@font/orbitron_regular"
+
                         android:text="END POINT"
                         android:textColor="@color/text_hint"
                         android:textSize="9sp" />
@@ -992,7 +992,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:layout_marginBottom="10dp"
-                        android:fontFamily="@font/orbitron_regular"
+
                         android:text="End: 0:00"
                         android:textColor="@color/neon_red"
                         android:textSize="11sp" />
@@ -1146,7 +1146,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:paddingStart="8dp"
                             android:text="SKIP / CUT"
                             android:textColor="@color/text_primary"
@@ -1218,7 +1218,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:fontFamily="@font/orbitron_bold"
+                            android:textStyle="bold"
                             android:paddingStart="8dp"
                             android:text="SWITCH PROFILE"
                             android:textColor="@color/text_primary"
@@ -1304,7 +1304,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:fontFamily="@font/orbitron_bold"
+                        android:textStyle="bold"
                         android:letterSpacing="0.14"
                         android:text="PLAYBACK STATE"
                         android:textColor="@color/text_primary"
@@ -1315,7 +1315,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:fontFamily="@font/orbitron_bold"
+                        android:textStyle="bold"
                         android:text="ORIGINAL"
                         android:textColor="@color/text_hint"
                         android:textSize="9sp" />
@@ -1332,7 +1332,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:fontFamily="@font/orbitron_bold"
+                        android:textStyle="bold"
                         android:text="UPDATED"
                         android:textColor="@color/neon_cyan"
                         android:textSize="9sp" />

@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/orbitron_bold"
+        android:textStyle="bold"
         android:text="CUSTOM SKIP"
         android:textColor="@color/neon_yellow"
         android:textSize="16sp" />
@@ -18,7 +18,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:fontFamily="@font/orbitron_regular"
+
         android:text="START TIME (MM:SS)"
         android:textColor="@color/text_secondary"
         android:textSize="11sp" />
@@ -64,7 +64,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:fontFamily="@font/orbitron_regular"
+
         android:text="END TIME (MM:SS)"
         android:textColor="@color/text_secondary"
         android:textSize="11sp" />

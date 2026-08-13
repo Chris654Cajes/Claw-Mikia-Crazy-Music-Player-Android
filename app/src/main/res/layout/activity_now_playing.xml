@@ -37,7 +37,7 @@
                 android:text="NOW PLAYING"
                 android:textSize="13sp"
                 android:letterSpacing="0.16"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:textColor="@color/text_primary"
                 android:gravity="center" />
 
@@ -137,7 +137,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:gravity="center"
                 android:maxLines="2"
                 android:text="Song Title"
@@ -162,7 +162,7 @@
             android:layout_height="wrap_content"
             android:text="Artist"
             android:textSize="13sp"
-            android:fontFamily="@font/orbitron_regular"
+
             android:textColor="@color/neon_cyan"
             android:gravity="center"
             android:layout_marginTop="4dp" />
@@ -179,7 +179,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:alpha="0.8"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text=""
                 android:textColor="@color/neon_yellow"
                 android:textSize="10sp" />
@@ -190,7 +190,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:alpha="0.8"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text=""
                 android:textColor="@color/neon_green"
                 android:textSize="10sp" />
@@ -203,7 +203,7 @@
             android:layout_height="wrap_content"
             android:text=""
             android:textSize="10sp"
-            android:fontFamily="@font/orbitron_regular"
+
             android:textColor="@color/text_hint"
             android:gravity="center"
             android:layout_marginTop="2dp" />
@@ -257,7 +257,7 @@
                         android:id="@+id/tvCurrentTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/orbitron_regular"
+
                         android:text="0:00"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
@@ -271,7 +271,7 @@
                         android:id="@+id/tvTotalTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/orbitron_regular"
+
                         android:text="0:00"
                         android:textColor="@color/text_secondary"
                         android:textSize="11sp" />
@@ -309,7 +309,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:text=""
                     android:textColor="@color/neon_purple"
                     android:textSize="10sp" />
@@ -363,7 +363,7 @@
                 android:gravity="center"
                 android:text=""
                 android:textSize="8sp"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:textColor="@color/neon_cyan"
                 android:visibility="invisible" />
 
@@ -457,7 +457,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:backgroundTint="@color/neon_red_20"
-                android:fontFamily="@font/orbitron_bold"
+                android:textStyle="bold"
                 android:text="DESTROY ALL STATES / RESET"
                 android:textColor="@color/neon_red"
                 android:textSize="12sp"

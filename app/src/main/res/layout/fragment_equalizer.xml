@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:letterSpacing="0.1"
             android:text="10-BAND GRAPHIC EQUALIZER"
             android:textColor="@color/text_primary"
@@ -41,7 +41,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:text="ENABLE EFFECTS"
                     android:textColor="@color/text_primary"
                     android:textSize="14sp" />
@@ -70,7 +70,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/orbitron_bold"
+                    android:textStyle="bold"
                     android:text="PRESETS"
                     android:textColor="@color/text_secondary"
                     android:layout_marginBottom="8dp"
@@ -99,7 +99,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/orbitron_bold"
+            android:textStyle="bold"
             android:text="ENHANCEMENTS"
             android:textColor="@color/text_secondary"
             android:layout_marginBottom="12dp"
@@ -128,7 +128,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/orbitron_bold"
+                        android:textStyle="bold"
                         android:text="BASS BOOST"
                         android:textColor="@color/neon_pink"
                         android:textSize="10sp" />
@@ -161,7 +161,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/orbitron_bold"
+                        android:textStyle="bold"
                         android:text="VIRTUALIZER"
                         android:textColor="@color/neon_cyan"
                         android:textSize="10sp" />
