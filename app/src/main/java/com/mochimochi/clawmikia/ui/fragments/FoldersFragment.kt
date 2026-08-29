@@ -48,6 +48,10 @@ class FoldersFragment : Fragment() {
             (activity as? MainActivity)?.selectBottomNavItem(com.mochimochi.clawmikiacrazy.R.id.nav_library)
         }
 
+        binding.btnFolders.setOnClickListener {
+            (activity as? MainActivity)?.openFolderPicker()
+        }
+
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             this.adapter = adapter

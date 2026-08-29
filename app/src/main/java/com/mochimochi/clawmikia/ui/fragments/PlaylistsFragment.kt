@@ -77,6 +77,10 @@ class PlaylistsFragment : Fragment() {
             showCreatePlaylistDialog()
         }
 
+        view.findViewById<ImageButton>(R.id.btnFolders)?.setOnClickListener {
+            (activity as? MainActivity)?.showFragment(FoldersFragment(), -1)
+        }
+
         setupSearchView(view)
         setupFilterChips(view)
 

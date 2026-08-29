@@ -64,6 +64,11 @@ class FavoritesFragment : Fragment() {
         }
         ItemTouchHelper(swipeHandler).attachToRecyclerView(binding.recyclerView)
 
+        // ── Folder browser ──────────────────────────────────────────
+        binding.btnFolders.setOnClickListener {
+            (activity as? MainActivity)?.showFragment(FoldersFragment(), -1)
+        }
+
         // ── View toggle (list / grid) ──────────────────────────────
         fun updateViewButtons(isGrid: Boolean) {
             binding.btnViewList.setColorFilter(

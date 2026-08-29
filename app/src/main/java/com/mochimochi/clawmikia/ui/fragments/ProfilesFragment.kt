@@ -58,6 +58,11 @@ class ProfilesFragment : BottomSheetDialogFragment() {
             showCreateProfileDialog()
         }
 
+        view.findViewById<View>(R.id.btnFolders)?.setOnClickListener {
+            (requireActivity() as? com.mochimochi.clawmikiacrazy.ui.activities.MainActivity)?.showFragment(com.mochimochi.clawmikiacrazy.ui.fragments.FoldersFragment(), -1)
+            dismiss()
+        }
+
         viewModel.profiles.observe(viewLifecycleOwner) { profiles ->
             adapter.submitList(profiles)
         }

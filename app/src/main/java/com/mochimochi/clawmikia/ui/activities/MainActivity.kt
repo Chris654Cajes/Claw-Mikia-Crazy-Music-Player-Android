@@ -219,6 +219,11 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission(),
     ) {}
 
+    /** Public method to trigger folder selection from fragments */
+    fun openFolderPicker() {
+        folderPickerLauncher.launch(null)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
