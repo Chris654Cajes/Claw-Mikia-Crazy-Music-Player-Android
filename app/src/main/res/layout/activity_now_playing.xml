@@ -208,23 +208,16 @@
             android:gravity="center"
             android:layout_marginTop="2dp" />
 
-        <!-- Playback seekbar Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardPlayback"
+        <!-- Playback seekbar -->
+        <LinearLayout
+            android:id="@+id/layoutPlayback"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="32dp"
             android:layout_marginEnd="16dp"
-            app:cardBackgroundColor="@color/bg_card"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="12dp">
+            android:orientation="vertical"
+            android:padding="12dp">
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -278,8 +271,7 @@
 
                 </LinearLayout>
 
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
         <!-- Playback controls -->
         <LinearLayout
@@ -466,8 +458,8 @@
                 app:iconGravity="textStart"
                 app:iconSize="24dp"
                 app:iconTint="@color/neon_red"
-                app:strokeColor="@color/neon_red"
-                app:strokeWidth="1dp" />
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent" />
 
         </LinearLayout>
 

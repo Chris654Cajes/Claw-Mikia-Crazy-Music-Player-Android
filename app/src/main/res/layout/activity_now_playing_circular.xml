@@ -110,13 +110,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="200dp"
                 android:layout_height="200dp"
                 android:layout_gravity="center"
                 app:cardBackgroundColor="@color/bg_card"
                 app:cardCornerRadius="100dp"
-                app:cardElevation="8dp">
+                app:cardElevation="8dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <ImageView
                     android:id="@+id/ivAlbumArt"
@@ -165,7 +167,7 @@
 
                 </LinearLayout>
 
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
         </FrameLayout>
 
@@ -254,25 +256,16 @@
             android:textColor="@color/text_hint"
             android:textSize="10sp" />
 
-        <!-- Playback seekbar Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardPlayback"
+        <!-- Playback seekbar -->
+        <LinearLayout
+            android:id="@+id/layoutPlaybackStandard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="32dp"
             android:layout_marginEnd="16dp"
-            app:cardBackgroundColor="@color/bg_card"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeColor="@color/text_hint"
-            app:strokeWidth="2dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="12dp">
+            android:orientation="vertical"
+            android:padding="12dp">
 
                 <SeekBar
                     android:id="@+id/seekPlayback"
@@ -309,8 +302,7 @@
                         android:textColor="@color/text_secondary"
                         android:textSize="10sp" />
                 </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
         <!-- Playback controls -->
         <LinearLayout
@@ -497,8 +489,8 @@
                 app:iconGravity="textStart"
                 app:iconSize="24dp"
                 app:iconTint="@color/neon_red"
-                app:strokeColor="@color/neon_red"
-                app:strokeWidth="1dp" />
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent" />
 
         </LinearLayout>
 

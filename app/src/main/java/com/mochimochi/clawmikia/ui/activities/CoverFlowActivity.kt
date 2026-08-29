@@ -666,6 +666,7 @@ class CoverFlowActivity : AppCompatActivity() {
         settingsRepo.favoriteIconLive.observe(this) {
             favoriteIconType = it
             song?.let { s -> updateFavoriteIcon(s) }
+            if (::adapter.isInitialized) adapter.notifyDataSetChanged()
         }
     }
 
@@ -1114,6 +1115,12 @@ class CoverFlowActivity : AppCompatActivity() {
 
             // Indicators
             h.binding.ivFavoriteIndicator.visibility = if (s.isFavorite) View.VISIBLE else View.GONE
+            h.binding.ivFavoriteIndicator.setImageResource(
+                FavoriteIconHelper.filledRes(favoriteIconType)
+            )
+            h.binding.ivFavoriteIndicator.setColorFilter(
+                ContextCompat.getColor(h.binding.root.context, FavoriteIconHelper.colorRes(favoriteIconType))
+            )
             h.binding.ivEditedIndicator.visibility =
                 if (s.isManuallyEdited) View.VISIBLE else View.GONE
 

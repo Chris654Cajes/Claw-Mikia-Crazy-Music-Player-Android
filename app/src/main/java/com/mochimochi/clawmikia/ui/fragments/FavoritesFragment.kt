@@ -134,11 +134,20 @@ class FavoritesFragment : Fragment() {
         var allFavorites: List<Song> = emptyList()
         var searchQuery: String = ""
 
+        fun scrollToPlayingSong() {
+            val playingId = viewModel.currentSong.value?.id ?: return
+            binding.recyclerView.post {
+                val targetPos = adapter.getPositionForSong(playingId)
+                if (targetPos != -1) binding.recyclerView.scrollToPosition(targetPos)
+            }
+        }
+
         fun refresh() {
             val filtered = allFavorites.filter { viewModel.songsMatchQuery(it, searchQuery) }
             adapter.submitSongs(filtered)
             binding.tvEmpty.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
             binding.tvSongCount.text = "${filtered.size} favorites"
+            scrollToPlayingSong()
         }
 
         viewModel.favorites.observe(viewLifecycleOwner) { songs ->
@@ -153,6 +162,7 @@ class FavoritesFragment : Fragment() {
 
         viewModel.currentSong.observe(viewLifecycleOwner) { song ->
             adapter.setCurrentSong(song?.id)
+            if (song != null) scrollToPlayingSong()
         }
 
         settingsRepo.favoriteIconLive.observe(viewLifecycleOwner) { iconType ->

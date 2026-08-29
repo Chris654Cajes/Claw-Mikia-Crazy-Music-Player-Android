@@ -51,7 +51,6 @@ import com.mochimochi.clawmikiacrazy.ui.fragments.SettingsFragment
 import com.mochimochi.clawmikiacrazy.ui.viewmodels.MainViewModel
 import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
 import com.mochimochi.clawmikiacrazy.ui.activities.CircularPlayerActivity
-import com.mochimochi.clawmikiacrazy.ui.activities.CardsPlayerActivity
 import com.mochimochi.clawmikiacrazy.ui.viewmodels.AdvancedFilter
 import com.mochimochi.clawmikiacrazy.ui.viewmodels.TriState
 import com.mochimochi.clawmikiacrazy.utils.FavoriteIconHelper
@@ -254,20 +253,17 @@ class MainActivity : AppCompatActivity() {
         observeViewModel()
         requestNotificationPermission()
         setupNetworkListener()
-        showFragment(LibraryFragment(), 0)
+        if (savedInstanceState == null) {
+            showFragment(LibraryFragment(), 0)
+        } else {
+            currentNavIndex = savedInstanceState.getInt("nav_index", 0)
+        }
         observeFavoriteIconSetting()
 
         onBackPressedDispatcher.addCallback(this) {
-            val currentFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
-            if (currentFragment !is LibraryFragment) {
-                // Navigate back to Library tab
-                binding.bottomNav.selectedItemId = R.id.nav_library
-                showFragment(LibraryFragment(), 0)
-            } else {
-                // Default behavior (exit app)
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
-            }
+            // Move task to back instead of finishing, ensuring the app state 
+            // "sticks" when the user is outside the app.
+            moveTaskToBack(true)
         }
 
         viewModel.isPlaying.observe(this) { isPlaying ->
@@ -377,7 +373,6 @@ class MainActivity : AppCompatActivity() {
             "radial" -> RadialPlayerActivity.start(this, songId)
             "vumeter" -> VuMeterPlayerActivity.start(this, songId)
             "circular" -> CircularPlayerActivity.start(this, songId)
-            "cards" -> CardsPlayerActivity.start(this, songId)
             else -> NowPlayingActivity.start(this, songId)
         }
     }
@@ -1081,6 +1076,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("nav_index", currentNavIndex)
     }
 
     override fun onStop() {

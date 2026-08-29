@@ -1167,10 +1167,6 @@ class NowPlayingActivity : AppCompatActivity() {
                 binding.tvArtist.setTextColor(vibrantColor)
                 binding.seekPlayback.progressTintList = ColorStateList.valueOf(dominantColor)
                 binding.seekPlayback.thumbTintList = ColorStateList.valueOf(vibrantColor)
-
-                // Update cards stroke if possible or add glow
-                binding.cardPlayback.strokeColor = vibrantColor
-                binding.cardPlayback.strokeWidth = 2
             }
         }
     }
@@ -1180,7 +1176,6 @@ class NowPlayingActivity : AppCompatActivity() {
         binding.seekPlayback.progressTintList =
             ColorStateList.valueOf(ContextCompat.getColor(this, R.color.neon_pink))
         binding.seekPlayback.thumbTintList = null // Use default thumb
-        binding.cardPlayback.strokeWidth = 0
     }
 
     private fun startGlowAnimation() {

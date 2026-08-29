@@ -135,12 +135,14 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <!-- Center Album Art -->
-                <androidx.cardview.widget.CardView
+                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardCenterArt"
                     android:layout_width="180dp"
                     android:layout_height="180dp"
                     app:cardCornerRadius="90dp"
                     app:cardElevation="8dp"
+                    app:strokeWidth="0dp"
+                    app:strokeColor="@android:color/transparent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -158,9 +160,7 @@
                         android:layout_height="match_parent"
                         android:background="#44000000" />
 
-                </androidx.cardview.widget.CardView>
-
-                <!-- Play/Pause within the ring (between btnRepeat and btnPrev) -->
+                </com.google.android.material.card.MaterialCardView>
 
                 <!-- Radial Buttons -->
 
@@ -406,7 +406,7 @@
             </LinearLayout>
 
             <!-- VOLUME CARD -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardVolume"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -414,8 +414,10 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -565,10 +567,10 @@
 
                 </LinearLayout>
 
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- PITCH CARD -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardPitch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -576,8 +578,10 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -692,10 +696,10 @@
 
                 </LinearLayout>
 
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- SPEED CARD -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardSpeed"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -703,8 +707,10 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -815,10 +821,10 @@
 
                 </LinearLayout>
 
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- A-B REPEAT CARD -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardAbRepeat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -826,8 +832,10 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -891,7 +899,6 @@
                             android:layout_height="wrap_content"
                             android:scaleX="0.7"
                             android:scaleY="0.7" />
-
                     </LinearLayout>
 
                     <LinearLayout
@@ -951,25 +958,23 @@
                             android:text="Reset"
                             android:textColor="@color/neon_purple"
                             android:textSize="10sp" />
-
                     </LinearLayout>
-
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-            </androidx.cardview.widget.CardView>
-
-            <!-- ═══════════════════ TRIM CARD ═══════════════════ -->
-            <androidx.cardview.widget.CardView
+            <!-- TRIM CARD -->
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardTrim"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginBottom="14dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -999,7 +1004,6 @@
                             android:text="TIMELINE TRIM"
                             android:textColor="@color/text_primary"
                             android:textSize="11sp" />
-
                     </LinearLayout>
 
                     <TextView
@@ -1007,7 +1011,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="2dp"
 
-                        android:letterSpacing="0.1"
                         android:text="START POINT"
                         android:textColor="@color/text_hint"
                         android:textSize="9sp" />
@@ -1036,7 +1039,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="2dp"
 
-                        android:letterSpacing="0.1"
                         android:text="END POINT"
                         android:textColor="@color/text_hint"
                         android:textSize="9sp" />
@@ -1060,7 +1062,6 @@
                         android:textColor="@color/neon_red"
                         android:textSize="11sp" />
 
-                    <!-- Trim Control Buttons Row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -1073,7 +1074,6 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical">
 
-                            <!-- Trim Start Controls -->
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="36dp"
@@ -1085,12 +1085,6 @@
                                     android:layout_width="48dp"
                                     android:layout_height="36dp"
                                     android:background="@drawable/bg_button_outline_blue"
-                                    android:textStyle="bold"
-                                    android:gravity="center"
-                                    android:minWidth="0dp"
-                                    android:minHeight="0dp"
-                                    android:padding="0dp"
-                                    android:stateListAnimator="@null"
                                     android:text="−10s"
                                     android:textColor="@color/neon_light_blue"
                                     android:textSize="9sp" />
@@ -1101,12 +1095,6 @@
                                     android:layout_height="36dp"
                                     android:layout_marginStart="8dp"
                                     android:background="@drawable/bg_button_outline_blue"
-                                    android:textStyle="bold"
-                                    android:gravity="center"
-                                    android:minWidth="0dp"
-                                    android:minHeight="0dp"
-                                    android:padding="0dp"
-                                    android:stateListAnimator="@null"
                                     android:text="+10s"
                                     android:textColor="@color/neon_light_blue"
                                     android:textSize="9sp" />
@@ -1120,14 +1108,12 @@
                                     android:id="@+id/tvTrimStartLabel"
                                     android:layout_width="wrap_content"
                                     android:layout_height="36dp"
-                                    android:textStyle="bold"
                                     android:gravity="center"
                                     android:text="START"
                                     android:textColor="@color/neon_light_blue"
                                     android:textSize="10sp" />
                             </LinearLayout>
 
-                            <!-- Trim End Controls -->
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="36dp"
@@ -1140,12 +1126,6 @@
                                     android:layout_width="48dp"
                                     android:layout_height="36dp"
                                     android:background="@drawable/bg_button_outline_red"
-                                    android:textStyle="bold"
-                                    android:gravity="center"
-                                    android:minWidth="0dp"
-                                    android:minHeight="0dp"
-                                    android:padding="0dp"
-                                    android:stateListAnimator="@null"
                                     android:text="−10s"
                                     android:textColor="@color/neon_red"
                                     android:textSize="9sp" />
@@ -1156,12 +1136,6 @@
                                     android:layout_height="36dp"
                                     android:layout_marginStart="8dp"
                                     android:background="@drawable/bg_button_outline_red"
-                                    android:textStyle="bold"
-                                    android:gravity="center"
-                                    android:minWidth="0dp"
-                                    android:minHeight="0dp"
-                                    android:padding="0dp"
-                                    android:stateListAnimator="@null"
                                     android:text="+10s"
                                     android:textColor="@color/neon_red"
                                     android:textSize="9sp" />
@@ -1175,13 +1149,11 @@
                                     android:id="@+id/tvTrimEndLabel"
                                     android:layout_width="wrap_content"
                                     android:layout_height="36dp"
-                                    android:textStyle="bold"
                                     android:gravity="center"
                                     android:text="END"
                                     android:textColor="@color/neon_red"
                                     android:textSize="10sp" />
                             </LinearLayout>
-
                         </LinearLayout>
 
                         <View
@@ -1194,26 +1166,18 @@
                             android:layout_width="wrap_content"
                             android:layout_height="36dp"
                             android:background="@drawable/bg_button_outline_neutral"
-                            android:textStyle="bold"
-                            android:gravity="center"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
                             android:paddingStart="14dp"
                             android:paddingEnd="14dp"
-                            android:stateListAnimator="@null"
                             android:text="Reset Trim"
                             android:textAllCaps="false"
                             android:textColor="@color/text_secondary"
                             android:textSize="10sp" />
-
                     </LinearLayout>
-
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-            </androidx.cardview.widget.CardView>
-
-            <!-- ═══════════════════ SKIP SECTIONS CARD ═══════════════════ -->
-            <androidx.cardview.widget.CardView
+            <!-- SKIP SECTIONS CARD -->
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardSkipSections"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -1221,8 +1185,10 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1248,7 +1214,6 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:textStyle="bold"
-                            android:letterSpacing="0.14"
                             android:paddingStart="8dp"
                             android:text="SKIP / CUT"
                             android:textColor="@color/text_primary"
@@ -1260,14 +1225,11 @@
                             android:layout_height="30dp"
                             android:background="@drawable/bg_button_outline_cyan"
                             android:backgroundTint="@color/neon_yellow"
-                            android:textStyle="bold"
-                            android:minWidth="0dp"
                             android:paddingStart="12dp"
                             android:paddingEnd="12dp"
                             android:text="+ ADD"
                             android:textColor="@color/neon_yellow"
                             android:textSize="10sp" />
-
                     </LinearLayout>
 
                     <LinearLayout
@@ -1280,19 +1242,16 @@
                         android:id="@+id/tvNoSkipSections"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-
                         android:gravity="center"
                         android:padding="8dp"
                         android:text="No skip sections added"
                         android:textColor="@color/text_hint"
                         android:textSize="10sp" />
-
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-            </androidx.cardview.widget.CardView>
-
-            <!-- ═══════════════════ SWITCH PROFILE CARD ═══════════════════ -->
-            <androidx.cardview.widget.CardView
+            <!-- SWITCH PROFILE CARD -->
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardSwitchProfile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -1300,8 +1259,10 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1327,12 +1288,10 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:textStyle="bold"
-                            android:letterSpacing="0.14"
                             android:paddingStart="8dp"
                             android:text="SWITCH PROFILE"
                             android:textColor="@color/text_primary"
                             android:textSize="11sp" />
-
                     </LinearLayout>
 
                     <LinearLayout
@@ -1358,9 +1317,8 @@
                             android:textSize="10sp"
                             app:backgroundTint="@color/neon_teal_20"
                             app:cornerRadius="8dp"
-                            app:rippleColor="@color/neon_teal"
-                            app:strokeColor="@color/neon_teal"
-                            app:strokeWidth="1dp" />
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@android:color/transparent" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnProfileDefault"
@@ -1380,9 +1338,8 @@
                             android:textSize="10sp"
                             app:backgroundTint="@color/neon_teal_20"
                             app:cornerRadius="8dp"
-                            app:rippleColor="@color/neon_teal"
-                            app:strokeColor="@color/neon_teal"
-                            app:strokeWidth="1dp" />
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@android:color/transparent" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnProfileNext"
@@ -1402,18 +1359,14 @@
                             android:textSize="10sp"
                             app:backgroundTint="@color/neon_teal_20"
                             app:cornerRadius="8dp"
-                            app:rippleColor="@color/neon_teal"
-                            app:strokeColor="@color/neon_teal"
-                            app:strokeWidth="1dp" />
-
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@android:color/transparent" />
                     </LinearLayout>
-
                 </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Playback State Toggle (Original vs Updated) -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -1421,8 +1374,10 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="14dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1470,7 +1425,7 @@
 
                 </LinearLayout>
 
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnResetAllStates"
@@ -1480,15 +1435,13 @@
                 android:backgroundTint="@color/neon_red_20"
                 android:text="RESET ALL STATES"
                 android:textColor="@color/neon_red"
-                app:strokeColor="@color/neon_red"
-                app:strokeWidth="1dp" />
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="40dp" />
 
         </LinearLayout>
-
     </androidx.core.widget.NestedScrollView>
-
 </FrameLayout>

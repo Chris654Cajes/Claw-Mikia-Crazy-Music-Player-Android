@@ -500,6 +500,14 @@ class PlaylistDetailFragment : Fragment() {
         var allSongs: List<Song> = emptyList()
         var searchQuery: String = ""
 
+        fun scrollToPlayingSong() {
+            val playingId = viewModel.currentSong.value?.id ?: return
+            rv.post {
+                val targetPos = adapter.currentList.indexOfFirst { it.id == playingId }
+                if (targetPos != -1) rv.scrollToPosition(targetPos)
+            }
+        }
+
         fun refresh() {
             val filtered = allSongs.filter { viewModel.songsMatchQuery(it, searchQuery) }
             adapter.submitList(filtered)
@@ -508,6 +516,7 @@ class PlaylistDetailFragment : Fragment() {
                     (requireActivity() as? MainActivity)?.playSong(filtered[0], filtered)
                 }
             }
+            scrollToPlayingSong()
         }
 
         repo.getSongsInPlaylist(playlistId).observe(viewLifecycleOwner) { songs ->
@@ -518,6 +527,11 @@ class PlaylistDetailFragment : Fragment() {
         viewModel.searchQuery.observe(viewLifecycleOwner) { query ->
             searchQuery = query
             refresh()
+        }
+
+        viewModel.currentSong.observe(viewLifecycleOwner) { song ->
+            adapter.setCurrentSong(song?.id)
+            if (song != null) scrollToPlayingSong()
         }
 
         // Observe favorite icon type setting and refresh adapter

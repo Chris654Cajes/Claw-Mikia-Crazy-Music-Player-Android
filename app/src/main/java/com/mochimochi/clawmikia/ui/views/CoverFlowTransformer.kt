@@ -25,13 +25,5 @@ class CoverFlowTransformer : ViewPager2.PageTransformer {
 
         // Depth alpha
         page.alpha = 0.4f + (1 - 0.4f) * (1 - absPos.coerceIn(0f, 1f))
-
-        // Animate Vinyl peek-out
-        val vinyl = page.findViewById<View>(R.id.cardVinyl)
-        if (vinyl != null) {
-            val peek = (1 - absPos.coerceIn(0f, 1f)) * 80f
-            vinyl.translationX = peek
-            vinyl.rotation = position * 180f // Rotate as we swipe
-        }
     }
 }

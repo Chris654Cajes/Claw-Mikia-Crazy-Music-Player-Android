@@ -25,6 +25,8 @@ class LibraryFragment : Fragment() {
     private val viewModel: MainViewModel by activityViewModels()
     private lateinit var adapter: LibraryAdapter
     private var latestSongs: List<Song> = emptyList()
+    private var isGridMode = false
+    private var currentGroupIndex = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -96,6 +98,7 @@ class LibraryFragment : Fragment() {
 
         binding.btnViewList.setOnClickListener {
             if (adapter.isGridMode) {
+                isGridMode = false
                 adapter.isGridMode = false
                 binding.recyclerView.layoutManager = LinearLayoutManager(context)
                 updateViewButtons(false)
@@ -104,22 +107,31 @@ class LibraryFragment : Fragment() {
 
         binding.btnViewGrid.setOnClickListener {
             if (!adapter.isGridMode) {
+                isGridMode = true
                 adapter.isGridMode = true
                 binding.recyclerView.layoutManager = GridLayoutManager(context, 3)
                 updateViewButtons(true)
             }
         }
 
-        updateViewButtons(false)
+        // Restore state if available
+        if (savedInstanceState != null) {
+            isGridMode = savedInstanceState.getBoolean("is_grid_mode", false)
+            currentGroupIndex = savedInstanceState.getInt("group_index", 0)
+        }
+
+        adapter.isGridMode = isGridMode
+        binding.recyclerView.layoutManager = if (isGridMode) GridLayoutManager(context, 3) else LinearLayoutManager(context)
+        updateViewButtons(isGridMode)
 
         // ── Group by album toggle ──────────────────────────────────
         val groupModes = listOf("None", "Album")
-        var currentGroupIndex = 0
 
         fun updateGroupButton() {
             val mode = groupModes[currentGroupIndex]
             binding.btnGroupBy.text = mode
             val isActive = mode != "None"
+            adapter.isGroupByAlbum = mode == "Album"
             binding.btnGroupBy.setTextColor(
                 androidx.core.content.ContextCompat.getColor(
                     requireContext(),
@@ -153,16 +165,26 @@ class LibraryFragment : Fragment() {
             }
         }
 
+        fun scrollToPlayingSong() {
+            val playingId = viewModel.currentSong.value?.id ?: return
+            binding.recyclerView.post {
+                val targetPos = adapter.getPositionForSong(playingId)
+                if (targetPos != -1) binding.recyclerView.scrollToPosition(targetPos)
+            }
+        }
+
         // ── Observe songs ──────────────────────────────────────────
         viewModel.filteredSongs.observe(viewLifecycleOwner) { songs ->
             latestSongs = songs
             adapter.submitSongs(songs)
             binding.tvEmpty.visibility = if (songs.isEmpty()) View.VISIBLE else View.GONE
             binding.tvSongCount.text = "${songs.size} songs"
+            scrollToPlayingSong()
         }
 
         viewModel.currentSong.observe(viewLifecycleOwner) { song ->
             adapter.setCurrentSong(song?.id)
+            if (song != null) scrollToPlayingSong()
         }
 
         settingsRepo.favoriteIconLive.observe(viewLifecycleOwner) { iconType ->
@@ -173,5 +195,11 @@ class LibraryFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean("is_grid_mode", isGridMode)
+        outState.putInt("group_index", currentGroupIndex)
     }
 }

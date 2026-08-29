@@ -7,53 +7,28 @@
     android:clipToPadding="false">
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardVinyl"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="48dp"
-        android:backgroundTint="#111111"
-        android:visibility="visible"
-        app:cardCornerRadius="999dp"
-        app:cardElevation="4dp"
-        app:layout_constraintBottom_toBottomOf="@id/cardCover"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintEnd_toEndOf="@id/cardCover"
-        app:layout_constraintStart_toStartOf="@id/cardCover"
-        app:layout_constraintTop_toTopOf="@id/cardCover">
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:alpha="0.8"
-            android:padding="4dp"
-            android:src="@drawable/bg_album_disc" />
-    </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardCover"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
         android:backgroundTint="@color/bg_card"
-        android:maxWidth="320dp"
-        android:maxHeight="320dp"
         app:cardCornerRadius="24dp"
         app:cardElevation="16dp"
+        app:strokeWidth="0dp"
+        app:strokeColor="@android:color/transparent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:strokeColor="@color/neon_cyan"
-        app:strokeWidth="3dp">
+        app:layout_constraintTop_toTopOf="parent">
 
         <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_width="240dp"
+            android:layout_height="240dp">
 
             <ImageView
                 android:id="@+id/ivCover"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="240dp"
+                android:layout_height="240dp"
                 android:background="@drawable/bg_note_icon"
                 android:contentDescription="Album Art"
                 android:scaleType="centerCrop" />

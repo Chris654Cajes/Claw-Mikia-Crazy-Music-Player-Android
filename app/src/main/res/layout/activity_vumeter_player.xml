@@ -122,11 +122,13 @@
                     android:progress="60"
                     android:progressDrawable="@drawable/bg_vumeter_vertical" />
 
-                <androidx.cardview.widget.CardView
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="160dp"
                     android:layout_height="160dp"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp">
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="16dp"
+                    app:strokeWidth="0dp"
+                    app:strokeColor="@android:color/transparent">
 
                     <ImageView
                         android:id="@+id/ivAlbumArt"
@@ -134,7 +136,7 @@
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
                         android:src="@drawable/ic_music_note" />
-                </androidx.cardview.widget.CardView>
+                </com.google.android.material.card.MaterialCardView>
 
                 <ProgressBar
                     android:id="@+id/vuMeterRight"
@@ -368,7 +370,7 @@
             </LinearLayout>
 
             <!-- VOLUME CARD -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardVolume"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -376,8 +378,10 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -518,10 +522,10 @@
                             android:textSize="10sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- PITCH CARD -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardPitch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -529,8 +533,10 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -641,10 +647,10 @@
                             android:textSize="10sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- SPEED CARD -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardSpeed"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -652,8 +658,10 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -760,10 +768,10 @@
                             android:textSize="10sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- A-B REPEAT CARD -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardAbRepeat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -771,8 +779,10 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -897,10 +907,10 @@
                             android:textSize="10sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- TRIM CARD -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardTrim"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -908,8 +918,10 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1109,10 +1121,10 @@
                             android:textSize="10sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- SKIP SECTIONS CARD -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardSkipSections"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -1120,8 +1132,10 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1181,10 +1195,10 @@
                         android:textColor="@color/text_hint"
                         android:textSize="10sp" />
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- SWITCH PROFILE CARD -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardSwitchProfile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -1192,8 +1206,10 @@
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1243,8 +1259,8 @@
                             android:textSize="10sp"
                             app:backgroundTint="@color/neon_teal_20"
                             app:cornerRadius="8dp"
-                            app:strokeColor="@color/neon_teal"
-                            app:strokeWidth="1dp" />
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@android:color/transparent" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnProfileDefault"
@@ -1259,8 +1275,8 @@
                             android:textSize="10sp"
                             app:backgroundTint="@color/neon_teal_20"
                             app:cornerRadius="8dp"
-                            app:strokeColor="@color/neon_teal"
-                            app:strokeWidth="1dp" />
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@android:color/transparent" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnProfileNext"
@@ -1275,14 +1291,14 @@
                             android:textSize="10sp"
                             app:backgroundTint="@color/neon_teal_20"
                             app:cornerRadius="8dp"
-                            app:strokeColor="@color/neon_teal"
-                            app:strokeWidth="1dp" />
+                            app:strokeWidth="0dp"
+                            app:strokeColor="@android:color/transparent" />
                     </LinearLayout>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Playback State Toggle (Original vs Updated) -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -1290,8 +1306,10 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="14dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -1339,7 +1357,7 @@
 
                 </LinearLayout>
 
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnResetAllStates"
@@ -1349,8 +1367,8 @@
                 android:backgroundTint="@color/neon_red_20"
                 android:text="RESET ALL STATES"
                 android:textColor="@color/neon_red"
-                app:strokeColor="@color/neon_red"
-                app:strokeWidth="1dp" />
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent" />
 
             <View
                 android:layout_width="match_parent"

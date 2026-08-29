@@ -72,12 +72,6 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
-            android:name=".ui.activities.CardsPlayerActivity"
-            android:exported="false"
-            android:launchMode="singleTop"
-            android:windowSoftInputMode="adjustResize" />
-
-        <activity
             android:name=".ui.activities.EqualizerActivity"
             android:exported="false"
             android:theme="@style/Theme.MusicVault" />

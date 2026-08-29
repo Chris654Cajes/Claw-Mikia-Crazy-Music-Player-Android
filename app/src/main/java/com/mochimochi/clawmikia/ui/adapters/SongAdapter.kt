@@ -159,12 +159,12 @@ class SongAdapter(
                     if (isSelected) View.VISIBLE else View.INVISIBLE
                 binding.ivPlayingIndicator.setBackgroundColor(android.graphics.Color.parseColor("#00E5FF"))
             } else {
-                binding.root.setBackgroundResource(R.drawable.selector_song_item)
+                binding.root.background = null
                 val isPlaying = song.id == currentSongId
                 binding.ivPlayingIndicator.visibility =
                     if (isPlaying) View.VISIBLE else View.INVISIBLE
                 binding.ivPlayingIndicator.setBackgroundResource(R.drawable.bg_playing_bar)
-                binding.root.isActivated = isPlaying
+                binding.viewForeground.isActivated = isPlaying
             }
 
             binding.root.setOnClickListener {

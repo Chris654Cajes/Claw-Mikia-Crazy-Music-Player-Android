@@ -34,9 +34,9 @@ cyberpunk-inspired dynamic interface.
 - **Waveform Visualization**: Real-time interactive waveform for precise seeking, trimming, and
   skip-region visualization.
 
-### Six Distinct Player UIs
+### Five Distinct Player UIs
 
-The app offers six interchangeable player themes, selectable from Settings:
+The app offers five interchangeable player themes, selectable from Settings:
 
 | Mode             | Activity                 | Description                                                           |
 |------------------|--------------------------|-----------------------------------------------------------------------|
@@ -45,7 +45,6 @@ The app offers six interchangeable player themes, selectable from Settings:
 | **Radial Wheel** | `RadialPlayerActivity`   | Circular dial-based player with radial seek and neon animations       |
 | **VU Meter**     | `VuMeterPlayerActivity`  | Retro VU meter visualizer with analog-style level bars                |
 | **Circular**     | `CircularPlayerActivity` | Ring-style progress with centered album art and circular controls     |
-| **Cards**        | `CardsPlayerActivity`    | Card-based control center with all studio controls stacked vertically |
 
 ### Cyberpunk UI & Aesthetic UX
 

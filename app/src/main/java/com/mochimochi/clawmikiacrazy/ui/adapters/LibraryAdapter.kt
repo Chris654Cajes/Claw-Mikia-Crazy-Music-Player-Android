@@ -114,6 +114,10 @@ class LibraryAdapter(
     fun getSongAtPosition(position: Int): Song? =
         (flatList.getOrNull(position) as? DisplayItem.SongItem)?.song
 
+    fun getPositionForSong(songId: Long): Int {
+        return flatList.indexOfFirst { it is DisplayItem.SongItem && it.song.id == songId }
+    }
+
     private fun rebuildFlatList() {
         if (!isGroupByAlbum) {
             flatList = rawSongs.map { DisplayItem.SongItem(it) }
@@ -271,12 +275,12 @@ class LibraryAdapter(
                     if (isSelected) View.VISIBLE else View.INVISIBLE
                 binding.ivPlayingIndicator.setBackgroundColor(android.graphics.Color.parseColor("#00E5FF"))
             } else {
-                binding.root.setBackgroundResource(R.drawable.selector_song_item)
+                binding.root.background = null
                 val isPlaying = song.id == currentSongId
                 binding.ivPlayingIndicator.visibility =
                     if (isPlaying) View.VISIBLE else View.INVISIBLE
                 binding.ivPlayingIndicator.setBackgroundResource(R.drawable.bg_playing_bar)
-                binding.root.isActivated = isPlaying
+                binding.viewForeground.isActivated = isPlaying
             }
 
             binding.root.setOnClickListener {
@@ -342,6 +346,7 @@ class LibraryAdapter(
             } else {
                 val isPlaying = song.id == currentSongId
                 binding.viewForeground.isSelected = false
+                binding.viewForeground.isActivated = isPlaying
                 binding.ivPlayingIndicator.visibility =
                     if (isPlaying) View.VISIBLE else View.INVISIBLE
                 binding.ivPlayingIndicator.setBackgroundResource(R.drawable.bg_playing_bar)
