@@ -6,91 +6,99 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardCover"
-        android:layout_width="240dp"
-        android:layout_height="240dp"
-        android:backgroundTint="@color/bg_card"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="16dp"
-        app:strokeWidth="0dp"
-        app:strokeColor="@android:color/transparent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <FrameLayout
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardCover"
             android:layout_width="240dp"
-            android:layout_height="240dp">
+            android:layout_height="240dp"
+            android:background="@drawable/bg_card_cover_gradient"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="16dp"
+            app:strokeColor="#FF0000"
+            app:strokeWidth="2dp"
+            app:cardPreventCornerOverlap="false"
+            android:clipToOutline="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-            <ImageView
-                android:id="@+id/ivCover"
-                android:layout_width="240dp"
-                android:layout_height="240dp"
-                android:background="@drawable/bg_note_icon"
-                android:contentDescription="Album Art"
-                android:scaleType="centerCrop" />
-
-            <ImageView
-                android:id="@+id/ivFavoriteIndicator"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="top|end"
-                android:layout_margin="16dp"
-                android:src="@drawable/ic_heart_filled"
-                android:visibility="gone"
-                app:tint="@color/neon_pink" />
-
-            <ImageView
-                android:id="@+id/ivEditedIndicator"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="top|start"
-                android:layout_margin="16dp"
-                android:src="@drawable/ic_check"
-                android:visibility="gone"
-                app:tint="@color/neon_green" />
-
-            <View
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:layout_gravity="bottom"
-                android:background="@drawable/bg_gradient_bottom_black" />
+                android:layout_height="match_parent"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent"
+                app:cardCornerRadius="24dp"
+                app:cardPreventCornerOverlap="false"
+                android:clipToOutline="true"
+                app:cardElevation="0dp">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="12dp"
-                android:gravity="center"
-                android:orientation="vertical">
+                <ImageView
+                    android:id="@+id/ivCover"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_note_icon"
+                    android:contentDescription="Album Art"
+                    android:scaleType="centerCrop" />
 
-                <TextView
-                    android:id="@+id/tvIndex"
+                <ImageView
+                    android:id="@+id/ivFavoriteIndicator"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="16dp"
+                    android:src="@drawable/ic_heart_filled"
+                    android:visibility="gone"
+                    app:tint="@color/neon_pink" />
+
+                <ImageView
+                    android:id="@+id/ivEditedIndicator"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="top|start"
+                    android:layout_margin="16dp"
+                    android:src="@drawable/ic_check"
+                    android:visibility="gone"
+                    app:tint="@color/neon_green" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:layout_gravity="bottom"
+                    android:background="@drawable/bg_gradient_bottom_black" />
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:alpha="0.9"
-                    android:textStyle="bold"
-                    android:text="1 / 10"
-                    android:textColor="@color/text_primary"
-                    android:textSize="10sp" />
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvFormat"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:alpha="0.7"
+                    <TextView
+                        android:id="@+id/tvIndex"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:alpha="0.9"
+                        android:textStyle="bold"
+                        android:text="1 / 10"
+                        android:textColor="@color/text_primary"
+                        android:textSize="10sp" />
 
-                    android:text="MP3 • 320kbps"
-                    android:textColor="@color/neon_cyan"
-                    android:textSize="8sp" />
+                    <TextView
+                        android:id="@+id/tvFormat"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:alpha="0.7"
+                        android:text="MP3 • 320kbps"
+                        android:textColor="@color/neon_cyan"
+                        android:textSize="8sp" />
 
-            </LinearLayout>
+                </LinearLayout>
 
-        </FrameLayout>
-    </com.google.android.material.card.MaterialCardView>
+            </com.google.android.material.card.MaterialCardView>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>

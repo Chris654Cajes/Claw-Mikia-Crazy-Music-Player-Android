@@ -401,6 +401,10 @@ class RadialPlayerActivity : AppCompatActivity() {
         val isBypassing = svc.isBypassingProfiles()
         binding.switchPlaybackState.isChecked = !isBypassing
         updateStateLabels(!isBypassing)
+        currentRepeatMode = svc.getRepeatMode()
+        updateRepeatButton()
+        updateShuffleButton()
+        updateProfileSwitchButtons()
         val cur = svc.getCurrentSong() ?: return
         songId = cur.id
         populate(cur)

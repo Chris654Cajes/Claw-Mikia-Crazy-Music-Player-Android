@@ -189,6 +189,7 @@ class NowPlayingActivity : AppCompatActivity() {
             volumeObserver
         )
         musicService?.let {
+            registerCallbacks()
             syncNow()
             startProgressUpdates()
             val isBypassing = it.isBypassingProfiles()
@@ -395,6 +396,10 @@ class NowPlayingActivity : AppCompatActivity() {
         val isBypassing = svc.isBypassingProfiles()
         binding.cardStateToggle.switchPlaybackState.isChecked = !isBypassing
         updateStateLabels(!isBypassing)
+        currentRepeatMode = svc.getRepeatMode()
+        updateRepeatButton()
+        updateShuffleButton()
+        updateProfileSwitchButtons()
         val cur = svc.getCurrentSong() ?: return
         songId = cur.id
         populate(cur)

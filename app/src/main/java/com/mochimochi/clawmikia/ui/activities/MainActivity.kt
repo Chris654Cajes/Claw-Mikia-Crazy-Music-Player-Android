@@ -87,6 +87,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private var pendingPlayRequest: Pair<Song, List<Song>>? = null
+
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             try {
@@ -94,13 +96,20 @@ class MainActivity : AppCompatActivity() {
                 serviceBound = true
                 android.util.Log.d("MainActivity", "Service connected successfully")
                 registerServiceCallbacks()
-                // Restore mini player if service already has a song
-                musicService?.getCurrentSong()?.let { song ->
-                    val playing = musicService?.isPlaying() ?: false
-                    viewModel.setCurrentSong(song)
-                    showMusicPanel(song)
-                    updatePlayButton(playing)
-                    if (playing) startProgressUpdates()
+
+                // If there's a pending play request, handle it
+                pendingPlayRequest?.let { (song, playlist) ->
+                    playSong(song, playlist, navigate = false)
+                    pendingPlayRequest = null
+                } ?: run {
+                    // Otherwise restore mini player if service already has a song
+                    musicService?.getCurrentSong()?.let { song ->
+                        val playing = musicService?.isPlaying() ?: false
+                        viewModel.setCurrentSong(song)
+                        showMusicPanel(song)
+                        updatePlayButton(playing)
+                        if (playing) startProgressUpdates()
+                    }
                 }
             } catch (e: Exception) {
                 android.util.Log.e("MainActivity", "Error in onServiceConnected: ${e.message}")
@@ -938,7 +947,7 @@ class MainActivity : AppCompatActivity() {
      * Entry point called by every fragment when a song row is tapped.
      * Shows mini player immediately and sends the playlist to the service.
      */
-    fun playSong(song: Song, playlist: List<Song>) {
+    fun playSong(song: Song, playlist: List<Song>, navigate: Boolean = true) {
         val list = playlist.ifEmpty { listOf(song) }
         val idx = list.indexOfFirst { it.id == song.id }.coerceAtLeast(0)
 
@@ -948,39 +957,26 @@ class MainActivity : AppCompatActivity() {
         )
 
         // Show mini player right away — no waiting for callbacks
+        viewModel.setCurrentSong(song)
         showMusicPanel(song)
         updatePlayButton(playing = true)
         startProgressUpdates()
 
         // Navigate to Now Playing
-        startNowPlaying(song.id)
+        if (navigate) {
+            startNowPlaying(song.id)
+        }
 
         // Ensure service is bound before calling it
         if (serviceBound && musicService != null) {
             android.util.Log.d("MainActivity", "Service bound, calling setPlaylist")
             musicService?.setPlaylist(list, idx)
             viewModel.setPlaying(true)
+            pendingPlayRequest = null
         } else {
             android.util.Log.d("MainActivity", "Service not bound, binding first")
-            // Service not bound yet, bind and then play
+            pendingPlayRequest = song to playlist
             bindToService()
-            // Postpone the play call until service is connected
-            musicService?.let { service ->
-                android.util.Log.d(
-                    "MainActivity",
-                    "Service available after binding, calling setPlaylist"
-                )
-                service.setPlaylist(list, idx)
-                viewModel.setPlaying(true)
-            } ?: run {
-                android.util.Log.d("MainActivity", "Service still null, retrying after delay")
-                // If service is still null, try again after a delay
-
-                progressHandler.postDelayed({
-                    musicService?.setPlaylist(list, idx)
-                    viewModel.setPlaying(true)
-                }, 500)
-            }
         }
     }
 

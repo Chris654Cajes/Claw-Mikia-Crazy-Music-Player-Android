@@ -194,10 +194,11 @@ class CoverFlowActivity : AppCompatActivity() {
             true,
             volumeObserver
         )
-        if (musicService?.isPlaying() == true) {
+        musicService?.let {
+            registerCallbacks()
+            syncNow()
             startProgressUpdates()
         }
-        syncNow()
     }
 
     override fun onPause() {
@@ -735,15 +736,20 @@ class CoverFlowActivity : AppCompatActivity() {
     }
 
     private fun syncNow() {
-        musicService?.getCurrentSong()?.let { s ->
+        val svc = musicService ?: return
+        svc.getCurrentSong()?.let { s ->
             song = s
             songId = s.id
-            viewModel.setSong(s, musicService?.isPlaying() ?: false)
+            viewModel.setSong(s, svc.isPlaying())
             populate(s)
         }
-        currentRepeatMode = musicService?.getRepeatMode() ?: 0
+        updatePlayButton(svc.isPlaying())
+        currentRepeatMode = svc.getRepeatMode()
         updateRepeatButton()
         updateShuffleButton()
+        updateProfileSwitchButtons()
+        val isBypassing = svc.isBypassingProfiles()
+        updateStateLabels(!isBypassing)
     }
 
     private fun syncVolumeSeekBar() {

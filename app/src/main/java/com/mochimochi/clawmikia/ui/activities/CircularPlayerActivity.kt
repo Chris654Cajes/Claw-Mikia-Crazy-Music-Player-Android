@@ -661,11 +661,13 @@ class CircularPlayerActivity : AppCompatActivity() {
         val isBypassing = svc.isBypassingProfiles()
         binding.cardStateToggle.switchPlaybackState.isChecked = !isBypassing
         updateStateLabels(!isBypassing)
+        currentRepeatMode = svc.getRepeatMode()
+        updateShuffleButton()
+        updateRepeatButton()
+        updateProfileSwitchButtons()
         val cur = svc.getCurrentSong() ?: return
         songId = cur.id
         populate(cur)
-        updateShuffleButton()
-        updateRepeatButton()
         activityScope.launch {
             repository.getSongById(cur.id)?.let { fresh ->
                 populate(fresh)
