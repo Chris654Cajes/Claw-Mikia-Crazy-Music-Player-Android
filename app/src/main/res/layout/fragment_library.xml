@@ -55,6 +55,18 @@
             android:src="@drawable/ic_folder"
             app:tint="@color/neon_yellow" />
 
+        <!-- Accordion browse -->
+        <ImageButton
+            android:id="@+id/btnBrowse"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Browse Library"
+            android:padding="4dp"
+            android:src="@drawable/ic_accordion"
+            app:tint="@color/neon_purple" />
+
         <!-- List/Grid view toggle -->
         <ImageButton
             android:id="@+id/btnViewList"

@@ -74,4 +74,20 @@
     <string name="back">Back</string>
     <string name="shuffle">Shuffle</string>
     <string name="db_format">%1$d dB</string>
+
+    <string name="browse_library">Browse Library</string>
+    <string name="browse_tab_folders">Folders</string>
+    <string name="browse_tab_playlists">Playlists</string>
+    <string name="browse_tab_albums">Albums</string>
+    <string name="browse_hint_folders">Tap a folder to expand its songs</string>
+    <string name="browse_hint_playlists">Tap a playlist to expand its songs</string>
+    <string name="browse_hint_albums">Tap an album to expand its songs</string>
+    <string name="browse_empty_folders">No folders yet. Add music to create folders.</string>
+    <string name="browse_empty_playlists">No playlists yet.</string>
+    <string name="browse_empty_albums">No albums available.</string>
+    <string name="browse_select_all">Select All</string>
+    <string name="browse_apply">Apply</string>
+    <string name="browse_clear">Clear</string>
+    <string name="browse_reset">Reset to Library</string>
+    <string name="browse_applied_hint">%1$d %2$s selected \u2014 tap to expand in Library</string>
 </resources>
