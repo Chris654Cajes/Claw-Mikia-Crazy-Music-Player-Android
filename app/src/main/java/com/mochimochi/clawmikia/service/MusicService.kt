@@ -37,6 +37,7 @@ import com.mochimochi.clawmikiacrazy.data.model.SkipRegion
 import com.mochimochi.clawmikiacrazy.data.model.Song
 import com.mochimochi.clawmikiacrazy.data.repository.PlaylistRepository
 import com.mochimochi.clawmikiacrazy.data.repository.ProfileRepository
+import com.mochimochi.clawmikiacrazy.data.repository.SettingsRepository
 import com.mochimochi.clawmikiacrazy.data.repository.SongRepository
 import com.mochimochi.clawmikiacrazy.lyrics.LyricsManager
 import com.mochimochi.clawmikiacrazy.ui.activities.MainActivity
@@ -81,6 +82,7 @@ class MusicService : Service() {
     private lateinit var playlistRepository: PlaylistRepository
     private lateinit var lyricsManager: LyricsManager
     private lateinit var analysisEngine: AnalysisEngine
+    private lateinit var settingsRepository: SettingsRepository
     private var dspProcessor: DSPProcessor? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -138,6 +140,7 @@ class MusicService : Service() {
         playlistRepository = PlaylistRepository(applicationContext)
         lyricsManager = LyricsManager(applicationContext)
         analysisEngine = AnalysisEngine(applicationContext)
+        settingsRepository = SettingsRepository(applicationContext)
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
 
         val prefs = com.mochimochi.clawmikiacrazy.MusicVaultApp.instance.prefs
@@ -158,6 +161,10 @@ class MusicService : Service() {
             filter,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) RECEIVER_NOT_EXPORTED else 0
         )
+
+        settingsRepository.statesEnabledLive.observeForever { isEnabled ->
+            setBypassProfiles(!isEnabled)
+        }
     }
 
     fun addPlayStateCallback(cb: (Boolean) -> Unit) {
@@ -422,6 +429,7 @@ class MusicService : Service() {
 
     fun skipPrev() {
         val now = System.currentTimeMillis()
+        val tStart = if (bypassProfiles) 0 else (activeProfile?.trimStart?.toInt() ?: 0)
         // Double click logic (within 1 second) to skip to previous
         if (now - lastSkipPrevTime < 1000) {
             val oldIndex = currentIndex
@@ -430,12 +438,12 @@ class MusicService : Service() {
                 playCurrent(forceReload = true)
             } else {
                 // If it didn't change (e.g. REPEAT_NONE at start), just seek to start
-                seekTo(activeProfile?.trimStart?.toInt() ?: 0)
+                seekTo(tStart)
             }
             lastSkipPrevTime = 0 // Reset after double click
         } else {
             // Single click: just replay current song
-            seekTo(activeProfile?.trimStart?.toInt() ?: 0)
+            seekTo(tStart)
             lastSkipPrevTime = now
         }
     }
@@ -559,7 +567,8 @@ class MusicService : Service() {
     private fun advanceOrStop() {
         when (repeatMode) {
             REPEAT_ONE -> {
-                seekTo(activeProfile?.trimStart?.toInt() ?: 0)
+                val tStart = if (bypassProfiles) 0 else (activeProfile?.trimStart?.toInt() ?: 0)
+                seekTo(tStart)
                 resume()
             }
             REPEAT_ALL -> {
@@ -759,8 +768,8 @@ class MusicService : Service() {
     }
 
     private fun updateMediaSessionMetadata(song: Song, art: Bitmap?) {
-        val tStart = activeProfile?.trimStart ?: 0L
-        val tEnd = activeProfile?.trimEnd ?: 0L
+        val tStart = if (bypassProfiles) 0L else (activeProfile?.trimStart ?: 0L)
+        val tEnd = if (bypassProfiles) -1L else (activeProfile?.trimEnd ?: 0L)
         val fullDur =
             if (isPrepared) runCatching { mediaPlayer?.duration?.toLong() }.getOrDefault(0L)
                 ?: 0L else song.duration
@@ -782,12 +791,12 @@ class MusicService : Service() {
         val state =
             if (playing) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED
 
-        val tStart = activeProfile?.trimStart ?: 0L
+        val tStart = if (bypassProfiles) 0L else (activeProfile?.trimStart ?: 0L)
         val absolutePos = getPosition().toLong()
         val relativePos = (absolutePos - tStart).coerceAtLeast(0L)
 
         // Speed must be 0 if not playing, otherwise Android seekbar won't behave correctly
-        val speed = if (playing) (activeProfile?.playbackSpeed ?: 1f) else 0f
+        val speed = if (playing) (if (bypassProfiles) 1f else (activeProfile?.playbackSpeed ?: 1f)) else 0f
 
         mediaSession?.setPlaybackState(
             PlaybackStateCompat.Builder()
@@ -852,6 +861,13 @@ class MusicService : Service() {
 
     fun applyProfile(profile: PlaybackProfile) {
         activeProfile = profile
+        if (bypassProfiles) {
+            dspProcessor?.disableAll()
+            applyPlaybackParams(0f, 1f)
+            runCatching { mediaPlayer?.setVolume(1f, 1f) }
+            cancelWatchdogs()
+            return
+        }
         dspProcessor?.applyProfile(profile)
         applyPlaybackParams(profile.pitchSemitones, profile.playbackSpeed)
         applyVolumeInternal(profile)
@@ -859,14 +875,18 @@ class MusicService : Service() {
     }
 
     fun applyPitchToCurrentSong(s: Float) {
-        activeProfile = activeProfile?.copy(pitchSemitones = s); applyPlaybackParams(
+        activeProfile = activeProfile?.copy(pitchSemitones = s)
+        if (bypassProfiles) return
+        applyPlaybackParams(
             s,
             activeProfile?.playbackSpeed ?: 1f
         )
     }
 
     fun applySpeedToCurrentSong(s: Float) {
-        activeProfile = activeProfile?.copy(playbackSpeed = s); applyPlaybackParams(
+        activeProfile = activeProfile?.copy(playbackSpeed = s)
+        if (bypassProfiles) return
+        applyPlaybackParams(
             activeProfile?.pitchSemitones ?: 0f, s
         )
     }
@@ -876,7 +896,11 @@ class MusicService : Service() {
             trimStart = start,
             trimEnd = end
         )
-        if (isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
+        if (bypassProfiles) {
+            cancelWatchdogs()
+        } else if (isPlayingRequested) {
+            activeProfile?.let { startWatchdogs(it) }
+        }
 
         // Refresh MediaSession metadata and state so the lockscreen seekbar updates immediately
         updateNotification()
@@ -885,17 +909,17 @@ class MusicService : Service() {
 
     fun applyLoopToCurrentSong(start: Long, end: Long, enabled: Boolean) {
         activeProfile = activeProfile?.copy(loopStart = start, loopEnd = end, loopEnabled = enabled)
-        if (isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
+        if (!bypassProfiles && isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
     }
 
     fun applyAbRepeatToCurrentSong(a: Long, b: Long, enabled: Boolean) {
         activeProfile = activeProfile?.copy(abRepeatA = a, abRepeatB = b, abRepeatEnabled = enabled)
-        if (isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
+        if (!bypassProfiles && isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
     }
 
     fun applySkipRegions(regions: List<SkipRegion>) {
         skipRegions = regions
-        if (isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
+        if (!bypassProfiles && isPlayingRequested) activeProfile?.let { startWatchdogs(it) }
     }
 
     fun setBypassProfiles(bypass: Boolean) {

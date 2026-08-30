@@ -168,6 +168,25 @@ class VuMeterPlayerActivity : AppCompatActivity() {
             song?.let { updateFavoriteIcon(it) }
         }
 
+        settingsRepo.editingLockedLive.observe(this) { _ ->
+            viewModel.activeProfile.value?.let { profile ->
+                updateEditingUiState(profile)
+            }
+        }
+
+        settingsRepo.statesEnabledLive.observe(this) { isEnabled ->
+            if (!isEnabled) {
+                binding.switchPlaybackState.isChecked = false
+                binding.switchPlaybackState.isEnabled = false
+                updateStateLabels(false)
+            } else {
+                binding.switchPlaybackState.isEnabled = true
+                val isBypassing = musicService?.isBypassingProfiles() ?: false
+                binding.switchPlaybackState.isChecked = !isBypassing
+                updateStateLabels(!isBypassing)
+            }
+        }
+
         observeViewModel()
         songId = intent.getLongExtra(EXTRA_SONG_ID, -1)
         setupControls()
@@ -266,38 +285,7 @@ class VuMeterPlayerActivity : AppCompatActivity() {
                 updateTrimLabels(trimStart, trimEnd)
                 binding.tvTotalTime.text = formatDuration((trimEnd - trimStart).coerceAtLeast(0L))
                 syncVolumeSeekBar()
-                val isDefault = p.isDefault
-                val editAlpha = if (isDefault) 0.6f else 1.0f
-                listOf(
-                    binding.seekPitch,
-                    binding.btnPitchDown,
-                    binding.btnPitchUp,
-                    binding.btnPitchReset,
-                    binding.cardPitch,
-                    binding.seekSpeed,
-                    binding.btnSpeedDown,
-                    binding.btnSpeedUp,
-                    binding.btnSpeedReset,
-                    binding.cardSpeed,
-                    binding.seekTrimStart,
-                    binding.seekTrimEnd,
-                    binding.btnTrimReset,
-                    binding.btnTrimStartMinus,
-                    binding.btnTrimStartPlus,
-                    binding.btnTrimEndMinus,
-                    binding.btnTrimEndPlus,
-                    binding.cardTrim,
-                    binding.btnSetPointA,
-                    binding.btnSetPointB,
-                    binding.btnResetAb,
-                    binding.switchAbRepeat,
-                    binding.switchLoop,
-                    binding.cardAbRepeat
-                ).forEach {
-                    it.isEnabled =
-                        !isDefault; if (it is android.view.View && (it.id == R.id.cardPitch || it.id == R.id.cardSpeed || it.id == R.id.cardTrim || it.id == R.id.cardAbRepeat)) it.alpha =
-                    editAlpha
-                }
+                updateEditingUiState(p)
                 updateProfileSwitchButtons()
             }
         }
@@ -306,6 +294,58 @@ class VuMeterPlayerActivity : AppCompatActivity() {
             musicService?.applySkipRegions(regions.filter { it.isEnabled })
             song?.let { s -> binding.skipRegionsOverlay.setRegions(regions, s.duration) }
         }
+    }
+
+    private fun updateEditingUiState(profile: com.mochimochi.clawmikiacrazy.data.model.PlaybackProfile) {
+        val isLocked = settingsRepo.isEditingLocked()
+        val isStatesDisabled = !settingsRepo.isStatesEnabled()
+        val isDefault = profile.isDefault
+        val cannotEdit = isDefault || isLocked || isStatesDisabled
+        val editAlpha = if (cannotEdit) 0.6f else 1.0f
+
+        listOf(
+            binding.seekPitch,
+            binding.btnPitchDown,
+            binding.btnPitchUp,
+            binding.btnPitchReset,
+            binding.seekSpeed,
+            binding.btnSpeedDown,
+            binding.btnSpeedUp,
+            binding.btnSpeedReset,
+            binding.seekTrimStart,
+            binding.seekTrimEnd,
+            binding.btnTrimReset,
+            binding.btnTrimStartMinus,
+            binding.btnTrimStartPlus,
+            binding.btnTrimEndMinus,
+            binding.btnTrimEndPlus,
+            binding.btnSetPointA,
+            binding.btnSetPointB,
+            binding.btnResetAb,
+            binding.switchAbRepeat,
+            binding.switchLoop
+        ).forEach { it.isEnabled = !cannotEdit }
+
+        listOf(
+            binding.cardPitch,
+            binding.cardSpeed,
+            binding.cardTrim,
+            binding.cardAbRepeat
+        ).forEach { it.alpha = editAlpha }
+
+        // Song-level states
+        binding.btnAddSkipSection.isEnabled = !isLocked
+        binding.cardSkipSections.alpha = if (isLocked) 0.6f else 1.0f
+        binding.btnResetAllStates.isEnabled = !isLocked
+        binding.btnResetAllStates.alpha = if (isLocked) 0.6f else 1.0f
+
+        // Volume is also a state
+        binding.seekVolume.isEnabled = !isLocked
+        binding.btnVolumeUp.isEnabled = !isLocked
+        binding.btnVolumeDown.isEnabled = !isLocked
+        binding.btnVolumeReset.isEnabled = !isLocked
+        binding.btnVolumeMute.isEnabled = !isLocked
+        binding.cardVolume.alpha = if (isLocked) 0.6f else 1.0f
     }
 
     private fun setupSystemBars() {
@@ -668,8 +708,10 @@ class VuMeterPlayerActivity : AppCompatActivity() {
                 if (fromUser) {
                     val svc = musicService ?: return
                     val s = song ?: return
-                    val tStart = s.trimStart
-                    val tEnd = if (s.trimEnd > 0L) s.trimEnd else svc.getDuration().toLong()
+                    val isBypass = svc.isBypassingProfiles()
+                    val fullDur = svc.getDuration().toLong()
+                    val tStart = if (isBypass) 0L else s.trimStart
+                    val tEnd = if (isBypass) fullDur else (if (s.trimEnd > 0L) s.trimEnd else fullDur)
                     val target = ((progress / 100.0) * (tEnd - tStart).coerceAtLeast(0L)).toLong()
                     svc.seekTo((target + tStart).toInt())
                 }
@@ -1090,8 +1132,9 @@ class VuMeterPlayerActivity : AppCompatActivity() {
                 val s = song
                 if (svc != null && s != null) {
                     val fullDur = svc.getDuration().toLong()
-                    val tStart = s.trimStart
-                    val tEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
+                    val isBypass = svc.isBypassingProfiles()
+                    val tStart = if (isBypass) 0L else s.trimStart
+                    val tEnd = if (isBypass) fullDur else (if (s.trimEnd > 0L) s.trimEnd else fullDur)
                     val effDur = (tEnd - tStart).coerceAtLeast(0L)
                     val absPos = svc.getPosition().toLong()
                     val relPos = (absPos - tStart).coerceAtLeast(0L)

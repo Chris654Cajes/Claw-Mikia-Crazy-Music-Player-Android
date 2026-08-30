@@ -21,6 +21,8 @@ class SettingsRepository(context: Context) {
         private const val KEY_SOUND_ENVIRONMENT = "sound_environment"
         private const val KEY_VOLUME_LEVEL = "volume_level"
         private const val KEY_NOW_PLAYING_VIEW = "now_playing_view_type"
+        private const val KEY_EDITING_LOCKED = "editing_locked"
+        private const val KEY_STATES_ENABLED = "all_states_enabled"
 
         // Default values
         const val DEFAULT_FAVORITE_ICON = "heart"
@@ -32,6 +34,8 @@ class SettingsRepository(context: Context) {
         const val DEFAULT_SOUND_ENVIRONMENT = "Default"
         const val DEFAULT_VOLUME_LEVEL = 70      // 70%
         const val DEFAULT_NOW_PLAYING_VIEW = "standard"
+        const val DEFAULT_EDITING_LOCKED = false
+        const val DEFAULT_STATES_ENABLED = true
     }
 
     private val prefs: SharedPreferences =
@@ -47,6 +51,12 @@ class SettingsRepository(context: Context) {
 
     val nowPlayingViewLive: LiveData<String> =
         SharedPrefStringLiveData(prefs, KEY_NOW_PLAYING_VIEW, DEFAULT_NOW_PLAYING_VIEW)
+
+    val editingLockedLive: LiveData<Boolean> =
+        SharedPrefBooleanLiveData(prefs, KEY_EDITING_LOCKED, DEFAULT_EDITING_LOCKED)
+
+    val statesEnabledLive: LiveData<Boolean> =
+        SharedPrefBooleanLiveData(prefs, KEY_STATES_ENABLED, DEFAULT_STATES_ENABLED)
 
     // ── Direct getters ────────────────────────────────────────────────────────
 
@@ -67,6 +77,10 @@ class SettingsRepository(context: Context) {
 
     fun getNowPlayingView(): String =
         prefs.getString(KEY_NOW_PLAYING_VIEW, DEFAULT_NOW_PLAYING_VIEW) ?: DEFAULT_NOW_PLAYING_VIEW
+
+    fun isEditingLocked(): Boolean = prefs.getBoolean(KEY_EDITING_LOCKED, DEFAULT_EDITING_LOCKED)
+
+    fun isStatesEnabled(): Boolean = prefs.getBoolean(KEY_STATES_ENABLED, DEFAULT_STATES_ENABLED)
 
     // ── Setters ────────────────────────────────────────────────────────────────
 
@@ -106,6 +120,14 @@ class SettingsRepository(context: Context) {
         prefs.edit().putString(KEY_NOW_PLAYING_VIEW, viewType).apply()
     }
 
+    fun setEditingLocked(locked: Boolean) {
+        prefs.edit().putBoolean(KEY_EDITING_LOCKED, locked).apply()
+    }
+
+    fun setStatesEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_STATES_ENABLED, enabled).apply()
+    }
+
     // ── Reset all to defaults ──────────────────────────────────────────────────
 
     fun resetAll() {
@@ -119,6 +141,8 @@ class SettingsRepository(context: Context) {
             .putString(KEY_SOUND_ENVIRONMENT, DEFAULT_SOUND_ENVIRONMENT)
             .putInt(KEY_VOLUME_LEVEL, DEFAULT_VOLUME_LEVEL)
             .putString(KEY_NOW_PLAYING_VIEW, DEFAULT_NOW_PLAYING_VIEW)
+            .putBoolean(KEY_EDITING_LOCKED, DEFAULT_EDITING_LOCKED)
+            .putBoolean(KEY_STATES_ENABLED, DEFAULT_STATES_ENABLED)
             .apply()
     }
 
@@ -164,6 +188,27 @@ class SettingsRepository(context: Context) {
 
         override fun onSharedPreferenceChanged(sp: SharedPreferences, changedKey: String?) {
             if (changedKey == key) value = sp.getInt(key, defValue)
+        }
+    }
+
+    private class SharedPrefBooleanLiveData(
+        private val prefs: SharedPreferences,
+        private val key: String,
+        private val defValue: Boolean,
+    ) : LiveData<Boolean>(), SharedPreferences.OnSharedPreferenceChangeListener {
+        override fun onActive() {
+            super.onActive()
+            value = prefs.getBoolean(key, defValue)
+            prefs.registerOnSharedPreferenceChangeListener(this)
+        }
+
+        override fun onInactive() {
+            prefs.unregisterOnSharedPreferenceChangeListener(this)
+            super.onInactive()
+        }
+
+        override fun onSharedPreferenceChanged(sp: SharedPreferences, changedKey: String?) {
+            if (changedKey == key) value = sp.getBoolean(key, defValue)
         }
     }
 }

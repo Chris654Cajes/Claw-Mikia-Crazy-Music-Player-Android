@@ -1,99 +1,20 @@
-{
-  "kind": "event",
-  "event": {
-    "id": "c943d0c2-240f-4373-86ae-cc12681bba0d",
-    "signal_type": "health",
-    "title": "No AI models configured",
-    "description": null,
-    "source": "health_watcher",
-    "status": "failed",
-    "progress": null,
-    "dedupe_key": "health_models",
-    "priority": "high",
-    "created_at": "2026-07-29T14:42:12.772844400+00:00",
-    "ttl_ms": null,
-    "speech_text": null,
-    "scene": null,
-    "duration_hint": null,
-    "persistent": false,
-    "controls": [],
-    "dismissed": false
-  }
-}
-{"kind":"event","event":{"id":"2c5ab9bf-20d0-436f-ba96-a8989b3435e1","signal_type":"buddy_refactor_hunter_failed","title":"buddy_refactor_hunter failed: Workflow failed","description":"Buddy model required by subagent 'buddy_refactor_hunter' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_refactor_hunter' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_refactor_hunter:unknown","priority":"normal","created_at":"2026-07-13T11:52:54.024354+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_refactor_hunter' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"19c482b2-44e2-42a4-bfe6-a49d82eead26","signal_type":"error","title":"generic: [frontend:ui_error_state] Failed to delete chat on the server — the list may res","description":"[frontend:ui_error_state] Failed to delete chat on the server — the list may resync.","source":"frontend/ui_error_state","status":"failed","progress":null,"dedupe_key":"diag:generic|[frontend:ui_error_state] Failed to delete chat on the server — the list may resync.|frontend/ui_error_state|ui_error_state|","priority":"high","created_at":"2026-08-29T17:11:59.457963800+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"d9a3b287-0d69-4a4e-bb2d-464549d61f04","signal_type":"error","title":"llm_error: Model '' not found. Server has the following models: [\"google_gemini/antigravity","description":"Model '' not found. Server has the following models: [\"google_gemini/antigravity-preview-05-2026\"]","source":"chat/generation.rs","status":"failed","progress":null,"dedupe_key":"diag:llm_error|Model '' not found. Server has the following models: [\"google_gemini/antigravity-preview-05-2026\"]|chat/generation.rs||","priority":"high","created_at":"2026-08-29T17:10:34.067243+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"chat_id":"61a1316d-3956-47b0-a61b-f1f9b85da6bb","dismissed":false}}
+{"kind":"event","event":{"id":"bfb542d7-8b66-4838-a0d3-caa751e37d70","signal_type":"health","title":"Models ready: chat","description":null,"source":"health_watcher","status":"completed","progress":null,"dedupe_key":"health_models","priority":"normal","created_at":"2026-08-29T17:08:16.775027900+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"2c5ab9bf-20d0-436f-ba96-a8989b3435e1","signal_type":"buddy_refactor_hunter_failed","title":"buddy_refactor_hunter failed: Workflow failed","description":"Buddy model required by subagent 'buddy_refactor_hunter' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_refactor_hunter' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_refactor_hunter:unknown","priority":"normal","created_at":"2026-08-29T16:54:43.198239500+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_refactor_hunter' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
 {"kind":"event","event":{"id":"d5e742b7-46a3-4746-a4ca-5f2ad50f3120","signal_type":"buddy_daily_digest_failed","title":"buddy_daily_digest failed: Workflow failed","description":"Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_daily_digest:unknown","priority":"normal","created_at":"2026-07-16T22:11:01.417990200+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_daily_digest' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
 {"kind":"event","event":{"id":"b068598b-4bd5-4ad2-a11b-ec85b70e3d69","signal_type":"buddy_dependency_radar_failed","title":"buddy_dependency_radar failed: Workflow failed","description":"Buddy model required by subagent 'buddy_dependency_radar' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_dependency_radar' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_dependency_radar:unknown","priority":"normal","created_at":"2026-06-29T22:24:26.315107500+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_dependency_radar' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
-{"kind":"event","event":{"id":"32b20b6d-eaff-40c8-99b8-4a658a0ca73f","signal_type":"buddy_architecture_drift_watcher_failed","title":"buddy_architecture_drift_watcher failed: Workflow failed","description":"Buddy model required by subagent 'buddy_architecture_drift_watcher' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'buddy_architecture_drift_watcher' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:buddy_architecture_drift_watcher:unknown","priority":"normal","created_at":"2026-07-17T06:09:45.919168800+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'buddy_architecture_drift_watcher' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"32b20b6d-eaff-40c8-99b8-4a658a0ca73f","signal_type":"buddy_architecture_drift_watcher_failed","title":"buddy_architecture_drift_watcher failed: Workflow failed","description":"Light model required by subagent 'buddy_architecture_drift_watcher' (model_type: light) is not set up. Go to Default model settings and configure Light model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Light model required by subagent 'buddy_architecture_drift_watcher' (model_type: light) is not set up. Go to Default model settings and configure Light model.","progress":null,"dedupe_key":"workflow_failure:buddy_architecture_drift_watcher:unknown","priority":"normal","created_at":"2026-08-29T16:54:12.588307800+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Light model required by subagent 'buddy_architecture_drift_watcher' (model_type: light) is not set up. Go to Default model settings and configure Light model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
 {"kind":"event","event":{"id":"ac31f29f-87f6-4c82-b670-6641d63c89eb","signal_type":"refact_self_critic_failed","title":"refact_self_critic failed: Workflow failed","description":"Buddy model required by subagent 'refact_self_critic' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'refact_self_critic' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:refact_self_critic:unknown","priority":"normal","created_at":"2026-07-16T22:10:30.706818500+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'refact_self_critic' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
-{
-  "kind": "event",
-  "event": {
-    "id": "3b7dcc8f-16ca-4eff-9f16-236f0b689de2",
-    "signal_type": "ast_parsing",
-    "title": "AST complete: 64 files, 1549 symbols in 46.0s",
-    "description": null,
-    "source": "indexer",
-    "status": "completed",
-    "progress": null,
-    "dedupe_key": "ast",
-    "priority": "normal",
-    "created_at": "2026-07-29T14:26:30.210185+00:00",
-    "ttl_ms": null,
-    "speech_text": null,
-    "scene": null,
-    "duration_hint": null,
-    "persistent": false,
-    "controls": [],
-    "dismissed": false
-  }
-}
-{
-  "kind": "event",
-  "event": {
-    "id": "e7176fc9-0065-401f-9752-64fa20e8f1cb",
-    "signal_type": "buddy_setup_coach_failed",
-    "title": "buddy_setup_coach failed: Workflow failed",
-    "description": "Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
-    "source": "buddy",
-    "status": "failed",
-    "failure_category": "unknown",
-    "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
-    "progress": null,
-    "dedupe_key": "workflow_failure:buddy_setup_coach:unknown",
-    "priority": "normal",
-    "created_at": "2026-07-29T14:33:34.479452200+00:00",
-    "ttl_ms": null,
-    "bubble_policy": "durable",
-    "speech_text": "Workflow failed. Buddy model required by subagent 'buddy_setup_coach' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
-    "scene": "alert",
-    "duration_hint": 12,
-    "persistent": true,
-    "controls": [],
-    "dismissed": false
-  }
-}
-{
-  "kind": "event",
-  "event": {
-    "id": "d715e93b-cd3d-45c7-ab56-fe4c822fd23e",
-    "signal_type": "buddy_idle_suggester_failed",
-    "title": "buddy_idle_suggester failed: Workflow failed",
-    "description": "Buddy model required by subagent 'buddy_idle_suggester' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
-    "source": "buddy",
-    "status": "failed",
-    "failure_category": "unknown",
-    "failure_summary": "Workflow failed. Buddy model required by subagent 'buddy_idle_suggester' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
-    "progress": null,
-    "dedupe_key": "workflow_failure:buddy_idle_suggester:unknown",
-    "priority": "normal",
-    "created_at": "2026-07-29T14:46:47.096010600+00:00",
-    "ttl_ms": null,
-    "bubble_policy": "durable",
-    "speech_text": "Workflow failed. Buddy model required by subagent 'buddy_idle_suggester' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.",
-    "scene": "alert",
-    "duration_hint": 12,
-    "persistent": true,
-    "controls": [],
-    "dismissed": false
-  }
-}
+{"kind":"event","event":{"id":"d58712f4-7c48-4d7e-a5c7-9676627786d0","signal_type":"indexing","title":"Workspace indexed: 252 files","description":null,"source":"indexer","status":"completed","progress":null,"dedupe_key":"indexing","priority":"normal","created_at":"2026-08-29T16:52:29.583939700+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"9bdf75d3-3657-46de-bf91-89e0fb5e5b86","signal_type":"buddy_setup_coach_failed","title":"buddy_setup_coach failed: Workflow failed","description":"Light model required by subagent 'buddy_setup_coach' (model_type: light) is not set up. Go to Default model settings and configure Light model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Light model required by subagent 'buddy_setup_coach' (model_type: light) is not set up. Go to Default model settings and configure Light model.","progress":null,"dedupe_key":"workflow_failure:buddy_setup_coach:unknown","priority":"normal","created_at":"2026-08-29T16:53:10.246686200+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Light model required by subagent 'buddy_setup_coach' (model_type: light) is not set up. Go to Default model settings and configure Light model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"b6abbafb-ccb7-4666-bbbf-98bf8b09aeb5","signal_type":"buddy_docs_gardener_failed","title":"buddy_docs_gardener failed: Workflow failed","description":"Light model required by subagent 'buddy_docs_gardener' (model_type: light) is not set up. Go to Default model settings and configure Light model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Light model required by subagent 'buddy_docs_gardener' (model_type: light) is not set up. Go to Default model settings and configure Light model.","progress":null,"dedupe_key":"workflow_failure:buddy_docs_gardener:unknown","priority":"normal","created_at":"2026-08-29T16:53:41.535891500+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Light model required by subagent 'buddy_docs_gardener' (model_type: light) is not set up. Go to Default model settings and configure Light model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"f22b5176-1730-49d6-b3f1-f7b58e2941ea","signal_type":"buddy_pr_issue_matchmaker_failed","title":"buddy_pr_issue_matchmaker failed: Workflow failed","description":"Light model required by subagent 'buddy_pr_issue_matchmaker' (model_type: light) is not set up. Go to Default model settings and configure Light model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Light model required by subagent 'buddy_pr_issue_matchmaker' (model_type: light) is not set up. Go to Default model settings and configure Light model.","progress":null,"dedupe_key":"workflow_failure:buddy_pr_issue_matchmaker:unknown","priority":"normal","created_at":"2026-08-29T16:55:44.763297700+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Light model required by subagent 'buddy_pr_issue_matchmaker' (model_type: light) is not set up. Go to Default model settings and configure Light model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"cc830294-a0e1-4ddd-8014-40d71131f84c","signal_type":"task_created","title":"Task created: New Task","description":null,"source":"task","status":"completed","progress":null,"dedupe_key":"task_ab0e0e2f-1a96-4663-9787-c8036220c518","priority":"normal","created_at":"2026-08-29T17:03:16.821681100+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"f04778d8-3872-40f7-885b-33713a0ccfeb","signal_type":"checkpoint_saved","title":"Checkpoint saved for chat 61a1316d-3956-47b0-a61b-f1f9b85da6bb","description":null,"source":"git","status":"completed","progress":null,"dedupe_key":"checkpoint_61a1316d-3956-47b0-a61b-f1f9b85da6bb","priority":"normal","created_at":"2026-08-29T17:03:30.642202800+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"chat_id":"61a1316d-3956-47b0-a61b-f1f9b85da6bb","dismissed":false}}
+{"kind":"event","event":{"id":"08c91f19-889c-4655-8467-0e083068ff0d","signal_type":"chat_error","title":"Error in 'hello': Model '' not found. Server has the following models: [\"googl","description":null,"source":"chat","status":"failed","progress":null,"dedupe_key":"chat_61a1316d-3956-47b0-a61b-f1f9b85da6bb","priority":"high","created_at":"2026-08-29T17:10:34.067349700+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"chat_id":"61a1316d-3956-47b0-a61b-f1f9b85da6bb","dismissed":false}}
+{"kind":"event","event":{"id":"e3338e33-4fc8-48db-9c75-1999e6a782f1","signal_type":"error","title":"generic: Model '' not found. Server has the following models: [\"google_gemini/antigravity","description":"Model '' not found. Server has the following models: [\"google_gemini/antigravity-preview-05-2026\"]","source":"buddy","status":"failed","progress":null,"dedupe_key":"diag:generic|Model '' not found. Server has the following models: [\"google_gemini/antigravity-preview-05-2026\"]|||","priority":"low","created_at":"2026-08-29T17:12:13.881036400+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"chat_id":"61a1316d-3956-47b0-a61b-f1f9b85da6bb","dismissed":false}}
+{"kind":"event","event":{"id":"86781fe3-845f-4daa-842b-8e94f7618d2c","signal_type":"refact_error_detective_failed","title":"refact_error_detective failed: Workflow failed","description":"Buddy model required by subagent 'refact_error_detective' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Buddy model required by subagent 'refact_error_detective' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","progress":null,"dedupe_key":"workflow_failure:refact_error_detective:unknown","priority":"normal","created_at":"2026-08-29T17:49:11.020144300+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Buddy model required by subagent 'refact_error_detective' (model_type: buddy) is not set up. Go to Default model settings and configure Buddy model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"dd7805a1-668c-400a-8421-38272b047ec9","signal_type":"task_created","title":"Task created: New Task","description":null,"source":"task","status":"completed","progress":null,"dedupe_key":"task_7b9102c1-f640-42a5-9e2a-0fbeb937d054","priority":"normal","created_at":"2026-08-29T17:11:12.500297900+00:00","ttl_ms":null,"speech_text":null,"scene":null,"duration_hint":null,"persistent":false,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"df543bde-fd52-4ef9-a5aa-f3ee59986a7b","signal_type":"buddy_memory_gardener_failed","title":"buddy_memory_gardener failed: Workflow failed","description":"Light model required by subagent 'buddy_memory_gardener' (model_type: light) is not set up. Go to Default model settings and configure Light model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Light model required by subagent 'buddy_memory_gardener' (model_type: light) is not set up. Go to Default model settings and configure Light model.","progress":null,"dedupe_key":"workflow_failure:buddy_memory_gardener:unknown","priority":"normal","created_at":"2026-08-29T17:12:53.094594+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Light model required by subagent 'buddy_memory_gardener' (model_type: light) is not set up. Go to Default model settings and configure Light model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}
+{"kind":"event","event":{"id":"b6ac2cfb-c07d-430e-8bd7-57e042fd40b3","signal_type":"buddy_idle_suggester_failed","title":"buddy_idle_suggester failed: Workflow failed","description":"Light model required by subagent 'buddy_idle_suggester' (model_type: light) is not set up. Go to Default model settings and configure Light model.","source":"buddy","status":"failed","failure_category":"unknown","failure_summary":"Workflow failed. Light model required by subagent 'buddy_idle_suggester' (model_type: light) is not set up. Go to Default model settings and configure Light model.","progress":null,"dedupe_key":"workflow_failure:buddy_idle_suggester:unknown","priority":"normal","created_at":"2026-08-29T17:19:00.837133200+00:00","ttl_ms":null,"bubble_policy":"durable","speech_text":"Workflow failed. Light model required by subagent 'buddy_idle_suggester' (model_type: light) is not set up. Go to Default model settings and configure Light model.","scene":"alert","duration_hint":12,"persistent":true,"controls":[],"dismissed":false}}

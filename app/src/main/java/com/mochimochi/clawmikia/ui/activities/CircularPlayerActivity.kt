@@ -160,6 +160,25 @@ class CircularPlayerActivity : AppCompatActivity() {
             song?.let { s -> updateFavoriteIcon(s) }
         }
 
+        settingsRepo.editingLockedLive.observe(this) { _ ->
+            viewModel.activeProfile.value?.let { profile ->
+                updateEditingUiState(profile)
+            }
+        }
+
+        settingsRepo.statesEnabledLive.observe(this) { isEnabled ->
+            if (!isEnabled) {
+                binding.cardStateToggle.switchPlaybackState.isChecked = false
+                binding.cardStateToggle.switchPlaybackState.isEnabled = false
+                updateStateLabels(false)
+            } else {
+                binding.cardStateToggle.switchPlaybackState.isEnabled = true
+                val isBypassing = musicService?.isBypassingProfiles() ?: false
+                binding.cardStateToggle.switchPlaybackState.isChecked = !isBypassing
+                updateStateLabels(!isBypassing)
+            }
+        }
+
         observeViewModel()
         songId = intent.getLongExtra(EXTRA_SONG_ID, -1)
         setupControls()
@@ -259,35 +278,7 @@ class CircularPlayerActivity : AppCompatActivity() {
                 val effectiveDur = (trimEnd - trimStart).coerceAtLeast(0L)
                 binding.tvTotalTime.text = formatDuration(effectiveDur)
                 syncVolumeSeekBar()
-
-                val isDefault = p.isDefault
-                val editAlpha = if (isDefault) 0.6f else 1.0f
-                binding.cardPitch.seekPitch.isEnabled = !isDefault
-                binding.cardPitch.btnPitchDown.isEnabled = !isDefault
-                binding.cardPitch.btnPitchUp.isEnabled = !isDefault
-                binding.cardPitch.btnPitchReset.isEnabled = !isDefault
-                binding.cardPitch.root.alpha = editAlpha
-                binding.cardSpeed.seekSpeed.isEnabled = !isDefault
-                binding.cardSpeed.btnSpeedDown.isEnabled = !isDefault
-                binding.cardSpeed.btnSpeedUp.isEnabled = !isDefault
-                binding.cardSpeed.btnSpeedReset.isEnabled = !isDefault
-                binding.cardSpeed.root.alpha = editAlpha
-                binding.cardTrim.seekTrimStart.isEnabled = !isDefault
-                binding.cardTrim.seekTrimEnd.isEnabled = !isDefault
-                binding.cardTrim.btnTrimReset.isEnabled = !isDefault
-                binding.cardTrim.btnTrimStartMinus.isEnabled = !isDefault
-                binding.cardTrim.btnTrimStartPlus.isEnabled = !isDefault
-                binding.cardTrim.btnTrimEndMinus.isEnabled = !isDefault
-                binding.cardTrim.btnTrimEndPlus.isEnabled = !isDefault
-                binding.cardTrim.root.alpha = editAlpha
-                binding.cardAbRepeat.btnSetPointA.isEnabled = !isDefault
-                binding.cardAbRepeat.btnSetPointB.isEnabled = !isDefault
-                binding.cardAbRepeat.btnResetAb.isEnabled = !isDefault
-                binding.cardAbRepeat.switchAbRepeat.isEnabled = !isDefault
-                binding.cardAbRepeat.switchLoop.isEnabled = !isDefault
-                binding.cardAbRepeat.root.alpha = editAlpha
-                binding.cardSkipSections.btnAddSkipSection.isEnabled = true
-                binding.cardSkipSections.root.alpha = 1.0f
+                updateEditingUiState(p)
                 updateProfileSwitchButtons()
             }
         }
@@ -295,6 +286,56 @@ class CircularPlayerActivity : AppCompatActivity() {
             updateSkipRegionsUI(regions)
             musicService?.applySkipRegions(regions.filter { it.isEnabled })
         }
+    }
+
+    private fun updateEditingUiState(profile: com.mochimochi.clawmikiacrazy.data.model.PlaybackProfile) {
+        val isLocked = settingsRepo.isEditingLocked()
+        val isStatesDisabled = !settingsRepo.isStatesEnabled()
+        val isDefault = profile.isDefault
+        val cannotEdit = isDefault || isLocked || isStatesDisabled
+        val editAlpha = if (cannotEdit) 0.6f else 1.0f
+
+        binding.cardPitch.seekPitch.isEnabled = !cannotEdit
+        binding.cardPitch.btnPitchDown.isEnabled = !cannotEdit
+        binding.cardPitch.btnPitchUp.isEnabled = !cannotEdit
+        binding.cardPitch.btnPitchReset.isEnabled = !cannotEdit
+        binding.cardPitch.root.alpha = editAlpha
+
+        binding.cardSpeed.seekSpeed.isEnabled = !cannotEdit
+        binding.cardSpeed.btnSpeedDown.isEnabled = !cannotEdit
+        binding.cardSpeed.btnSpeedUp.isEnabled = !cannotEdit
+        binding.cardSpeed.btnSpeedReset.isEnabled = !cannotEdit
+        binding.cardSpeed.root.alpha = editAlpha
+
+        binding.cardTrim.seekTrimStart.isEnabled = !cannotEdit
+        binding.cardTrim.seekTrimEnd.isEnabled = !cannotEdit
+        binding.cardTrim.btnTrimReset.isEnabled = !cannotEdit
+        binding.cardTrim.btnTrimStartMinus.isEnabled = !cannotEdit
+        binding.cardTrim.btnTrimStartPlus.isEnabled = !cannotEdit
+        binding.cardTrim.btnTrimEndMinus.isEnabled = !cannotEdit
+        binding.cardTrim.btnTrimEndPlus.isEnabled = !cannotEdit
+        binding.cardTrim.root.alpha = editAlpha
+
+        binding.cardAbRepeat.btnSetPointA.isEnabled = !cannotEdit
+        binding.cardAbRepeat.btnSetPointB.isEnabled = !cannotEdit
+        binding.cardAbRepeat.btnResetAb.isEnabled = !cannotEdit
+        binding.cardAbRepeat.switchAbRepeat.isEnabled = !cannotEdit
+        binding.cardAbRepeat.switchLoop.isEnabled = !cannotEdit
+        binding.cardAbRepeat.root.alpha = editAlpha
+
+        // Skip sections and Reset All are also part of song "state"
+        binding.cardSkipSections.btnAddSkipSection.isEnabled = !isLocked
+        binding.cardSkipSections.root.alpha = if (isLocked) 0.6f else 1.0f
+        binding.btnResetAllStates.isEnabled = !isLocked
+        binding.btnResetAllStates.alpha = if (isLocked) 0.6f else 1.0f
+
+        // Volume is also a state
+        binding.cardVolume.seekVolume.isEnabled = !isLocked
+        binding.cardVolume.btnVolumeUp.isEnabled = !isLocked
+        binding.cardVolume.btnVolumeDown.isEnabled = !isLocked
+        binding.cardVolume.btnVolumeReset.isEnabled = !isLocked
+        binding.cardVolume.btnVolumeMute.isEnabled = !isLocked
+        binding.cardVolume.root.alpha = if (isLocked) 0.6f else 1.0f
     }
 
     private fun setupControls() {
@@ -510,9 +551,10 @@ class CircularPlayerActivity : AppCompatActivity() {
                 if (fromUser) {
                     val svc = musicService ?: return
                     val s = song ?: return
+                    val isBypass = svc.isBypassingProfiles()
                     val fullDur = svc.getDuration().toLong()
-                    val tStart = s.trimStart
-                    val tEnd = if (s.trimEnd > 0) s.trimEnd else fullDur
+                    val tStart = if (isBypass) 0L else s.trimStart
+                    val tEnd = if (isBypass) fullDur else (if (s.trimEnd > 0) s.trimEnd else fullDur)
                     val eff = (tEnd - tStart).coerceAtLeast(0L)
                     musicService?.seekTo((tStart + (progress / 100f * eff)).toInt())
                 }
@@ -526,9 +568,10 @@ class CircularPlayerActivity : AppCompatActivity() {
                 if (fromUser) {
                     val svc = musicService ?: return
                     val s = song ?: return
+                    val isBypass = svc.isBypassingProfiles()
                     val fullDur = svc.getDuration().toLong()
-                    val tStart = s.trimStart
-                    val tEnd = if (s.trimEnd > 0) s.trimEnd else fullDur
+                    val tStart = if (isBypass) 0L else s.trimStart
+                    val tEnd = if (isBypass) fullDur else (if (s.trimEnd > 0) s.trimEnd else fullDur)
                     val eff = (tEnd - tStart).coerceAtLeast(0L)
                     musicService?.seekTo((tStart + (progress / 100.0 * eff)).toInt())
                 }
@@ -684,8 +727,9 @@ class CircularPlayerActivity : AppCompatActivity() {
                 val s = song
                 if (svc != null && s != null) {
                     val fullDur = svc.getDuration().toLong()
-                    val tStart = s.trimStart
-                    val tEnd = if (s.trimEnd > 0L) s.trimEnd else fullDur
+                    val isBypass = svc.isBypassingProfiles()
+                    val tStart = if (isBypass) 0L else s.trimStart
+                    val tEnd = if (isBypass) fullDur else (if (s.trimEnd > 0L) s.trimEnd else fullDur)
                     val effDur = (tEnd - tStart).coerceAtLeast(0L)
                     val absPos = svc.getPosition().toLong()
                     val relPos = (absPos - tStart).coerceAtLeast(0L)

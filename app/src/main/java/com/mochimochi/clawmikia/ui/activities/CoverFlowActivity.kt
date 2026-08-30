@@ -553,8 +553,9 @@ class CoverFlowActivity : AppCompatActivity() {
                 if (fromUser) {
                     val s = song ?: return
                     val dur = musicService?.getDuration()?.toLong() ?: return
-                    val tStart = s.trimStart
-                    val tEnd = if (s.trimEnd > 0L) s.trimEnd else dur
+                    val isBypass = musicService?.isBypassingProfiles() ?: false
+                    val tStart = if (isBypass) 0L else s.trimStart
+                    val tEnd = if (isBypass) dur else (if (s.trimEnd > 0L) s.trimEnd else dur)
                     val eff = (tEnd - tStart).coerceAtLeast(0L)
                     musicService?.seekTo((tStart + (p / 100.0 * eff)).toInt())
                 }
@@ -618,44 +619,7 @@ class CoverFlowActivity : AppCompatActivity() {
                 binding.tvPointB.text =
                     if (pointB >= 0) "B: ${formatDuration(pointB)}" else "B: --:--"
 
-                // Disable editing for Default profile
-                val isDefault = it.isDefault
-                val editAlpha = if (isDefault) 0.6f else 1.0f
-
-                binding.seekPitch.isEnabled = !isDefault
-                binding.btnPitchDown.isEnabled = !isDefault
-                binding.btnPitchUp.isEnabled = !isDefault
-                binding.btnPitchReset.isEnabled = !isDefault
-                binding.cardPitch.alpha = editAlpha
-
-                binding.seekSpeed.isEnabled = !isDefault
-                binding.btnSpeedDown.isEnabled = !isDefault
-                binding.btnSpeedUp.isEnabled = !isDefault
-                binding.btnSpeedReset.isEnabled = !isDefault
-                binding.cardSpeed.alpha = editAlpha
-
-                binding.seekTrimStart.isEnabled = !isDefault
-                binding.seekTrimEnd.isEnabled = !isDefault
-                binding.btnTrimReset.isEnabled = !isDefault
-                binding.btnTrimStartMinus.isEnabled = !isDefault
-                binding.btnTrimStartPlus.isEnabled = !isDefault
-                binding.btnTrimEndMinus.isEnabled = !isDefault
-                binding.btnTrimEndPlus.isEnabled = !isDefault
-                binding.cardTrim.alpha = editAlpha
-
-                binding.btnSetPointA.isEnabled = !isDefault
-                binding.btnSetPointB.isEnabled = !isDefault
-                binding.btnResetAb.isEnabled = !isDefault
-                binding.switchAbRepeat.isEnabled = !isDefault
-                binding.switchLoop.isEnabled = !isDefault
-                binding.cardAbRepeat.alpha = editAlpha
-
-                // Skip sections and Reset All are Song-level, so keep them enabled
-                binding.btnAddSkipSection.isEnabled = true
-                binding.cardSkipSections.alpha = 1.0f
-
-                binding.btnResetAllStates.isEnabled = true
-
+                updateEditingUiState(it)
                 updateProfileSwitchButtons()
             }
         }
@@ -669,6 +633,78 @@ class CoverFlowActivity : AppCompatActivity() {
             song?.let { s -> updateFavoriteIcon(s) }
             if (::adapter.isInitialized) adapter.notifyDataSetChanged()
         }
+
+        settingsRepo.editingLockedLive.observe(this) { _ ->
+            // Re-apply profile view state to respect the new lock setting
+            viewModel.activeProfile.value?.let { profile ->
+                updateEditingUiState(profile)
+            }
+        }
+
+        settingsRepo.statesEnabledLive.observe(this) { isEnabled ->
+            if (!isEnabled) {
+                binding.switchPlaybackState.isChecked = false
+                binding.switchPlaybackState.isEnabled = false
+                updateStateLabels(false)
+            } else {
+                binding.switchPlaybackState.isEnabled = true
+                val isBypassing = musicService?.isBypassingProfiles() ?: false
+                binding.switchPlaybackState.isChecked = !isBypassing
+                updateStateLabels(!isBypassing)
+            }
+        }
+    }
+
+    private fun updateEditingUiState(profile: PlaybackProfile) {
+        val isLocked = settingsRepo.isEditingLocked()
+        val isStatesDisabled = !settingsRepo.isStatesEnabled()
+        val isDefault = profile.isDefault
+        val cannotEdit = isDefault || isLocked || isStatesDisabled
+
+        val editAlpha = if (cannotEdit) 0.6f else 1.0f
+
+        binding.seekPitch.isEnabled = !cannotEdit
+        binding.btnPitchDown.isEnabled = !cannotEdit
+        binding.btnPitchUp.isEnabled = !cannotEdit
+        binding.btnPitchReset.isEnabled = !cannotEdit
+        binding.cardPitch.alpha = editAlpha
+
+        binding.seekSpeed.isEnabled = !cannotEdit
+        binding.btnSpeedDown.isEnabled = !cannotEdit
+        binding.btnSpeedUp.isEnabled = !cannotEdit
+        binding.btnSpeedReset.isEnabled = !cannotEdit
+        binding.cardSpeed.alpha = editAlpha
+
+        binding.seekTrimStart.isEnabled = !cannotEdit
+        binding.seekTrimEnd.isEnabled = !cannotEdit
+        binding.btnTrimReset.isEnabled = !cannotEdit
+        binding.btnTrimStartMinus.isEnabled = !cannotEdit
+        binding.btnTrimStartPlus.isEnabled = !cannotEdit
+        binding.btnTrimEndMinus.isEnabled = !cannotEdit
+        binding.btnTrimEndPlus.isEnabled = !cannotEdit
+        binding.cardTrim.alpha = editAlpha
+
+        binding.btnSetPointA.isEnabled = !cannotEdit
+        binding.btnSetPointB.isEnabled = !cannotEdit
+        binding.btnResetAb.isEnabled = !cannotEdit
+        binding.switchAbRepeat.isEnabled = !cannotEdit
+        binding.switchLoop.isEnabled = !cannotEdit
+        binding.cardAbRepeat.alpha = editAlpha
+
+        // Skip sections and Reset All are also part of song "state"
+        binding.btnAddSkipSection.isEnabled = !isLocked
+        binding.cardSkipSections.alpha = if (isLocked) 0.6f else 1.0f
+
+        binding.btnResetAllStates.isEnabled = !isLocked
+        binding.btnResetAllStates.alpha = if (isLocked) 0.6f else 1.0f
+
+        // Volume is also a state
+        binding.seekVolume.isEnabled = !isLocked
+        binding.btnVolumeUp.isEnabled = !isLocked
+        binding.btnVolumeDown.isEnabled = !isLocked
+        binding.btnVolumeReset.isEnabled = !isLocked
+        binding.btnVolumeMute.isEnabled = !isLocked
+        binding.cardVolume.alpha = if (isLocked) 0.6f else 1.0f
     }
 
     private fun populate(s: Song) {
@@ -1064,9 +1100,12 @@ class CoverFlowActivity : AppCompatActivity() {
                 if (svc != null && s != null) {
                     val dur = svc.getDuration().toLong()
                     if (dur > 0) {
-                        val rel = (svc.getPosition() - s.trimStart).coerceAtLeast(0L)
-                        val eff =
-                            ((if (s.trimEnd > 0) s.trimEnd else dur) - s.trimStart).coerceAtLeast(1L)
+                        val isBypass = svc.isBypassingProfiles()
+                        val tStart = if (isBypass) 0L else s.trimStart
+                        val tEnd = if (isBypass) dur else (if (s.trimEnd > 0) s.trimEnd else dur)
+
+                        val rel = (svc.getPosition() - tStart).coerceAtLeast(0L)
+                        val eff = (tEnd - tStart).coerceAtLeast(1L)
                         binding.seekPlayback.progress = (rel.toFloat() / eff * 100).toInt()
                         binding.tvCurrentTime.text = formatDuration(rel)
                         binding.tvTotalTime.text = formatDuration(eff)

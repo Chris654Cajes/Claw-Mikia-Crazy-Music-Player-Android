@@ -74,6 +74,7 @@ class SettingsFragment : Fragment() {
         setupSkipStep()
         setupNowPlayingView()
         setupEnvironmentSpinner()
+        setupEditingLock()
         setupMetadataUpdateButton()
         setupProfileBackup()
         setupResetButton()
@@ -132,6 +133,17 @@ class SettingsFragment : Fragment() {
 
                 override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
             }
+    }
+
+    // ── Editing Lock ─────────────────────────────────────────────────────────
+
+    private fun setupEditingLock() {
+        binding.switchStatesEnabled.setOnCheckedChangeListener { _, isChecked ->
+            settingsRepo.setStatesEnabled(isChecked)
+        }
+        binding.switchLockEditing.setOnCheckedChangeListener { _, isChecked ->
+            settingsRepo.setEditingLocked(isChecked)
+        }
     }
 
     // ── Metadata Update ──────────────────────────────────────────────────────
@@ -473,6 +485,14 @@ class SettingsFragment : Fragment() {
 
         settingsRepo.nowPlayingViewLive.observe(viewLifecycleOwner) { viewType ->
             checkRadioForNowPlayingView(viewType)
+        }
+
+        settingsRepo.editingLockedLive.observe(viewLifecycleOwner) { isLocked ->
+            binding.switchLockEditing.isChecked = isLocked
+        }
+
+        settingsRepo.statesEnabledLive.observe(viewLifecycleOwner) { isEnabled ->
+            binding.switchStatesEnabled.isChecked = isEnabled
         }
 
         // Only populate initial values if EditText is empty (first load).
