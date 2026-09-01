@@ -248,10 +248,18 @@ class CircularPlayerActivity : AppCompatActivity() {
         }
         viewModel.activeProfile.observe(this) { profile ->
             profile?.let { p ->
-                musicService?.applyProfile(p)
-                pointA = p.abRepeatA
-                pointB = p.abRepeatB
-                isAbRepeatEnabled = p.abRepeatEnabled
+                val isUniversal = settingsRepo.isUniversalEditingEnabled()
+                val currentInService = musicService?.getActiveProfile()
+                val toApply = if (isUniversal && currentInService?.songId == p.songId) {
+                    currentInService
+                } else {
+                    p
+                }
+
+                musicService?.applyProfile(toApply)
+                pointA = toApply.abRepeatA
+                pointB = toApply.abRepeatB
+                isAbRepeatEnabled = toApply.abRepeatEnabled
                 binding.cardAbRepeat.tvPointA.text =
                     if (pointA >= 0) "A: ${formatDuration(pointA)}" else "A: --:--"
                 binding.cardAbRepeat.tvPointB.text =
@@ -259,19 +267,19 @@ class CircularPlayerActivity : AppCompatActivity() {
                 if (binding.cardAbRepeat.switchAbRepeat.isChecked != isAbRepeatEnabled) {
                     binding.cardAbRepeat.switchAbRepeat.isChecked = isAbRepeatEnabled
                 }
-                if (binding.cardAbRepeat.switchLoop.isChecked != p.loopEnabled) {
-                    binding.cardAbRepeat.switchLoop.isChecked = p.loopEnabled
+                if (binding.cardAbRepeat.switchLoop.isChecked != toApply.loopEnabled) {
+                    binding.cardAbRepeat.switchLoop.isChecked = toApply.loopEnabled
                 }
-                binding.cardPitch.tvPitchValue.text = pitchLabel(p.pitchSemitones)
+                binding.cardPitch.tvPitchValue.text = pitchLabel(toApply.pitchSemitones)
                 binding.cardPitch.seekPitch.progress =
-                    ((p.pitchSemitones + 6) * 10).roundToInt().coerceIn(0, 120)
+                    ((toApply.pitchSemitones + 6) * 10).roundToInt().coerceIn(0, 120)
                 val speedProgress =
-                    ((p.playbackSpeed.coerceIn(0.5f, 3.0f) - 0.5f) / 0.05f).roundToInt()
+                    ((toApply.playbackSpeed.coerceIn(0.5f, 3.0f) - 0.5f) / 0.05f).roundToInt()
                 binding.cardSpeed.seekSpeed.progress = speedProgress
-                binding.cardSpeed.tvSpeedValue.text = speedLabel(p.playbackSpeed)
+                binding.cardSpeed.tvSpeedValue.text = speedLabel(toApply.playbackSpeed)
                 val songDur = song?.duration ?: 0L
-                val trimStart = p.trimStart
-                val trimEnd = if (p.trimEnd > 0) p.trimEnd else songDur
+                val trimStart = toApply.trimStart
+                val trimEnd = if (toApply.trimEnd > 0) toApply.trimEnd else songDur
                 binding.cardTrim.seekTrimStart.progress = trimStart.toInt()
                 binding.cardTrim.seekTrimEnd.progress = trimEnd.toInt()
                 updateTrimLabels()

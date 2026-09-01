@@ -238,10 +238,21 @@ class MusicService : Service() {
 
             // 2. Start Playback NOW
             playlist = playlist.toMutableList().also { it[currentIndex] = freshSong }
-            activeProfile = profile
+            
+            val isUniversal = settingsRepository.isUniversalEditingEnabled()
+            val currentInService = activeProfile
+
+            // If universal mode is active and we are playing the same song again 
+            // (e.g. forceReload or manual re-selection), keep the current session edits.
+            activeProfile = if (isUniversal && currentInService?.songId == freshSong.id) {
+                currentInService
+            } else {
+                profile
+            }
+            
             skipRegions = regions
             currentArt = null // Clear old art while loading new
-            playFreshSong(freshSong, profile)
+            playFreshSong(freshSong, activeProfile!!)
 
             // 3. Load metadata and assets in background (won't block playback)
             launch {
@@ -944,4 +955,6 @@ class MusicService : Service() {
     }
 
     fun isBypassingProfiles(): Boolean = bypassProfiles
+
+    fun getActiveProfile(): PlaybackProfile? = activeProfile
 }

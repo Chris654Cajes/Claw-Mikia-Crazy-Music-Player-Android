@@ -267,13 +267,17 @@ class CoverFlowActivity : AppCompatActivity() {
                 checked
             )
             viewModel.activeProfile.value?.let { profile ->
-                viewModel.updateLoop(profile.id, profile.loopStart, profile.loopEnd, checked)
+                saveStateIfAllowed {
+                    viewModel.updateLoop(profile.id, profile.loopStart, profile.loopEnd, checked)
+                }
             }
-            activityScope.launch {
-                repository.updateRepeatModeAndSyncProfile(
-                    s.id,
-                    if (checked) 1 else 0
-                )
+            saveStateIfAllowed {
+                activityScope.launch {
+                    repository.updateRepeatModeAndSyncProfile(
+                        s.id,
+                        if (checked) 1 else 0
+                    )
+                }
             }
         }
 
@@ -286,9 +290,21 @@ class CoverFlowActivity : AppCompatActivity() {
             ProfilesFragment().show(supportFragmentManager, "profiles")
         }
 
-        binding.btnProfileDefault.setOnClickListener { viewModel.switchToDefaultProfile() }
-        binding.btnProfilePrev.setOnClickListener { viewModel.switchToPreviousProfile() }
-        binding.btnProfileNext.setOnClickListener { viewModel.switchToNextProfile() }
+        binding.btnProfileDefault.setOnClickListener {
+            saveStateIfAllowed {
+                viewModel.switchToDefaultProfile()
+            }
+        }
+        binding.btnProfilePrev.setOnClickListener {
+            saveStateIfAllowed {
+                viewModel.switchToPreviousProfile()
+            }
+        }
+        binding.btnProfileNext.setOnClickListener {
+            saveStateIfAllowed {
+                viewModel.switchToNextProfile()
+            }
+        }
 
         binding.btnRewind.setOnClickListener {
             val svc = musicService ?: return@setOnClickListener
@@ -315,14 +331,18 @@ class CoverFlowActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {
                 val semitones = (sb.progress - 60) / 10.0f
-                activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+                saveStateIfAllowed {
+                    activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+                }
             }
         })
         binding.btnPitchReset.setOnClickListener {
             binding.seekPitch.progress = 60
             binding.tvPitchValue.text = pitchLabel(0f)
             musicService?.applyPitchToCurrentSong(0f)
-            activityScope.launch { repository.updatePitchAndSyncProfile(songId, 0f) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updatePitchAndSyncProfile(songId, 0f) }
+            }
         }
         binding.btnPitchDown.setOnClickListener {
             val p =
@@ -332,7 +352,9 @@ class CoverFlowActivity : AppCompatActivity() {
             binding.seekPitch.progress = p
             val semitones = (p - 60) / 10.0f
             musicService?.applyPitchToCurrentSong(semitones)
-            activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+            }
         }
         binding.btnPitchUp.setOnClickListener {
             val p =
@@ -342,7 +364,9 @@ class CoverFlowActivity : AppCompatActivity() {
             binding.seekPitch.progress = p
             val semitones = (p - 60) / 10.0f
             musicService?.applyPitchToCurrentSong(semitones)
-            activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+            }
         }
 
         // Speed
@@ -357,28 +381,36 @@ class CoverFlowActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {
                 val s = progressToSpeed(sb.progress)
-                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, s) }
+                saveStateIfAllowed {
+                    activityScope.launch { repository.updateSpeedAndSyncProfile(songId, s) }
+                }
             }
         })
         binding.btnSpeedReset.setOnClickListener {
             binding.seekSpeed.progress = 10
             binding.tvSpeedValue.text = speedLabel(1.0f)
             musicService?.applySpeedToCurrentSong(1.0f)
-            activityScope.launch { repository.updateSpeedAndSyncProfile(songId, 1.0f) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, 1.0f) }
+            }
         }
         binding.btnSpeedDown.setOnClickListener {
             val p = (binding.seekSpeed.progress - settingsRepo.getSpeedStep()).coerceAtLeast(0)
             binding.seekSpeed.progress = p
             val s = progressToSpeed(p)
             musicService?.applySpeedToCurrentSong(s)
-            activityScope.launch { repository.updateSpeedAndSyncProfile(songId, s) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, s) }
+            }
         }
         binding.btnSpeedUp.setOnClickListener {
             val p = (binding.seekSpeed.progress + settingsRepo.getSpeedStep()).coerceAtMost(50)
             binding.seekSpeed.progress = p
             val s = progressToSpeed(p)
             musicService?.applySpeedToCurrentSong(s)
-            activityScope.launch { repository.updateSpeedAndSyncProfile(songId, s) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, s) }
+            }
         }
 
         // Volume
@@ -507,7 +539,9 @@ class CoverFlowActivity : AppCompatActivity() {
             binding.seekTrimEnd.progress = total.toInt()
             updateTrimLabels(0L, total)
             musicService?.applyTrimToCurrentSong(0L, -1L)
-            activityScope.launch { repository.updateTrimAndSyncProfile(s.id, 0L, -1L) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updateTrimAndSyncProfile(s.id, 0L, -1L) }
+            }
         }
 
         // A-B Repeat
@@ -567,11 +601,13 @@ class CoverFlowActivity : AppCompatActivity() {
 
         binding.btnFavorite.setOnClickListener {
             val s = song ?: return@setOnClickListener
-            activityScope.launch {
-                repository.toggleFavorite(s)
-                repository.getSongById(s.id)?.let { fresh ->
-                    song = fresh
-                    runOnUiThread { updateFavoriteIcon(fresh) }
+            saveStateIfAllowed {
+                activityScope.launch {
+                    repository.toggleFavorite(s)
+                    repository.getSongById(s.id)?.let { fresh ->
+                        song = fresh
+                        runOnUiThread { updateFavoriteIcon(fresh) }
+                    }
                 }
             }
         }
@@ -602,27 +638,53 @@ class CoverFlowActivity : AppCompatActivity() {
         }
         viewModel.activeProfile.observe(this) { profile: PlaybackProfile? ->
             profile?.let {
-                // Apply profile to service
-                musicService?.applyProfile(it)
+                val isUniversal = settingsRepo.isUniversalEditingEnabled()
+                val currentInService = musicService?.getActiveProfile()
+                
+                // If in universal mode and same song, prefer what's already in the service 
+                // to avoid resetting unsaved session edits when the activity resumes.
+                val toApply = if (isUniversal && currentInService?.songId == it.songId) {
+                    currentInService
+                } else {
+                    it
+                }
 
-                binding.seekPitch.progress = (it.pitchSemitones * 10 + 60).toInt()
-                binding.seekSpeed.progress = ((it.playbackSpeed - 0.5f) / 0.05f).toInt()
-                binding.tvPitchValue.text = pitchLabel(it.pitchSemitones)
-                binding.tvSpeedValue.text = speedLabel(it.playbackSpeed)
-                pointA = it.abRepeatA
-                pointB = it.abRepeatB
-                isAbRepeatEnabled = it.abRepeatEnabled
-                binding.switchAbRepeat.isChecked = it.abRepeatEnabled
-                binding.switchLoop.isChecked = it.loopEnabled
+                // Apply profile to service
+                musicService?.applyProfile(toApply)
+
+                binding.seekPitch.progress = (toApply.pitchSemitones * 10 + 60).toInt()
+                binding.seekSpeed.progress = ((toApply.playbackSpeed - 0.5f) / 0.05f).toInt()
+                binding.tvPitchValue.text = pitchLabel(toApply.pitchSemitones)
+                binding.tvSpeedValue.text = speedLabel(toApply.playbackSpeed)
+                pointA = toApply.abRepeatA
+                pointB = toApply.abRepeatB
+                isAbRepeatEnabled = toApply.abRepeatEnabled
+                binding.switchAbRepeat.isChecked = toApply.abRepeatEnabled
+                binding.switchLoop.isChecked = toApply.loopEnabled
                 binding.tvPointA.text =
                     if (pointA >= 0) "A: ${formatDuration(pointA)}" else "A: --:--"
                 binding.tvPointB.text =
                     if (pointB >= 0) "B: ${formatDuration(pointB)}" else "B: --:--"
 
-                updateEditingUiState(it)
+                updateEditingUiState(toApply)
                 updateProfileSwitchButtons()
             }
         }
+
+        settingsRepo.universalEditingEnabledLive.observe(this) { isEnabled ->
+            binding.btnProfiles.visibility = if (isEnabled) View.GONE else View.VISIBLE
+            binding.cardSwitchProfile.visibility = if (isEnabled) View.GONE else View.VISIBLE
+            viewModel.activeProfile.value?.let { updateEditingUiState(it) }
+        }
+
+        settingsRepo.editingLockedLive.observe(this) {
+            viewModel.activeProfile.value?.let { updateEditingUiState(it) }
+        }
+
+        settingsRepo.statesEnabledLive.observe(this) {
+            viewModel.activeProfile.value?.let { updateEditingUiState(it) }
+        }
+
         viewModel.profiles.observe(this) { updateProfileSwitchButtons() }
         viewModel.skipRegions.observe(this) { regions ->
             updateSkipRegionsUI(regions)
@@ -655,11 +717,20 @@ class CoverFlowActivity : AppCompatActivity() {
         }
     }
 
+    private fun saveStateIfAllowed(action: () -> Unit) {
+        val isUniversal = settingsRepo.isUniversalEditingEnabled()
+        val canSave = !isUniversal || settingsRepo.isUniversalEditsSaveEnabled()
+        if (canSave) {
+            action()
+        }
+    }
+
     private fun updateEditingUiState(profile: PlaybackProfile) {
         val isLocked = settingsRepo.isEditingLocked()
         val isStatesDisabled = !settingsRepo.isStatesEnabled()
+        val isUniversal = settingsRepo.isUniversalEditingEnabled()
         val isDefault = profile.isDefault
-        val cannotEdit = isDefault || isLocked || isStatesDisabled
+        val cannotEdit = (isDefault || isLocked || isStatesDisabled) && !isUniversal
 
         val editAlpha = if (cannotEdit) 0.6f else 1.0f
 
@@ -869,9 +940,17 @@ class CoverFlowActivity : AppCompatActivity() {
             v.findViewById<ImageView>(R.id.ivItemIcon).apply {
                 setImageResource(R.drawable.ic_close)
                 setColorFilter(ContextCompat.getColor(this@CoverFlowActivity, R.color.neon_red))
-                setOnClickListener { viewModel.deleteSkipRegion(r) }
+                setOnClickListener {
+                    saveStateIfAllowed {
+                        viewModel.deleteSkipRegion(r)
+                    }
+                }
             }
-            v.setOnClickListener { activityScope.launch { profileRepo.toggleSkipRegion(r) } }
+            v.setOnClickListener {
+                saveStateIfAllowed {
+                    activityScope.launch { profileRepo.toggleSkipRegion(r) }
+                }
+            }
             v.alpha = if (r.isEnabled) 1.0f else 0.5f
             binding.layoutSkipSections.addView(v)
         }
@@ -883,12 +962,14 @@ class CoverFlowActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this).setTitle("ADD SKIP SECTION")
             .setMessage("Add 30s skip at ${formatDuration(pos)}?")
             .setPositiveButton("ADD") { _, _ ->
-                viewModel.addSkipRegion(
-                    s.id,
-                    "",
-                    pos,
-                    (pos + 30000).coerceAtMost(s.duration)
-                )
+                saveStateIfAllowed {
+                    viewModel.addSkipRegion(
+                        s.id,
+                        "",
+                        pos,
+                        (pos + 30000).coerceAtMost(s.duration)
+                    )
+                }
             }
             .setNeutralButton("CUSTOM") { _, _ -> showCustomSkipDialog() }
             .setNegativeButton("CANCEL", null).show()
@@ -919,7 +1000,9 @@ class CoverFlowActivity : AppCompatActivity() {
                 ((etEndMin.text.toString().toLongOrNull() ?: 0) * 60 + (etEndSec.text.toString()
                     .toLongOrNull() ?: 0)) * 1000
             if (endMs > startMs && startMs < s.duration) {
-                viewModel.addSkipRegion(s.id, "", startMs, endMs.coerceAtMost(s.duration))
+                saveStateIfAllowed {
+                    viewModel.addSkipRegion(s.id, "", startMs, endMs.coerceAtMost(s.duration))
+                }
                 dialog.dismiss()
             } else {
                 Toast.makeText(this, "Invalid range", Toast.LENGTH_SHORT).show()
@@ -937,47 +1020,49 @@ class CoverFlowActivity : AppCompatActivity() {
         val s = song ?: return
         val id = s.id
 
-        activityScope.launch {
-            // 1. Reset Song entity fields
-            repository.updatePitchAndSyncProfile(id, 0f)
-            repository.updateSpeedAndSyncProfile(id, 1.0f)
-            repository.updateTrimAndSyncProfile(id, 0L, -1L)
+        saveStateIfAllowed {
+            activityScope.launch {
+                // 1. Reset Song entity fields
+                repository.updatePitchAndSyncProfile(id, 0f)
+                repository.updateSpeedAndSyncProfile(id, 1.0f)
+                repository.updateTrimAndSyncProfile(id, 0L, -1L)
 
-            // 2. Reset Profile fields
-            viewModel.activeProfile.value?.let { profile ->
-                val resetProfile = profile.copy(
-                    pitchSemitones = 0f,
-                    playbackSpeed = 1.0f,
-                    trimStart = 0L,
-                    trimEnd = -1L,
-                    abRepeatEnabled = false,
-                    bassBoostEnabled = false,
-                    reverbEnabled = false,
-                    loudnessEnabled = false,
-                    compressorEnabled = false
-                )
-                profileRepo.updateProfile(resetProfile)
+                // 2. Reset Profile fields
+                viewModel.activeProfile.value?.let { profile ->
+                    val resetProfile = profile.copy(
+                        pitchSemitones = 0f,
+                        playbackSpeed = 1.0f,
+                        trimStart = 0L,
+                        trimEnd = -1L,
+                        abRepeatEnabled = false,
+                        bassBoostEnabled = false,
+                        reverbEnabled = false,
+                        loudnessEnabled = false,
+                        compressorEnabled = false
+                    )
+                    profileRepo.updateProfile(resetProfile)
+                }
+
+                // 3. Delete all skip regions
+                profileRepo.deleteAllSkipRegions(id)
             }
+        }
 
-            // 3. Delete all skip regions
-            profileRepo.deleteAllSkipRegions(id)
+        runOnUiThread {
+            pointA = -1L
+            pointB = -1L
+            isAbRepeatEnabled = false
 
-            runOnUiThread {
-                pointA = -1L
-                pointB = -1L
-                isAbRepeatEnabled = false
+            // Refresh Service
+            musicService?.applyPitchToCurrentSong(0f)
+            musicService?.applySpeedToCurrentSong(1.0f)
+            musicService?.applyTrimToCurrentSong(0L, -1L)
+            musicService?.applyAbRepeatToCurrentSong(-1, -1, false)
+            musicService?.setBypassProfiles(false)
 
-                // Refresh Service
-                musicService?.applyPitchToCurrentSong(0f)
-                musicService?.applySpeedToCurrentSong(1.0f)
-                musicService?.applyTrimToCurrentSong(0L, -1L)
-                musicService?.applyAbRepeatToCurrentSong(-1, -1, false)
-                musicService?.setBypassProfiles(false)
-
-                syncNow()
-                Toast.makeText(this@CoverFlowActivity, "All states reset", Toast.LENGTH_SHORT)
-                    .show()
-            }
+            syncNow()
+            Toast.makeText(this@CoverFlowActivity, "All states reset", Toast.LENGTH_SHORT)
+                .show()
         }
     }
 
@@ -1034,17 +1119,21 @@ class CoverFlowActivity : AppCompatActivity() {
         val e = binding.seekTrimEnd.progress.toLong()
         song = song?.copy(trimStart = s, trimEnd = e)
         musicService?.applyTrimToCurrentSong(s, e)
-        activityScope.launch { repository.updateTrimAndSyncProfile(songId, s, e) }
+        saveStateIfAllowed {
+            activityScope.launch { repository.updateTrimAndSyncProfile(songId, s, e) }
+        }
     }
 
     private fun saveAbRepeat() {
         viewModel.activeProfile.value?.let { p ->
-            viewModel.updateAbRepeat(
-                p.id,
-                pointA,
-                pointB,
-                isAbRepeatEnabled
-            )
+            saveStateIfAllowed {
+                viewModel.updateAbRepeat(
+                    p.id,
+                    pointA,
+                    pointB,
+                    isAbRepeatEnabled
+                )
+            }
         }
     }
 

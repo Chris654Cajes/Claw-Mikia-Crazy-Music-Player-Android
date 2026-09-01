@@ -144,6 +144,13 @@ class SettingsFragment : Fragment() {
         binding.switchLockEditing.setOnCheckedChangeListener { _, isChecked ->
             settingsRepo.setEditingLocked(isChecked)
         }
+        binding.switchUniversalEditing.setOnCheckedChangeListener { _, isChecked ->
+            settingsRepo.setUniversalEditingEnabled(isChecked)
+            binding.layoutSaveUniversalEdits.visibility = if (isChecked) View.VISIBLE else View.GONE
+        }
+        binding.switchSaveUniversalEdits.setOnCheckedChangeListener { _, isChecked ->
+            settingsRepo.setUniversalEditsSaveEnabled(isChecked)
+        }
     }
 
     // ── Metadata Update ──────────────────────────────────────────────────────
@@ -465,6 +472,11 @@ class SettingsFragment : Fragment() {
                     binding.etSkipStep.setText(SettingsRepository.DEFAULT_SKIP_STEP.toString())
 
                     binding.spinnerEnvironment.setSelection(0)
+                    binding.switchStatesEnabled.isChecked = SettingsRepository.DEFAULT_STATES_ENABLED
+                    binding.switchLockEditing.isChecked = SettingsRepository.DEFAULT_EDITING_LOCKED
+                    binding.switchUniversalEditing.isChecked = SettingsRepository.DEFAULT_UNIVERSAL_EDITING_ENABLED
+                    binding.switchSaveUniversalEdits.isChecked = SettingsRepository.DEFAULT_UNIVERSAL_EDITS_SAVE_ENABLED
+                    binding.layoutSaveUniversalEdits.visibility = if (SettingsRepository.DEFAULT_UNIVERSAL_EDITING_ENABLED) View.VISIBLE else View.GONE
 
                     suppressWatcher = false
                     Toast.makeText(
@@ -493,6 +505,15 @@ class SettingsFragment : Fragment() {
 
         settingsRepo.statesEnabledLive.observe(viewLifecycleOwner) { isEnabled ->
             binding.switchStatesEnabled.isChecked = isEnabled
+        }
+
+        settingsRepo.universalEditingEnabledLive.observe(viewLifecycleOwner) { isEnabled ->
+            binding.switchUniversalEditing.isChecked = isEnabled
+            binding.layoutSaveUniversalEdits.visibility = if (isEnabled) View.VISIBLE else View.GONE
+        }
+
+        settingsRepo.universalEditsSaveEnabledLive.observe(viewLifecycleOwner) { isEnabled ->
+            binding.switchSaveUniversalEdits.isChecked = isEnabled
         }
 
         // Only populate initial values if EditText is empty (first load).

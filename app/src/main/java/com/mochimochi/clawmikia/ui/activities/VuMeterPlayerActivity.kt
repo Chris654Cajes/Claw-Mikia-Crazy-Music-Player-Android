@@ -258,28 +258,36 @@ class VuMeterPlayerActivity : AppCompatActivity() {
         }
         viewModel.activeProfile.observe(this) { profile ->
             profile?.let { p ->
-                musicService?.applyProfile(p)
-                pointA = p.abRepeatA
-                pointB = p.abRepeatB
-                isAbRepeatEnabled = p.abRepeatEnabled
+                val isUniversal = settingsRepo.isUniversalEditingEnabled()
+                val currentInService = musicService?.getActiveProfile()
+                val toApply = if (isUniversal && currentInService?.songId == p.songId) {
+                    currentInService
+                } else {
+                    p
+                }
+
+                musicService?.applyProfile(toApply)
+                pointA = toApply.abRepeatA
+                pointB = toApply.abRepeatB
+                isAbRepeatEnabled = toApply.abRepeatEnabled
                 binding.tvPointA.text =
                     if (pointA >= 0) "A: ${formatDuration(pointA)}" else "A: --:--"
                 binding.tvPointB.text =
                     if (pointB >= 0) "B: ${formatDuration(pointB)}" else "B: --:--"
                 if (binding.switchAbRepeat.isChecked != isAbRepeatEnabled) binding.switchAbRepeat.isChecked =
                     isAbRepeatEnabled
-                if (binding.switchLoop.isChecked != p.loopEnabled) binding.switchLoop.isChecked =
-                    p.loopEnabled
-                binding.tvPitchValue.text = pitchLabel(p.pitchSemitones)
+                if (binding.switchLoop.isChecked != toApply.loopEnabled) binding.switchLoop.isChecked =
+                    toApply.loopEnabled
+                binding.tvPitchValue.text = pitchLabel(toApply.pitchSemitones)
                 binding.seekPitch.progress =
-                    ((p.pitchSemitones + 6) * 10).roundToInt().coerceIn(0, 120)
+                    ((toApply.pitchSemitones + 6) * 10).roundToInt().coerceIn(0, 120)
                 val speedProgress =
-                    ((p.playbackSpeed.coerceIn(0.5f, 3.0f) - 0.5f) / 0.05f).roundToInt()
+                    ((toApply.playbackSpeed.coerceIn(0.5f, 3.0f) - 0.5f) / 0.05f).roundToInt()
                 binding.seekSpeed.progress = speedProgress
-                binding.tvSpeedValue.text = speedLabel(p.playbackSpeed)
+                binding.tvSpeedValue.text = speedLabel(toApply.playbackSpeed)
                 val songDur = song?.duration ?: 0L
-                val trimStart = p.trimStart
-                val trimEnd = if (p.trimEnd > 0) p.trimEnd else songDur
+                val trimStart = toApply.trimStart
+                val trimEnd = if (toApply.trimEnd > 0) toApply.trimEnd else songDur
                 binding.seekTrimStart.progress = trimStart.toInt()
                 binding.seekTrimEnd.progress = trimEnd.toInt()
                 updateTrimLabels(trimStart, trimEnd)

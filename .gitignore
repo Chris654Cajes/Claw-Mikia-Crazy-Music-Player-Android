@@ -2,9 +2,6 @@
 # Android & Gradle
 # ===========================
 
-# Refact files and folders
-.refact/
-
 # Built application files
 *.apk
 *.aar
@@ -76,23 +73,20 @@ lint/
 *.keystore
 *.p12
 
-# Google Services (uncomment if using Firebase/Google APIs)
-# google-services.json
-
 # ===========================
 # Kotlin / JVM
 # ===========================
 
+.kotlin/
 *.kotlin_module
 kotlin/kotlin.daemon.jvm.args
 
 # ===========================
-# Signing
+# AI & Tooling
 # ===========================
 
-*.jks
-*.keystore
-signing.properties
+.refact/
+*.ai
 
 # ===========================
 # OS Generated
@@ -167,66 +161,8 @@ jacoco.exec
 test_output/
 
 # ===========================
-# Node.js (if applicable)
-# ===========================
-
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-yarn.lock
-
-# ===========================
-# Python (if applicable)
-# ===========================
-
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-dist/
-build/
-.eggs/
-*.egg
-.venv/
-venv/
-ENV/
-
-# ===========================
-# Environment / Config
-# ===========================
-
-.env
-.env.local
-.env.*.local
-*.env
-config.json
-config.local.json
-
-# ===========================
-# Misc
-# ===========================
-
-*.map
-*.map.json
-*.min.js
-*.min.css
-*.css.map
-*.js.map
-*.tsbuildinfo
-*.code-workspace
-.vscode/
-.vs/
-
-# Docker (if applicable)
-Dockerfile
-docker-compose*.yml
-.dockerignore
-
-# Android Studio AI
-*.ai
-
 # Generated resources
+# ===========================
+
 **/generated/
 **/res/generated/

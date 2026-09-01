@@ -23,6 +23,8 @@ class SettingsRepository(context: Context) {
         private const val KEY_NOW_PLAYING_VIEW = "now_playing_view_type"
         private const val KEY_EDITING_LOCKED = "editing_locked"
         private const val KEY_STATES_ENABLED = "all_states_enabled"
+        private const val KEY_UNIVERSAL_EDITING_ENABLED = "universal_editing_enabled"
+        private const val KEY_UNIVERSAL_EDITS_SAVE_ENABLED = "universal_edits_save_enabled"
 
         // Default values
         const val DEFAULT_FAVORITE_ICON = "heart"
@@ -36,6 +38,8 @@ class SettingsRepository(context: Context) {
         const val DEFAULT_NOW_PLAYING_VIEW = "standard"
         const val DEFAULT_EDITING_LOCKED = false
         const val DEFAULT_STATES_ENABLED = true
+        const val DEFAULT_UNIVERSAL_EDITING_ENABLED = false
+        const val DEFAULT_UNIVERSAL_EDITS_SAVE_ENABLED = false
     }
 
     private val prefs: SharedPreferences =
@@ -57,6 +61,12 @@ class SettingsRepository(context: Context) {
 
     val statesEnabledLive: LiveData<Boolean> =
         SharedPrefBooleanLiveData(prefs, KEY_STATES_ENABLED, DEFAULT_STATES_ENABLED)
+
+    val universalEditingEnabledLive: LiveData<Boolean> =
+        SharedPrefBooleanLiveData(prefs, KEY_UNIVERSAL_EDITING_ENABLED, DEFAULT_UNIVERSAL_EDITING_ENABLED)
+
+    val universalEditsSaveEnabledLive: LiveData<Boolean> =
+        SharedPrefBooleanLiveData(prefs, KEY_UNIVERSAL_EDITS_SAVE_ENABLED, DEFAULT_UNIVERSAL_EDITS_SAVE_ENABLED)
 
     // ── Direct getters ────────────────────────────────────────────────────────
 
@@ -81,6 +91,10 @@ class SettingsRepository(context: Context) {
     fun isEditingLocked(): Boolean = prefs.getBoolean(KEY_EDITING_LOCKED, DEFAULT_EDITING_LOCKED)
 
     fun isStatesEnabled(): Boolean = prefs.getBoolean(KEY_STATES_ENABLED, DEFAULT_STATES_ENABLED)
+
+    fun isUniversalEditingEnabled(): Boolean = prefs.getBoolean(KEY_UNIVERSAL_EDITING_ENABLED, DEFAULT_UNIVERSAL_EDITING_ENABLED)
+
+    fun isUniversalEditsSaveEnabled(): Boolean = prefs.getBoolean(KEY_UNIVERSAL_EDITS_SAVE_ENABLED, DEFAULT_UNIVERSAL_EDITS_SAVE_ENABLED)
 
     // ── Setters ────────────────────────────────────────────────────────────────
 
@@ -128,6 +142,14 @@ class SettingsRepository(context: Context) {
         prefs.edit().putBoolean(KEY_STATES_ENABLED, enabled).apply()
     }
 
+    fun setUniversalEditingEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_UNIVERSAL_EDITING_ENABLED, enabled).apply()
+    }
+
+    fun setUniversalEditsSaveEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_UNIVERSAL_EDITS_SAVE_ENABLED, enabled).apply()
+    }
+
     // ── Reset all to defaults ──────────────────────────────────────────────────
 
     fun resetAll() {
@@ -143,6 +165,8 @@ class SettingsRepository(context: Context) {
             .putString(KEY_NOW_PLAYING_VIEW, DEFAULT_NOW_PLAYING_VIEW)
             .putBoolean(KEY_EDITING_LOCKED, DEFAULT_EDITING_LOCKED)
             .putBoolean(KEY_STATES_ENABLED, DEFAULT_STATES_ENABLED)
+            .putBoolean(KEY_UNIVERSAL_EDITING_ENABLED, DEFAULT_UNIVERSAL_EDITING_ENABLED)
+            .putBoolean(KEY_UNIVERSAL_EDITS_SAVE_ENABLED, DEFAULT_UNIVERSAL_EDITS_SAVE_ENABLED)
             .apply()
     }
 

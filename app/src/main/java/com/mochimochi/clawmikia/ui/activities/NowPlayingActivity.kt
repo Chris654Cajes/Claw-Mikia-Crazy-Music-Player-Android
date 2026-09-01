@@ -252,10 +252,18 @@ class NowPlayingActivity : AppCompatActivity() {
 
         viewModel.activeProfile.observe(this) { profile ->
             if (profile != null) {
-                musicService?.applyProfile(profile)
-                pointA = profile.abRepeatA
-                pointB = profile.abRepeatB
-                isAbRepeatEnabled = profile.abRepeatEnabled
+                val isUniversal = settingsRepo.isUniversalEditingEnabled()
+                val currentInService = musicService?.getActiveProfile()
+                val toApply = if (isUniversal && currentInService?.songId == profile.songId) {
+                    currentInService
+                } else {
+                    profile
+                }
+
+                musicService?.applyProfile(toApply)
+                pointA = toApply.abRepeatA
+                pointB = toApply.abRepeatB
+                isAbRepeatEnabled = toApply.abRepeatEnabled
 
                 binding.cardAbRepeat.tvPointA.text =
                     if (pointA >= 0) "A: ${formatDuration(pointA)}" else "A: --:--"
@@ -265,21 +273,21 @@ class NowPlayingActivity : AppCompatActivity() {
                 if (binding.cardAbRepeat.switchAbRepeat.isChecked != isAbRepeatEnabled) {
                     binding.cardAbRepeat.switchAbRepeat.isChecked = isAbRepeatEnabled
                 }
-                if (binding.cardAbRepeat.switchLoop.isChecked != profile.loopEnabled) {
-                    binding.cardAbRepeat.switchLoop.isChecked = profile.loopEnabled
+                if (binding.cardAbRepeat.switchLoop.isChecked != toApply.loopEnabled) {
+                    binding.cardAbRepeat.switchLoop.isChecked = toApply.loopEnabled
                 }
 
-                binding.cardPitch.tvPitchValue.text = pitchLabel(profile.pitchSemitones)
+                binding.cardPitch.tvPitchValue.text = pitchLabel(toApply.pitchSemitones)
                 binding.cardPitch.seekPitch.progress =
-                    ((profile.pitchSemitones + 6) * 10).roundToInt().coerceIn(0, 120)
+                    ((toApply.pitchSemitones + 6) * 10).roundToInt().coerceIn(0, 120)
 
                 binding.cardSpeed.seekSpeed.progress =
-                    ((profile.playbackSpeed.coerceIn(0.5f, 3.0f) - 0.5f) / 0.05f).roundToInt()
-                binding.cardSpeed.tvSpeedValue.text = speedLabel(profile.playbackSpeed)
+                    ((toApply.playbackSpeed.coerceIn(0.5f, 3.0f) - 0.5f) / 0.05f).roundToInt()
+                binding.cardSpeed.tvSpeedValue.text = speedLabel(toApply.playbackSpeed)
 
                 val songDur = song?.duration ?: 0L
-                val trimStart = profile.trimStart
-                val trimEnd = if (profile.trimEnd > 0) profile.trimEnd else songDur
+                val trimStart = toApply.trimStart
+                val trimEnd = if (toApply.trimEnd > 0) toApply.trimEnd else songDur
                 binding.cardTrim.seekTrimStart.progress = trimStart.toInt()
                 binding.cardTrim.seekTrimEnd.progress = trimEnd.toInt()
                 updateTrimLabels(trimStart, trimEnd)
@@ -288,7 +296,7 @@ class NowPlayingActivity : AppCompatActivity() {
                 binding.tvTotalTime.text = formatDuration(effectiveDur)
                 syncVolumeSeekBar()
 
-                updateEditingUiState(profile)
+                updateEditingUiState(toApply)
                 updateProfileSwitchButtons()
             }
         }
@@ -300,11 +308,20 @@ class NowPlayingActivity : AppCompatActivity() {
         }
     }
 
+    private fun saveStateIfAllowed(action: () -> Unit) {
+        val isUniversal = settingsRepo.isUniversalEditingEnabled()
+        val canSave = !isUniversal || settingsRepo.isUniversalEditsSaveEnabled()
+        if (canSave) {
+            action()
+        }
+    }
+
     private fun updateEditingUiState(profile: com.mochimochi.clawmikiacrazy.data.model.PlaybackProfile) {
         val isLocked = settingsRepo.isEditingLocked()
         val isStatesDisabled = !settingsRepo.isStatesEnabled()
+        val isUniversal = settingsRepo.isUniversalEditingEnabled()
         val isDefault = profile.isDefault
-        val cannotEdit = isDefault || isLocked || isStatesDisabled
+        val cannotEdit = (isDefault || isLocked || isStatesDisabled) && !isUniversal
         val editAlpha = if (cannotEdit) 0.6f else 1.0f
 
         binding.cardPitch.seekPitch.isEnabled = !cannotEdit
@@ -540,18 +557,22 @@ class NowPlayingActivity : AppCompatActivity() {
                 checked
             )
             viewModel.activeProfile.value?.let { profile ->
-                viewModel.updateLoop(
-                    profile.id,
-                    profile.loopStart,
-                    profile.loopEnd,
-                    checked
-                )
+                saveStateIfAllowed {
+                    viewModel.updateLoop(
+                        profile.id,
+                        profile.loopStart,
+                        profile.loopEnd,
+                        checked
+                    )
+                }
             }
-            activityScope.launch {
-                repository.updateRepeatModeAndSyncProfile(
-                    s.id,
-                    if (checked) 1 else 0
-                )
+            saveStateIfAllowed {
+                activityScope.launch {
+                    repository.updateRepeatModeAndSyncProfile(
+                        s.id,
+                        if (checked) 1 else 0
+                    )
+                }
             }
         }
 
@@ -583,9 +604,21 @@ class NowPlayingActivity : AppCompatActivity() {
             )
         }
 
-        binding.cardProfiles.btnProfileDefault.setOnClickListener { viewModel.switchToDefaultProfile() }
-        binding.cardProfiles.btnProfilePrev.setOnClickListener { viewModel.switchToPreviousProfile() }
-        binding.cardProfiles.btnProfileNext.setOnClickListener { viewModel.switchToNextProfile() }
+        binding.cardProfiles.btnProfileDefault.setOnClickListener {
+            saveStateIfAllowed {
+                viewModel.switchToDefaultProfile()
+            }
+        }
+        binding.cardProfiles.btnProfilePrev.setOnClickListener {
+            saveStateIfAllowed {
+                viewModel.switchToPreviousProfile()
+            }
+        }
+        binding.cardProfiles.btnProfileNext.setOnClickListener {
+            saveStateIfAllowed {
+                viewModel.switchToNextProfile()
+            }
+        }
 
         binding.btnRewind.setOnClickListener {
             val svc = musicService ?: return@setOnClickListener
@@ -611,7 +644,9 @@ class NowPlayingActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {
                 val semitones = (sb.progress - 60) / 10.0f
-                activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+                saveStateIfAllowed {
+                    activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+                }
             }
         })
 
@@ -619,7 +654,9 @@ class NowPlayingActivity : AppCompatActivity() {
             binding.cardPitch.seekPitch.progress = 60
             binding.cardPitch.tvPitchValue.text = pitchLabel(0f)
             musicService?.applyPitchToCurrentSong(0f)
-            activityScope.launch { repository.updatePitchAndSyncProfile(songId, 0f) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updatePitchAndSyncProfile(songId, 0f) }
+            }
         }
 
         binding.cardPitch.btnPitchDown.setOnClickListener {
@@ -630,7 +667,9 @@ class NowPlayingActivity : AppCompatActivity() {
             val semitones = (newProgress - 60) / 10.0f
             binding.cardPitch.tvPitchValue.text = pitchLabel(semitones)
             musicService?.applyPitchToCurrentSong(semitones)
-            activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+            }
         }
 
         binding.cardPitch.btnPitchUp.setOnClickListener {
@@ -641,7 +680,9 @@ class NowPlayingActivity : AppCompatActivity() {
             val semitones = (newProgress - 60) / 10.0f
             binding.cardPitch.tvPitchValue.text = pitchLabel(semitones)
             musicService?.applyPitchToCurrentSong(semitones)
-            activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updatePitchAndSyncProfile(songId, semitones) }
+            }
         }
 
         binding.cardSpeed.seekSpeed.setOnSeekBarChangeListener(object :
@@ -654,7 +695,9 @@ class NowPlayingActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(sb: SeekBar) {}
             override fun onStopTrackingTouch(sb: SeekBar) {
                 val speed = progressToSpeed(sb.progress)
-                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, speed) }
+                saveStateIfAllowed {
+                    activityScope.launch { repository.updateSpeedAndSyncProfile(songId, speed) }
+                }
             }
         })
 
@@ -662,7 +705,9 @@ class NowPlayingActivity : AppCompatActivity() {
             binding.cardSpeed.seekSpeed.progress = 10
             binding.cardSpeed.tvSpeedValue.text = speedLabel(1.0f)
             musicService?.applySpeedToCurrentSong(1.0f)
-            activityScope.launch { repository.updateSpeedAndSyncProfile(songId, 1.0f) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, 1.0f) }
+            }
         }
 
         binding.cardSpeed.btnSpeedDown.setOnClickListener {
@@ -673,7 +718,9 @@ class NowPlayingActivity : AppCompatActivity() {
             val speed = progressToSpeed(newProgress)
             binding.cardSpeed.tvSpeedValue.text = speedLabel(speed)
             musicService?.applySpeedToCurrentSong(speed)
-            activityScope.launch { repository.updateSpeedAndSyncProfile(songId, speed) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, speed) }
+            }
         }
 
         binding.cardSpeed.btnSpeedUp.setOnClickListener {
@@ -684,7 +731,9 @@ class NowPlayingActivity : AppCompatActivity() {
             val speed = progressToSpeed(newProgress)
             binding.cardSpeed.tvSpeedValue.text = speedLabel(speed)
             musicService?.applySpeedToCurrentSong(speed)
-            activityScope.launch { repository.updateSpeedAndSyncProfile(songId, speed) }
+            saveStateIfAllowed {
+                activityScope.launch { repository.updateSpeedAndSyncProfile(songId, speed) }
+            }
         }
 
         binding.cardTrim.seekTrimStart.setOnSeekBarChangeListener(object :
@@ -748,22 +797,24 @@ class NowPlayingActivity : AppCompatActivity() {
 
         binding.btnFavorite.setOnClickListener {
             val s = song ?: return@setOnClickListener
-            activityScope.launch {
-                repository.toggleFavorite(s)
-                repository.getSongById(s.id)?.let { fresh ->
-                    song = fresh
-                    runOnUiThread {
-                        binding.btnFavorite.setImageResource(
-                            if (fresh.isFavorite) FavoriteIconHelper.filledRes(
-                                favoriteIconType
-                            ) else FavoriteIconHelper.outlineRes(favoriteIconType)
-                        )
-                        binding.btnFavorite.setColorFilter(
-                            ContextCompat.getColor(
-                                this@NowPlayingActivity,
-                                FavoriteIconHelper.colorRes(favoriteIconType)
+            saveStateIfAllowed {
+                activityScope.launch {
+                    repository.toggleFavorite(s)
+                    repository.getSongById(s.id)?.let { fresh ->
+                        song = fresh
+                        runOnUiThread {
+                            binding.btnFavorite.setImageResource(
+                                if (fresh.isFavorite) FavoriteIconHelper.filledRes(
+                                    favoriteIconType
+                                ) else FavoriteIconHelper.outlineRes(favoriteIconType)
                             )
-                        )
+                            binding.btnFavorite.setColorFilter(
+                                ContextCompat.getColor(
+                                    this@NowPlayingActivity,
+                                    FavoriteIconHelper.colorRes(favoriteIconType)
+                                )
+                            )
+                        }
                     }
                 }
             }
@@ -907,8 +958,16 @@ class NowPlayingActivity : AppCompatActivity() {
             tv.text = "${formatDuration(region.startMs)} ➔ ${formatDuration(region.endMs)}"
             tv.setTextColor(ContextCompat.getColor(this, R.color.neon_yellow))
             iv.setImageResource(R.drawable.ic_close)
-            iv.setOnClickListener { viewModel.deleteSkipRegion(region) }
-            itemView.setOnClickListener { activityScope.launch { profileRepo.toggleSkipRegion(region) } }
+            iv.setOnClickListener {
+                saveStateIfAllowed {
+                    viewModel.deleteSkipRegion(region)
+                }
+            }
+            itemView.setOnClickListener {
+                saveStateIfAllowed {
+                    activityScope.launch { profileRepo.toggleSkipRegion(region) }
+                }
+            }
             itemView.alpha = if (region.isEnabled) 1.0f else 0.5f
             binding.cardSkipSections.layoutSkipSections.addView(itemView)
         }
@@ -920,12 +979,14 @@ class NowPlayingActivity : AppCompatActivity() {
         MaterialAlertDialogBuilder(this).setTitle("ADD SKIP SECTION")
             .setMessage("Create a 30-second skip section starting at ${formatDuration(pos)}?")
             .setPositiveButton("ADD") { _, _ ->
-                viewModel.addSkipRegion(
-                    s.id,
-                    "",
-                    pos,
-                    (pos + 30000).coerceAtMost(s.duration)
-                )
+                saveStateIfAllowed {
+                    viewModel.addSkipRegion(
+                        s.id,
+                        "",
+                        pos,
+                        (pos + 30000).coerceAtMost(s.duration)
+                    )
+                }
             }
             .setNeutralButton("CUSTOM") { _, _ -> showCustomSkipDialog() }
             .setNegativeButton("CANCEL", null).show()
@@ -963,12 +1024,15 @@ class NowPlayingActivity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
             else {
-                viewModel.addSkipRegion(
-                    s.id,
-                    "",
-                    startMs,
-                    endMs.coerceAtMost(s.duration)
-                ); dialog.dismiss()
+                saveStateIfAllowed {
+                    viewModel.addSkipRegion(
+                        s.id,
+                        "",
+                        startMs,
+                        endMs.coerceAtMost(s.duration)
+                    )
+                }
+                dialog.dismiss()
             }
         }
         dialog.show()
@@ -983,50 +1047,52 @@ class NowPlayingActivity : AppCompatActivity() {
 
     private fun resetAllStates() {
         val s = song ?: return
-        activityScope.launch {
-            repository.updatePitchAndSyncProfile(
+        saveStateIfAllowed {
+            activityScope.launch {
+                repository.updatePitchAndSyncProfile(
+                    s.id,
+                    0f
+                ); repository.updateSpeedAndSyncProfile(
                 s.id,
-                0f
-            ); repository.updateSpeedAndSyncProfile(
-            s.id,
-            1.0f
-        ); repository.updateTrimAndSyncProfile(s.id, 0L, -1L)
-            viewModel.activeProfile.value?.let { p ->
-                profileRepo.updateProfile(
-                    p.copy(
-                        pitchSemitones = 0f,
-                        playbackSpeed = 1.0f,
-                        trimStart = 0L,
-                        trimEnd = -1L,
-                        abRepeatEnabled = false
-                    )
-                )
-            }
-            profileRepo.deleteAllSkipRegions(s.id)
-            runOnUiThread {
-                pointA = -1L; pointB = -1L; isAbRepeatEnabled = false
-                populate(
-                    s.copy(
-                        pitchSemitones = 0f,
-                        playbackSpeed = 1.0f,
-                        trimStart = 0L,
-                        trimEnd = -1L
-                    )
-                )
-                binding.cardAbRepeat.tvPointA.text =
-                    "A: --:--"; binding.cardAbRepeat.tvPointB.text = "B: --:--"
-                binding.cardAbRepeat.switchAbRepeat.isChecked =
-                    false; binding.cardStateToggle.switchPlaybackState.isChecked = true
-                viewModel.setOriginalState(false); updateStateLabels(true)
-                musicService?.applyPitchToCurrentSong(0f); musicService?.applySpeedToCurrentSong(
                 1.0f
-            ); musicService?.applyTrimToCurrentSong(0L, -1L)
-                musicService?.applyAbRepeatToCurrentSong(
-                    -1,
-                    -1,
-                    false
-                ); musicService?.setBypassProfiles(false)
+            ); repository.updateTrimAndSyncProfile(s.id, 0L, -1L)
+                viewModel.activeProfile.value?.let { p ->
+                    profileRepo.updateProfile(
+                        p.copy(
+                            pitchSemitones = 0f,
+                            playbackSpeed = 1.0f,
+                            trimStart = 0L,
+                            trimEnd = -1L,
+                            abRepeatEnabled = false
+                        )
+                    )
+                }
+                profileRepo.deleteAllSkipRegions(s.id)
             }
+        }
+        runOnUiThread {
+            pointA = -1L; pointB = -1L; isAbRepeatEnabled = false
+            populate(
+                s.copy(
+                    pitchSemitones = 0f,
+                    playbackSpeed = 1.0f,
+                    trimStart = 0L,
+                    trimEnd = -1L
+                )
+            )
+            binding.cardAbRepeat.tvPointA.text =
+                "A: --:--"; binding.cardAbRepeat.tvPointB.text = "B: --:--"
+            binding.cardAbRepeat.switchAbRepeat.isChecked =
+                false; binding.cardStateToggle.switchPlaybackState.isChecked = true
+            viewModel.setOriginalState(false); updateStateLabels(true)
+            musicService?.applyPitchToCurrentSong(0f); musicService?.applySpeedToCurrentSong(
+            1.0f
+        ); musicService?.applyTrimToCurrentSong(0L, -1L)
+            musicService?.applyAbRepeatToCurrentSong(
+                -1,
+                -1,
+                false
+            ); musicService?.setBypassProfiles(false)
         }
     }
 
